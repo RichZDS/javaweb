@@ -110,6 +110,7 @@ public class AdminPaperService {
                 .setTotalScore(content.total())
                 .setPassScore(in.passScore())
                 .setStatus(OFFLINE)
+                .setShuffleOptions(Boolean.TRUE.equals(in.shuffleOptions()))
                 .setCreatedAt(now)
                 .setUpdatedAt(now);
         paperMapper.insert(p);
@@ -123,7 +124,7 @@ public class AdminPaperService {
         CategoryTree tree = categoryService.tree();
         LocalDateTime now = TimeUtil.nowUtc(clock);
         if (attemptsOf(id) > 0) {
-            // 有人考过：只允许改标题和描述，其余字段必须和现在一致
+            // 有人考过：只允许改标题、描述（和是否打乱选项，它不影响判分，只对之后开考的场次生效），其余字段必须和现在一致
             if (!Objects.equals(in.categoryId(), p.getCategoryId()) || !Objects.equals(in.mode(), p.getMode())
                     || !Objects.equals(in.durationMin(), p.getDurationMin())
                     || !Objects.equals(in.passScore(), p.getPassScore())
@@ -133,6 +134,7 @@ public class AdminPaperService {
             paperMapper.update(null, new LambdaUpdateWrapper<ExamPaper>().eq(ExamPaper::getId, id)
                     .set(ExamPaper::getTitle, in.title().strip())
                     .set(ExamPaper::getDescription, blankToNull(in.description()))
+                    .set(ExamPaper::getShuffleOptions, Boolean.TRUE.equals(in.shuffleOptions()))
                     .set(ExamPaper::getUpdatedAt, now));
             return view(require(id));
         }
@@ -148,6 +150,7 @@ public class AdminPaperService {
                 .set(ExamPaper::getDurationMin, in.durationMin())
                 .set(ExamPaper::getTotalScore, content.total())
                 .set(ExamPaper::getPassScore, in.passScore())
+                .set(ExamPaper::getShuffleOptions, Boolean.TRUE.equals(in.shuffleOptions()))
                 .set(ExamPaper::getUpdatedAt, now));
         paperQuestionMapper.delete(new LambdaQueryWrapper<PaperQuestion>().eq(PaperQuestion::getPaperId, id));
         paperRuleMapper.delete(new LambdaQueryWrapper<PaperRule>().eq(PaperRule::getPaperId, id));
@@ -348,7 +351,7 @@ public class AdminPaperService {
         Category exam = tree.get(p.getCategoryId());
         return new AdminPaper(p.getId(), p.getTitle(), p.getCategoryId(), exam == null ? null : exam.getName(),
                 p.getDescription(), p.getMode(), p.getDurationMin(), p.getTotalScore(), p.getPassScore(), p.getStatus(),
-                count, attempts, questions, rules, TimeUtil.toInstant(p.getCreatedAt()),
+                Boolean.TRUE.equals(p.getShuffleOptions()), count, attempts, questions, rules, TimeUtil.toInstant(p.getCreatedAt()),
                 TimeUtil.toInstant(p.getUpdatedAt()));
     }
 

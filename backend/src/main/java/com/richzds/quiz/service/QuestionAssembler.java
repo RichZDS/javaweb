@@ -43,6 +43,17 @@ public class QuestionAssembler {
                 favorite != null, favorite == null ? null : favorite.getNote());
     }
 
+    /** 同一道题换一套选项（选项打乱后用）。 */
+    public static QuestionView withOptions(QuestionView v, List<OptionView> options) {
+        return new QuestionView(v.id(), v.categoryId(), v.categoryPath(), v.type(), v.difficulty(), v.tags(), v.stem(),
+                v.stemHtml(), options, v.blankCount(), v.imageUrl(), v.favorited(), v.note());
+    }
+
+    /** 同一份答案换成新标签的正确答案（选项打乱后用）。 */
+    public static AnswerView withCorrectAnswer(AnswerView a, List<String> correctAnswer) {
+        return new AnswerView(correctAnswer, a.acceptedAnswers(), a.fillOptions(), a.analysis(), a.analysisHtml());
+    }
+
     public AnswerView answer(Question q) {
         return answer(AnswerKey.of(q), q.getAnalysis());
     }
