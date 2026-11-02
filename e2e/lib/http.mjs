@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { randomBytes } from 'node:crypto';
+import { appendFileSync } from 'node:fs';
 import { BASE_URL } from './stack-urls.mjs';
 
 export { BASE_URL };
@@ -28,16 +29,25 @@ export class Api {
     if (this.token) headers.Authorization = `Bearer ${this.token}`;
     if (body !== undefined && !multipart) headers['Content-Type'] = 'application/json';
     let response;
+    const started = performance.now();
     try {
       response = await fetch(`${BASE_URL}${path}`, {
         method, headers,
         body: body === undefined ? undefined : multipart ? body : JSON.stringify(body),
         signal: AbortSignal.timeout(12000),
       });
-    } catch {
-      throw new Error(`${serviceError()} 请求：${method} ${path}`);
+    } catch (error) {
+      const kind = error.name === 'TimeoutError' ? 'TimeoutError' : 'FetchError';
+      const ms = Math.round(performance.now() - started);
+      if (process.env.QA_API_TIMINGS) appendFileSync(process.env.QA_API_TIMINGS, `${JSON.stringify({ method,
+        path: path.split('?')[0], status: null, error: kind, ms })}\n`);
+      throw new Error(`${serviceError()} 请求：${method} ${path}（${kind}, ${ms}ms）`);
     }
     const raw = await response.text();
+    // Opt-in API round-trip timing only: never capture bodies, credentials, query values or static assets.
+    if (process.env.QA_API_TIMINGS) appendFileSync(process.env.QA_API_TIMINGS, `${JSON.stringify({
+      method, path: path.split('?')[0], status: response.status, ms: Math.round(performance.now() - started),
+    })}\n`);
     let payload;
     try { payload = JSON.parse(raw); }
     catch { assert.fail(`${method} ${path}: 返回非 JSON，HTTP ${response.status}`); }

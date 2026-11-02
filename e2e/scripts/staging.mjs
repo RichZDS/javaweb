@@ -34,8 +34,8 @@ async function credentials() {
 
 try {
   const mode = process.argv[2];
-  if (!['prepare', 'api', 'shuffle-api', 'app', 'exam', 'shuffle-ui', 'repro-submit', 'upload'].includes(mode)) throw new Error('用法：staging.mjs prepare|api|shuffle-api|app|exam|shuffle-ui|repro-submit|upload');
-  if (['prepare', 'api', 'shuffle-api', 'shuffle-ui'].includes(mode)) await credentials();
+  if (!['prepare', 'api', 'shuffle-api', 'app', 'exam', 'shuffle-ui', 'repro-submit', 'concurrency-api', 'admin-shuffle-ui', 'upload'].includes(mode)) throw new Error('用法：staging.mjs prepare|api|shuffle-api|app|exam|shuffle-ui|repro-submit|concurrency-api|admin-shuffle-ui|upload');
+  if (['prepare', 'api', 'shuffle-api', 'shuffle-ui', 'admin-shuffle-ui'].includes(mode)) await credentials();
   else { delete process.env.ADMIN_USERNAME; delete process.env.ADMIN_PASSWORD; }
   let state;
   if (mode === 'prepare') {
@@ -68,8 +68,8 @@ try {
     console.log(JSON.stringify({ prepared: true, fixtureRoot: state.fixtureRoot, categories: categories.size, questions: questions.size, papers: seed.papers.length }));
   } else {
     state = JSON.parse(await readFile(stateFile, 'utf8')); process.env.QA_FIXTURE_ROOT = state.fixtureRoot;
-    const api = ['api', 'shuffle-api'].includes(mode);
-    process.env.QA_SCOPE = ({ api: 'all', 'shuffle-api': 'shuffle', app: 'm1', exam: 'm2', 'shuffle-ui': 'shuffle', 'repro-submit': 'm2', upload: 'm1' })[mode];
+    const api = ['api', 'shuffle-api', 'concurrency-api'].includes(mode);
+    process.env.QA_SCOPE = ({ api: 'all', 'shuffle-api': 'shuffle', 'concurrency-api': 'concurrency', 'admin-shuffle-ui': 'admin-shuffle', app: 'm1', exam: 'm2', 'shuffle-ui': 'shuffle', 'repro-submit': 'm2', upload: 'm1' })[mode];
     process.env.QA_STAGE = `staging-${mode}`; process.env.QA_MAIN_COMMIT = process.env.STAGING_COMMIT || state.serverCommit || 'staging (runtime release not exposed)';
     const child = spawn(process.execPath, [mode === 'repro-submit' ? 'scripts/repro-concurrent-submit.mjs' : mode === 'upload' ? 'scripts/probe-upload.mjs' : api ? 'scripts/run-api.mjs' : 'scripts/run-ui.mjs'], { cwd: e2e, env: process.env, stdio: 'inherit' });
     const tracked = trackChild(child, fileURLToPath(new URL('../..', import.meta.url)), fileURLToPath(new URL('../artifacts/processes', import.meta.url)), `staging-${mode}`);
