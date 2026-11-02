@@ -1,0 +1,132 @@
+# 在线刷题 App 的服务器部署：MySQL + 后端 jar + Nginx（静态文件和反向代理）。
+# 只有 web 在本机 127.0.0.1:18090 上开端口，由服务器上已有的 Caddy 把 https://<服务器>/quiz/ 转发过来。
+# 变量从同目录的 .env 读（照 .env.example 填写，不进仓库）。用法见 deploy/README.md。
+name: quiz
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    mem_limit: 512m
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?请在 .env 里设置 MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: quiz
+      MYSQL_USER: quiz
+      MYSQL_PASSWORD: ${DB_PASSWORD:?请在 .env 里设置 DB_PASSWORD}
+      TZ: UTC
+    # 小内存机器调参：缓冲池 128M、关闭 performance_schema、限制连接数；库表统一 utf8mb4、时区 UTC
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+      - --default-time-zone=+00:00
+      - --innodb-buffer-pool-size=128M
+      - --innodb-log-buffer-size=8M
+      - --performance-schema=OFF
+      - --max-connections=50
+      - --table-open-cache=256
+      - --thread-cache-size=8
+      - --tmp-table-size=16M
+      - --max-heap-table-size=16M
+      - --key-buffer-size=8M
+      - --skip-name-resolve
+    volumes:
+      - quiz-mysql:/var/lib/mysql
+    networks: [back]
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=\"$$MYSQL_ROOT_PASSWORD\" mysqladmin ping -h 127.0.0.1 -uroot --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    logging: *logging
+
+  backend:
+    image: eclipse-temurin:17-jre
+    restart: unless-stopped
+    mem_limit: 640m
+    depends_on:
+      db:
+        condition: service_healthy
+    # jar 在本机打好，由 deploy.sh 传到 ./app/，这里只读挂载运行，不在服务器上构建
+    command:
+      - java
+      - -Xms128m
+      - -Xmx384m
+      - -XX:MaxMetaspaceSize=128m
+      - -XX:+UseSerialGC
+      - -Xss512k
+      - -XX:+ExitOnOutOfMemoryError
+      - -Duser.timezone=UTC
+      - -jar
+      - /app/quiz-backend.jar
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:mysql://db:3306/quiz?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
+      DB_USERNAME: quiz
+      DB_PASSWORD: ${DB_PASSWORD:?请在 .env 里设置 DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:?请在 .env 里设置 JWT_SECRET（至少 32 字节）}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?请在 .env 里设置 ADMIN_PASSWORD}
+      UPLOAD_DIR: /data/uploads
+      APP_SEED_ENABLED: ${APP_SEED_ENABLED:-false}
+      APP_RELEASE_ANDROID_LATEST_VERSION: ${APP_RELEASE_ANDROID_LATEST_VERSION:-1.0.0}
+      APP_RELEASE_ANDROID_MIN_VERSION: ${APP_RELEASE_ANDROID_MIN_VERSION:-1.0.0}
+      APP_RELEASE_ANDROID_DOWNLOAD_URL: ${APP_RELEASE_ANDROID_DOWNLOAD_URL:-}
+      APP_RELEASE_ANDROID_NOTES: ${APP_RELEASE_ANDROID_NOTES:-}
+      APP_RELEASE_IOS_LATEST_VERSION: ${APP_RELEASE_IOS_LATEST_VERSION:-1.0.0}
+      APP_RELEASE_IOS_MIN_VERSION: ${APP_RELEASE_IOS_MIN_VERSION:-1.0.0}
+      APP_RELEASE_IOS_DOWNLOAD_URL: ${APP_RELEASE_IOS_DOWNLOAD_URL:-}
+      APP_RELEASE_IOS_NOTES: ${APP_RELEASE_IOS_NOTES:-}
+      TZ: UTC
+    volumes:
+      - ./app:/app:ro
+      - quiz-uploads:/data/uploads
+    networks: [back]
+    # 镜像里不一定有 curl，用 bash 的 /dev/tcp 请求一次健康接口
+    healthcheck:
+      test:
+        - CMD
+        - bash
+        - -c
+        - >-
+          exec 3<>/dev/tcp/127.0.0.1/8080 &&
+          printf 'GET /api/app/version?platform=android HTTP/1.0\r\nHost: localhost\r\n\r\n' >&3 &&
+          grep -q '"code":"OK"' <&3
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 90s
+    logging: *logging
+
+  web:
+    image: nginx:alpine
+    restart: unless-stopped
+    mem_limit: 64m
+    depends_on:
+      - backend
+    ports:
+      - "127.0.0.1:18090:80"
+    volumes:
+      # 挂目录不挂单个文件：rsync 替换文件后，单文件挂载会一直指向旧文件
+      - ./nginx:/etc/nginx/conf.d:ro
+      - ./www:/usr/share/nginx/html/quiz:ro
+    networks: [front, back]
+    logging: *logging
+
+networks:
+  # back 不通外网：数据库和后端只在内部互相访问
+  back:
+    internal: true
+  front: {}
+
+volumes:
+  quiz-mysql:
+    name: quiz-mysql
+  quiz-uploads:
+    name: quiz-uploads

@@ -1,4 +1,11 @@
-# 生产：全部从环境变量读。缺 JWT_SECRET 或 ADMIN_PASSWORD 时启动失败并提示缺什么。
+# 生产：全部从环境变量读。缺必填项时启动失败，一次列出缺哪些（ProdEnvironmentCheck）。
+server:
+  # 部署在 Nginx / Caddy 后面：按 X-Forwarded-Proto / -Host / -Prefix 生成重定向等地址
+  forward-headers-strategy: framework
+  tomcat:
+    threads:
+      max: ${SERVER_TOMCAT_THREADS_MAX:50}
+
 spring:
   datasource:
     url: ${DB_URL}

@@ -8,6 +8,11 @@
 .env.*
 !.env.example
 
+# 部署：本机连接信息、打包产物、服务器备份
+deploy/.env.deploy
+deploy/app/
+deploy/backups/
+
 # 后端
 backend/target/
 backend/uploads/
