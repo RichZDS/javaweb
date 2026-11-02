@@ -185,7 +185,7 @@
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
 | GET | `/api/practice/sessions/{id}` | 取一次练习，只能取自己的 |
-| GET | `/api/practice/sessions/current` | 最近一次未完成的非每日练习，没有时 data 为 `null`，用于首页“继续练习” |
+| GET | `/api/practice/sessions/current` | 本人目标考试下最近一次未完成的非每日练习（没有目标考试时不限考试），没有时 data 为 `null`，用于首页“继续练习”；可传 `?categoryId=` 指定一级分类 |
 | GET | `/api/practice/sessions?page=&size=` | 练习记录 `{id, mode, questionCount, answeredCount, correctCount, startedAt, completedAt}` |
 | POST | `/api/practice/sessions/{id}/answers` | `{questionId, userAnswer, timeSpentSec}`。返回 `{questionId, correct, userAnswer, correctAnswer, acceptedAnswers, analysisHtml, alreadySubmitted, optionMapping}`。每题只能提交一次，重复提交返回第一次的结果且 `alreadySubmitted=true`。背题模式返回 409 `CONFLICT` |
 | PUT | `/api/practice/sessions/{id}/progress` | `{currentIndex}`，保存看到第几题 |
