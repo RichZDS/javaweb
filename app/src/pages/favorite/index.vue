@@ -70,7 +70,7 @@ onShow(() => {
   if (!chapters.value.length && user.targetCategoryId) {
     categoryApi
       .tree(user.targetCategoryId)
-      .then((root) => (chapters.value = (root.children ?? []).flatMap((s) => s.children ?? [])))
+      .then((root) => (chapters.value = (root.children ?? []).reduce<CategoryNode[]>((acc, s) => acc.concat(s.children ?? []), [])))
       .catch(() => {})
   }
   fetchPage(1)

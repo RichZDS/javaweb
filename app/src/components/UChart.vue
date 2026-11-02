@@ -19,6 +19,7 @@ import { getCurrentInstance, onMounted, watch } from 'vue'
 import uCharts from '@qiun/ucharts'
 import { storeToRefs } from 'pinia'
 import { useSettingsStore } from '@/stores/settings'
+import { omitKeys } from '@/utils/compat'
 
 export interface ChartSeries {
   name: string
@@ -85,7 +86,7 @@ function draw() {
       tooltip: { showBox: true },
       ...(o.extra ?? {}),
     },
-    ...Object.fromEntries(Object.entries(o).filter(([k]) => !['legend', 'xAxis', 'yAxis', 'extra'].includes(k))),
+    ...omitKeys(o, ['legend', 'xAxis', 'yAxis', 'extra']),
   })
 }
 

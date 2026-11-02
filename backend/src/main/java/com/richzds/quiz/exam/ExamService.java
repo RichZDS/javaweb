@@ -57,7 +57,6 @@ import com.richzds.quiz.mapper.ExamRecordMapper;
 import com.richzds.quiz.mapper.PaperQuestionMapper;
 import com.richzds.quiz.mapper.PaperRuleMapper;
 import com.richzds.quiz.mapper.QuestionMapper;
-import com.richzds.quiz.mapper.UserMapper;
 import com.richzds.quiz.service.CategoryService;
 import com.richzds.quiz.service.CategoryTree;
 import com.richzds.quiz.service.GradingService;
@@ -92,7 +91,6 @@ public class ExamService {
     private final ExamRecordMapper recordMapper;
     private final ExamAnswerMapper answerMapper;
     private final QuestionMapper questionMapper;
-    private final UserMapper userMapper;
     private final UserService userService;
     private final QuestionService questionService;
     private final CategoryService categoryService;
@@ -103,7 +101,7 @@ public class ExamService {
 
     public ExamService(ExamPaperMapper paperMapper, PaperQuestionMapper paperQuestionMapper,
                        PaperRuleMapper paperRuleMapper, ExamRecordMapper recordMapper, ExamAnswerMapper answerMapper,
-                       QuestionMapper questionMapper, UserMapper userMapper, UserService userService,
+                       QuestionMapper questionMapper, UserService userService,
                        QuestionService questionService, CategoryService categoryService, QuestionAssembler assembler,
                        GradingService gradingService, ExamSettler settler, Clock clock) {
         this.paperMapper = paperMapper;
@@ -112,7 +110,6 @@ public class ExamService {
         this.recordMapper = recordMapper;
         this.answerMapper = answerMapper;
         this.questionMapper = questionMapper;
-        this.userMapper = userMapper;
         this.userService = userService;
         this.questionService = questionService;
         this.categoryService = categoryService;
@@ -200,8 +197,7 @@ public class ExamService {
     @Transactional
     public Started start(long userId, long paperId) {
         // 锁住本人这一行，同一个人并发开考时排队，避免同一份卷建出两场进行中的考试
-        userMapper.update(null, new LambdaUpdateWrapper<User>().eq(User::getId, userId)
-                .setSql("updated_at = updated_at"));
+        userService.lockRow(userId);
         ExamPaper paper = requireOnline(paperId);
         LocalDateTime now = TimeUtil.nowUtc(clock);
         ExamRecord running = recordMapper.selectOne(new LambdaQueryWrapper<ExamRecord>()
@@ -214,7 +210,7 @@ public class ExamService {
             if (now.isBefore(running.getDeadlineAt())) {
                 return new Started(sheet(running), false);
             }
-            settler.settle(running.getId(), ExamSettler.REASON_TIMEOUT);
+            settler.settle(userId, running.getId(), ExamSettler.REASON_TIMEOUT);
         }
 
         CategoryTree tree = categoryService.tree();
@@ -325,15 +321,17 @@ public class ExamService {
 
     // ------------------------------------------------------------------ 答卷
 
-    /** 进行中返回 ExamSheet，已结算返回 ExamResult；过了截止时间的先结算。 */
-    @Transactional
+    /**
+     * 进行中返回 ExamSheet，已结算返回 ExamResult；过了截止时间的先结算。
+     * 不包在事务里：结算自己一个事务（先锁本人），成绩单在它提交之后再读，读到的一定是结算后的数据。
+     */
     public Object record(long userId, long recordId) {
         ExamRecord r = requireOwn(userId, recordId);
         if (ExamSettler.STATUS_IN_PROGRESS.equals(r.getStatus())) {
             if (TimeUtil.nowUtc(clock).isBefore(r.getDeadlineAt())) {
                 return sheet(r);
             }
-            settler.settle(recordId, ExamSettler.REASON_TIMEOUT);
+            settler.settle(userId, recordId, ExamSettler.REASON_TIMEOUT);
             r = recordMapper.selectById(recordId);
         }
         return result(r);
@@ -345,10 +343,13 @@ public class ExamService {
      */
     @Transactional
     public SaveAnswerResult saveAnswer(long userId, long recordId, long questionId, SaveAnswerRequest req) {
-        requireOwn(userId, recordId);
-        LocalDateTime now = TimeUtil.nowUtc(clock);
+        // 加锁读放在事务第一句：先拿锁再建快照，后面读已存答案时才看得到别的请求刚提交的版本
         ExamRecord r = recordMapper.selectOne(new LambdaQueryWrapper<ExamRecord>()
                 .eq(ExamRecord::getId, recordId).last("FOR UPDATE"));
+        if (r == null || r.getUserId() != userId) {
+            throw BizException.notFound("考试记录");
+        }
+        LocalDateTime now = TimeUtil.nowUtc(clock);
         if (!ExamSettler.STATUS_IN_PROGRESS.equals(r.getStatus()) || !now.isBefore(r.getDeadlineAt())) {
             throw new BizException(ErrorCode.EXAM_EXPIRED, "考试已结束，答案不再接收");
         }
@@ -360,6 +361,18 @@ public class ExamService {
         List<String> answer = gradingService.normalize(QuestionType.valueOf(item.type()), given, item.blankCount());
         int version = req.version();
         boolean marked = Boolean.TRUE.equals(req.marked());
+        // 先 INSERT（这道题第一次保存），唯一键冲突再按版本条件 UPDATE。不能“先 UPDATE、没有再 INSERT”：
+        // InnoDB 可重复读下 UPDATE 没命中会加间隙锁；全班同时开考时，新建的考试记录在索引里挨着，
+        // 大家第一次保存答案落在同一个间隙，各自的 INSERT 互相等对方的间隙锁，就死锁了（返回 500）。
+        // 同一场考试的保存已经被上面的考试记录锁串行化，所以冲突分支不会和别的请求抢同一行。
+        try {
+            answerMapper.insert(new ExamAnswer().setRecordId(recordId).setQuestionId(questionId)
+                    .setUserAnswer(JsonUtil.write(answer)).setVersion(version).setMarked(marked)
+                    .setReceivedAt(now));
+            return new SaveAnswerResult(true, version);
+        } catch (DuplicateKeyException e) {
+            // 这道题已经存过：只接受更大的版本
+        }
         int updated = answerMapper.update(null, new LambdaUpdateWrapper<ExamAnswer>()
                 .eq(ExamAnswer::getRecordId, recordId)
                 .eq(ExamAnswer::getQuestionId, questionId)
@@ -372,24 +385,16 @@ public class ExamService {
             return new SaveAnswerResult(true, version);
         }
         ExamAnswer existing = findAnswer(recordId, questionId);
-        if (existing == null) {
-            try {
-                answerMapper.insert(new ExamAnswer().setRecordId(recordId).setQuestionId(questionId)
-                        .setUserAnswer(JsonUtil.write(answer)).setVersion(version).setMarked(marked)
-                        .setReceivedAt(now));
-                return new SaveAnswerResult(true, version);
-            } catch (DuplicateKeyException e) {
-                existing = findAnswer(recordId, questionId);
-            }
-        }
         return new SaveAnswerResult(false, existing == null ? 0 : existing.getVersion());
     }
 
-    /** 交卷：可重复调用，只结算一次。 */
-    @Transactional
+    /**
+     * 交卷：可重复调用，只结算一次。不包在事务里（理由同 {@link #record}）：以前整个方法一个事务，
+     * 同时交卷两次时，后到的请求先普通读建了快照，等前一个结算完、抢占失败，再用旧快照返回“0 分”（BUG-QA-004）。
+     */
     public ExamResult submit(long userId, long recordId) {
         requireOwn(userId, recordId);
-        settler.settle(recordId, ExamSettler.REASON_MANUAL);
+        settler.settle(userId, recordId, ExamSettler.REASON_MANUAL);
         return result(recordMapper.selectById(recordId));
     }
 
@@ -410,8 +415,8 @@ public class ExamService {
 
     /** 本人已过截止时间的考试逐个结算（每个一个事务）。 */
     public void settleExpiredOf(long userId) {
-        for (Long id : settler.expiredIds(userId)) {
-            settler.settle(id, ExamSettler.REASON_TIMEOUT);
+        for (ExamRecord r : settler.expired(userId)) {
+            settler.settle(userId, r.getId(), ExamSettler.REASON_TIMEOUT);
         }
     }
 

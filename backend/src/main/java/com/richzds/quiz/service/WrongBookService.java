@@ -81,19 +81,15 @@ public class WrongBookService {
                 .set(WrongQuestion::getRemovedAt, now));
     }
 
+    /**
+     * 记一次答错：先 INSERT，唯一键冲突（已经在错题本里，包括已移出的）再累加。
+     * 不能“先 UPDATE、没有再 INSERT”：InnoDB 可重复读下，UPDATE 没命中会在这个键的位置加间隙锁，
+     * 两个人的第一次答错落在同一个间隙里（不同用户也会，比如两个还没有错题的新用户），
+     * 各自的 INSERT 都要等对方的间隙锁，就死锁了（返回 500）。插入意向锁之间不冲突。
+     * 同一个人同一道题的并发写由调用方先锁 user 行串行化（练习提交、考试结算），
+     * 所以“两边都插入冲突、再都 UPDATE”的共享锁升级死锁也不会出现。
+     */
     private void recordWrong(long userId, long questionId, String answerJson, LocalDateTime now) {
-        LambdaUpdateWrapper<WrongQuestion> bump = new LambdaUpdateWrapper<WrongQuestion>()
-                .eq(WrongQuestion::getUserId, userId)
-                .eq(WrongQuestion::getQuestionId, questionId)
-                .setSql("wrong_count = wrong_count + 1")
-                .set(WrongQuestion::getCorrectStreak, 0)
-                .set(WrongQuestion::getLastWrongAnswer, answerJson)
-                .set(WrongQuestion::getLastWrongAt, now)
-                .set(WrongQuestion::getRemoved, false)
-                .set(WrongQuestion::getRemovedAt, null);
-        if (wrongMapper.update(null, bump) > 0) {
-            return;
-        }
         try {
             wrongMapper.insert(new WrongQuestion()
                     .setUserId(userId)
@@ -104,10 +100,19 @@ public class WrongBookService {
                     .setLastWrongAt(now)
                     .setRemoved(false)
                     .setCreatedAt(now));
+            return;
         } catch (DuplicateKeyException e) {
-            // 并发下另一请求刚插入了这一条，退回到累加
-            wrongMapper.update(null, bump);
+            // 已经有这一条：累加
         }
+        wrongMapper.update(null, new LambdaUpdateWrapper<WrongQuestion>()
+                .eq(WrongQuestion::getUserId, userId)
+                .eq(WrongQuestion::getQuestionId, questionId)
+                .setSql("wrong_count = wrong_count + 1")
+                .set(WrongQuestion::getCorrectStreak, 0)
+                .set(WrongQuestion::getLastWrongAnswer, answerJson)
+                .set(WrongQuestion::getLastWrongAt, now)
+                .set(WrongQuestion::getRemoved, false)
+                .set(WrongQuestion::getRemovedAt, null));
     }
 
     private static LambdaUpdateWrapper<WrongQuestion> activeEntry(long userId, long questionId) {

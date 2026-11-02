@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.richzds.quiz.common.ApiResponse;
@@ -49,10 +50,11 @@ public class PracticeController {
                 .body(ApiResponse.ok(started.session()));
     }
 
-    @Operation(summary = "最近一次未完成的非每日练习，没有时 data 为 null")
+    @Operation(summary = "目标考试（或 categoryId 指定的一级分类）下最近一次未完成的非每日练习，没有时 data 为 null")
     @GetMapping("/current")
-    public ApiResponse<SessionView> current(@AuthenticationPrincipal CurrentUser user) {
-        return ApiResponse.ok(practiceService.current(user.id()));
+    public ApiResponse<SessionView> current(@AuthenticationPrincipal CurrentUser user,
+                                            @RequestParam(required = false) Long categoryId) {
+        return ApiResponse.ok(practiceService.current(user.id(), categoryId));
     }
 
     @Operation(summary = "练习记录")

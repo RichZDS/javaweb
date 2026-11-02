@@ -61,7 +61,7 @@
 - 纠错列表项的 `type` 是纠错类型（`ANSWER_WRONG` 等），另有 `questionType` 表示题型。
 - Excel 导入的题直接是已发布状态（模板要求答案和解析齐全）。来源可空，难度默认 3；判断题答案接受 `对`/`错`/`正确`/`错误`/`T`/`F`/`√`/`×`；多选答案可写 `AC` 或 `A,C`；一次最多 2000 行。
 - 后台题目：草稿可以不填答案和解析；不适用当前题型的答案字段忽略；判断题传了选项也忽略；`imageUrl` 只能是 `/uploads/` 开头或 http(s) 地址；不传 `sort` 时新建题排到章节末尾。
-- 删除题目：有作答记录、被试卷引用或被纠错过就归档，否则真删（同时删掉收藏）。
+- 删除题目：有作答记录、被试卷引用、被纠错过，或在任何人未完成的练习、进行中的考试里，就归档；否则真删（同时删掉收藏）。
 - 后台分类树的题量包括草稿和已发布；删除一级分类时，把它设为目标考试的用户目标会被清空。
 - 试卷新建后是下架状态；固定卷只能选已发布的题；后台 `attempts` 数全部考试记录（含进行中）；有考试记录后只能改标题和描述，改别的返回 409。
 - 看板：`userCount` 只数普通用户，`questionCount` 只数已发布，`papers[].attempts` 只数已结算场次，`avgScore` 保留 2 位小数。
@@ -185,7 +185,7 @@
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
 | GET | `/api/practice/sessions/{id}` | 取一次练习，只能取自己的 |
-| GET | `/api/practice/sessions/current` | 最近一次未完成的非每日练习，没有时 data 为 `null`，用于首页“继续练习” |
+| GET | `/api/practice/sessions/current` | 本人目标考试下最近一次未完成的非每日练习（没有目标考试时不限考试），没有时 data 为 `null`，用于首页“继续练习”；可传 `?categoryId=` 指定一级分类 |
 | GET | `/api/practice/sessions?page=&size=` | 练习记录 `{id, mode, questionCount, answeredCount, correctCount, startedAt, completedAt}` |
 | POST | `/api/practice/sessions/{id}/answers` | `{questionId, userAnswer, timeSpentSec}`。返回 `{questionId, correct, userAnswer, correctAnswer, acceptedAnswers, analysisHtml, alreadySubmitted, optionMapping}`。每题只能提交一次，重复提交返回第一次的结果且 `alreadySubmitted=true`。背题模式返回 409 `CONFLICT` |
 | PUT | `/api/practice/sessions/{id}/progress` | `{currentIndex}`，保存看到第几题 |
@@ -296,7 +296,7 @@
 | GET | `/api/admin/questions/{id}` | 完整题目（含答案、解析、`source`、`status`、`version`） |
 | POST | `/api/admin/questions` | 新建。`status=PUBLISHED` 时必须有正确答案和解析，否则 400 |
 | PUT | `/api/admin/questions/{id}` | 修改，`version + 1` |
-| DELETE | `/api/admin/questions/{id}` | 没人做过就真删；否则改成 `ARCHIVED` |
+| DELETE | `/api/admin/questions/{id}` | 没人做过、没被试卷引用、没被纠错、不在任何未完成的练习或进行中的考试里，才真删；否则改成 `ARCHIVED` |
 | POST | `/api/admin/questions/preview` | `{markdown}` → `{html}`，录题时预览 |
 | GET | `/api/admin/questions/import/template` | 下载 Excel 模板 |
 | POST | `/api/admin/questions/import` | multipart `file`（xlsx，≤ 5 MB）→ `{total, success, failed: [{row, reason}]}`；整表先校验，部分行错时只导入正确的行 |

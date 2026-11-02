@@ -38,3 +38,26 @@ export function viewOf<T>(slot: Slot<T> | null, current: number | null): { statu
   if (!slot || current === null || slot.target !== current) return { status: 'loading', data: null, error: null }
   return { status: slot.status, data: slot.data, error: slot.error }
 }
+
+/** 分类树里所有节点 id（用来判断一份数据属于哪个考试） */
+export function collectCategoryIds(root: { id: number; children?: unknown[] } | null | undefined): Set<number> {
+  const ids = new Set<number>()
+  const walk = (n: { id: number; children?: unknown[] }) => {
+    ids.add(n.id)
+    ;(n.children as { id: number; children?: unknown[] }[] | undefined)?.forEach(walk)
+  }
+  if (root) walk(root)
+  return ids
+}
+
+/**
+ * 一次练习是否属于当前考试：题目都在这个考试的分类树里。
+ * 「继续练习」接口不按目标考试过滤，首页要自己挡住别的考试的练习。
+ */
+export function sessionInExam(
+  session: { questions: { categoryId: number }[] } | null | undefined,
+  examCategoryIds: ReadonlySet<number>,
+): boolean {
+  if (!session || !session.questions.length || !examCategoryIds.size) return false
+  return session.questions.every((q) => examCategoryIds.has(q.categoryId))
+}
