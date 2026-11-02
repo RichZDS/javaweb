@@ -30,6 +30,7 @@
 - 时间：一律 ISO-8601 UTC，带 `Z`，例如 `2026-11-02T08:30:00.000Z`。“哪一天”一律按 `Asia/Shanghai` 计算，日期字段写成 `2026-11-02`。
 - 分页：请求 `?page=1&size=20`（size 最大 100）。返回 `{ "items": [], "total": 0, "page": 1, "size": 20 }`。
 - 枚举用大写英文字符串。
+- 写操作的返回：新建成功 HTTP 201，`data` 是新建后的完整对象；修改成功 200，`data` 是修改后的完整对象；删除成功 200，`data` 为 `null`（题目删除例外，见第 9 节）。
 - 富文本：题干、选项、解析都按 Markdown 存储。接口同时返回原文和后端渲染好的 HTML（字段名加 `Html` 后缀）。代码块渲染成带内联样式的 `<pre><code>`，用等宽字体和简单关键字高亮（Java、C、Python、SQL）。HTML 只允许白名单标签，防 XSS。
 
 ## 1. 题目的表示
@@ -258,6 +259,44 @@
 | GET | `/api/admin/dashboard` | `{userCount, questionCount, paperCount, todayAnswerCount, pendingFeedbackCount, daily: [{date, answerCount, activeUsers}], papers: [{paperId, title, attempts, avgScore, passRate}]}`，daily 为近 14 天 |
 
 管理员账号：启动时如果没有管理员，就用配置 `app.admin.username` / `app.admin.password` 创建一个。
+
+### 9.1 管理端对象
+
+分类节点 `AdminCategory`：`{id, parentId, name, level, sort, questionCount, children}`。新建、修改返回单个节点（`children` 为空数组）。
+
+题目请求体（`POST` 和 `PUT /api/admin/questions`）：
+
+```json
+{
+  "categoryId": 12,
+  "type": "MULTIPLE",
+  "stem": "markdown",
+  "options": [ { "key": "A", "text": "markdown" }, { "key": "B", "text": "markdown" } ],
+  "correctAnswer": ["A", "C"],
+  "acceptedAnswers": null,
+  "fillOptions": null,
+  "analysis": "markdown",
+  "difficulty": 3,
+  "tags": ["链表"],
+  "imageUrl": null,
+  "source": "原创",
+  "sort": 0,
+  "status": "PUBLISHED"
+}
+```
+
+- 单选、多选：`options` 2–6 项，`key` 必须按顺序是 A、B、C……；`correctAnswer` 单选 1 个、多选至少 2 个，都必须是已有的 key。
+- 判断：`options` 不传或传空数组，后端固定生成 T/F；`correctAnswer` 为 `["T"]` 或 `["F"]`。
+- 填空：`options` 不传；`acceptedAnswers` 每空一个非空数组；`fillOptions` 不传时默认 `{ignoreCase:false, ignoreSpaces:false}`；`blankCount` 由 `acceptedAnswers` 的长度决定。
+- 不适用的答案字段传 `null` 或不传。`categoryId` 必须是三级分类。`status` 只能是 `DRAFT` 或 `PUBLISHED`；归档只能通过删除接口产生。
+
+题目返回 `AdminQuestion`：请求体全部字段，加上 `id`、`categoryPath`、`stemHtml`、每个选项的 `html`、`analysisHtml`、`blankCount`、`version`、`answerCount`、`correctRate`、`createdAt`、`updatedAt`。列表接口返回同样结构，但不含 `stemHtml`、`analysisHtml`，另加 `stemPreview`。
+
+题目删除返回 `{ "deleted": true, "archived": false }`：没人做过时真删（`deleted:true`），有人做过时改为归档（`deleted:false, archived:true`）。
+
+试卷返回 `AdminPaper`：`{id, title, categoryId, categoryName, description, mode, durationMin, totalScore, passScore, status, questionCount, attempts, questions, rules, createdAt, updatedAt}`。固定卷 `questions` 为 `[{questionId, score, sort, type, stemPreview}]`、`rules` 为 `null`；规则卷反之，`rules` 为 `[{categoryId, categoryPath, type, count, score}]`。`totalScore` 由后端算出，请求里传了也忽略。新建、修改、改状态都返回 `AdminPaper`。
+
+用户列表项 `AdminUser`：`{id, username, nickname, role, status, answerCount, lastActiveAt, createdAt}`。纠错列表项：`{id, questionId, stemPreview, categoryPath, type, content, status, reply, username, createdAt, handledAt}`。
 
 ## 10. Excel 导入模板
 
