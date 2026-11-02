@@ -130,6 +130,45 @@ class WrongBookApiTest extends ApiTestBase {
         assertThat(entry(u, q).get("removed").asBoolean()).isTrue();
     }
 
+    /** BUG-PM-M3-01：错题本 / 收藏列表、分组和“重练全部”默认都按目标考试，切目标后保持一致。 */
+    @Test
+    void listsAndRetryAllFollowTheTargetExam() throws Exception {
+        Login u = register("scope_wb");
+        Category[] cs = tree("408");
+        Category[] java = tree("Java");
+        Question q408 = single(cs[2], "A");
+        Question qJava = single(java[2], "A");
+        answerOnce(u, cs[2], q408, "B");
+        answerOnce(u, java[2], qJava, "B");
+        call(put("/api/favorites/" + q408.getId(), u, null));
+        call(put("/api/favorites/" + qJava.getId(), u, null));
+        assertThat(list(u, "").get("total").asLong()).as("没有目标考试时看全部").isEqualTo(2);
+
+        for (Category[] target : List.of(java, cs)) {
+            setTarget(u, target[0]);
+            Question mine = target == java ? qJava : q408;
+            assertThat(ids(list(u, "").get("items"), "questionId")).containsExactly(mine.getId());
+            JsonNode groups = data(call(get("/api/wrong-questions/groups", u)));
+            assertThat(ids(groups, "categoryId")).containsExactly(target[2].getId());
+            assertThat(ids(data(call(get("/api/favorites", u))).get("items"), "questionId"))
+                    .containsExactly(mine.getId());
+
+            JsonNode retryAll = data(call(post("/api/practice/sessions", u, Map.of("mode", "WRONG"))));
+            assertThat(ids(retryAll.get("questions"), "id")).as("重练全部和列表是同一批").containsExactly(mine.getId());
+            JsonNode retryRoot = data(call(post("/api/practice/sessions", u,
+                    Map.of("mode", "WRONG", "categoryIds", List.of(target[0].getId())))));
+            assertThat(ids(retryRoot.get("questions"), "id")).containsExactly(mine.getId());
+            JsonNode favAll = data(call(post("/api/practice/sessions", u, Map.of("mode", "FAVORITE"))));
+            assertThat(ids(favAll.get("questions"), "id")).containsExactly(mine.getId());
+        }
+
+        // 显式传分类时只看该分类，不受目标考试限制
+        assertThat(ids(list(u, "?categoryId=" + java[0].getId()).get("items"), "questionId"))
+                .containsExactly(qJava.getId());
+        assertThat(ids(data(call(get("/api/favorites?categoryId=" + java[1].getId(), u))).get("items"),
+                "questionId")).containsExactly(qJava.getId());
+    }
+
     @Test
     void manualRemoveSortAndGroups() throws Exception {
         Login u = register("wrong5");
