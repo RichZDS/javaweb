@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import com.richzds.quiz.entity.ExamRecord;
+
 /**
  * 每 30 秒结算一次已过截止时间的考试，App 关掉也能出成绩。
  * test 配置里关掉定时触发（app.exam.auto-settle=false），测试直接调 {@link #run()} 并配合可调时钟。
@@ -33,13 +35,13 @@ public class ExamSettlementJob {
     /** 结算全部到时的考试，返回这次结算的场数。单条失败只记日志，不影响其他。 */
     public int run() {
         int settled = 0;
-        for (Long id : settler.expiredIds(null)) {
+        for (ExamRecord r : settler.expired(null)) {
             try {
-                if (settler.settle(id, ExamSettler.REASON_TIMEOUT)) {
+                if (settler.settle(r.getUserId(), r.getId(), ExamSettler.REASON_TIMEOUT)) {
                     settled++;
                 }
             } catch (RuntimeException e) {
-                log.error("考试记录 {} 自动结算失败", id, e);
+                log.error("考试记录 {} 自动结算失败", r.getId(), e);
             }
         }
         if (settled > 0) {
