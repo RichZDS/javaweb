@@ -10,18 +10,26 @@ export async function step(page, info, name, action) {
   return test.step(name, async () => {
     const dir = path.join(shotRoot, run, info.project.name);
     await mkdir(dir, { recursive: true });
-    try { await action(); }
+    let actionFailed = false;
+    try {
+      await action();
+      // Capture the settled screen after uni-app's transient toast/loading fades.
+      await expect(page.locator('.uni-toast:visible, .uni-sample-toast:visible')).toHaveCount(0, { timeout: 7000 });
+    }
+    catch (error) { actionFailed = true; throw error; }
     finally {
       const file = path.join(dir, `${name.replace(/[^a-zA-Z0-9\u4e00-\u9fff_-]/g, '_')}.png`);
-      await page.screenshot({ path: file, fullPage: true });
-      await info.attach(name, { path: file, contentType: 'image/png' });
+      try {
+        await page.screenshot({ path: file, fullPage: true });
+        await info.attach(name, { path: file, contentType: 'image/png' });
+      } catch (error) { if (!actionFailed) throw error; }
     }
   });
 }
 
 // UI controls are isolated here so labels can be calibrated after the first frontend merge.
 // A missing control fails the scenario; no API shortcut silently replaces a UI action.
-export const button = (page, name) => page.locator('button, uni-button').filter({ hasText: new RegExp(`^(?:${name})$`) });
+export const button = (page, name) => page.locator('button, uni-button').filter({ hasText: new RegExp(`^\\s*(?:${name})\\s*$`) });
 export async function tap(page, text) { await page.getByText(text, { exact: true }).click(); }
 export async function responseFor(page, suffix, action, method = 'POST') {
   const pending = page.waitForResponse(r => new URL(r.url()).pathname.endsWith(suffix) && r.request().method() === method);

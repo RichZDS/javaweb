@@ -371,7 +371,7 @@ scenario('后台题目 CRUD、版本、发布校验、已作答删除归档、Ma
   assert.deepEqual(await f.staff.delete(`/api/admin/questions/${q.id}`), { deleted: false, archived: true });
   await f.api.get(`/api/questions/${q.id}`, 404, 'NOT_FOUND');
   const preview = await f.staff.post('/api/admin/questions/preview', { markdown: '<script>alert(1)</script>\n<img src=x onerror=alert(1)>\n```java\nint x = 1;\n```' });
-  assert.doesNotMatch(preview.html, /<script|onerror\s*=/i);
+  assert.doesNotMatch(preview.html, /<script\b|<[^>]+\sonerror\s*=|href\s*=\s*["']\s*javascript:/i);
   assert.match(preview.html, /<pre[\s>]/);
 });
 

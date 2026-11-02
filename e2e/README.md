@@ -14,6 +14,44 @@ heavy sozai-lock heavy -- npm ci
 
 ## 起停环境与运行
 
+第一轮 M1（只有后端和 App，尚无管理后台）使用显式范围：
+
+```bash
+export QA_SCOPE=m1 QA_STAGE=run-01
+npm run stack:up
+sozai-lock light -- npm run test:api
+heavy sozai-lock heavy -- npm run test:ui
+npm run stack:down
+```
+
+M1 会把现有种子复制到临时目录，再追加 20 道原创验收题，供 API 场景共享只读题库；每个场景仍独立注册用户。通过现有 `app.seed.location` 导入，不依赖未实现的后台接口，不改业务源码。H5 走查使用原始 Java 示例题库与真实页面；入口 `http://127.0.0.1:4173/quiz/`。考试、统计、管理功能在 M1 API 报告中明确跳过，UI 只跑注册到错题重练。
+
+M1 的两项缺陷和未知排序值可单独复测：`sozai-lock light -- node scripts/repro-m1-issues.mjs`，只输出接口状态与相关非认证字段，不记录密码或令牌。
+
+M2/M3 接口用例已预编写，收到对应阶段合并通知后再实跑：
+
+```bash
+QA_SCOPE=m2 npm run stack:up
+QA_SCOPE=m2 sozai-lock light -- npm run test:api
+npm run stack:down
+
+# M3 可复用仅后端+App的 M2 栈，避免把后台页面是否到位当成接口前置。
+QA_SCOPE=m2 npm run stack:up
+QA_SCOPE=m3 sozai-lock light -- npm run test:api
+npm run stack:down
+```
+
+M2 在临时种子中加入三份固定/规则验收卷，含一分钟卷，因此不依赖 M3 建卷接口。M3 各场景通过管理接口建立独立分类、题目和试卷。M3 看板增量用例应在隔离栈顺序执行，期间不要同时跑 UI 或其他写入者。
+
+仅做用例收集（不连接后端、不执行用例、不算通过）：
+
+```bash
+QA_SCOPE=m2 QA_COLLECT_ONLY=1 sozai-lock light -- npm run test:api
+QA_SCOPE=m3 QA_COLLECT_ONLY=1 sozai-lock light -- npm run test:api
+```
+
+`QA_COLLECT_ONLY` 只支持 m2/m3，结果全部标记 skipped。M2 的截止和周期结算场景分别真实等待约 62 秒、95 秒；不修改系统时间。断网场景实际切断本地代理到 API 的请求，重连后由测试显式补发，验证服务器版本/截止规则，**不代替 App 离线缓存、杀进程或断网 UI 验收**。周期结算先从统计观察结果，再读取记录详情，避免用记录读取触发结算而误报后台已自动结算。下一轮还需确认统计读取没有代替定时任务结算；跨日/跨周与历史连续打卡需受控时间或历史数据，不能从当天用例推断通过。
+
 收到工头合并通知后在 `feat/qa` 执行 `git merge main`，再运行：
 
 ```bash
@@ -53,6 +91,10 @@ npm run stack:up
 ## 用例与证据
 
 - `api/contract.test.mjs`：账号、分类/搜索、练习、四题型判分和幂等、背题、顺序/每日、错题、RETRY、收藏、考试/版本/快照/截止、统计、权限、管理 CRUD、纠错、Excel 部分成功。Excel 文件由用例现场生成，无需手工附件。
+- `api/m1.test.mjs`：M1 独立用户 + 临时种子夹具；账号、分类/搜索、判分、练习/RETRY、错题、收藏、设置、权限、纠错，不依赖管理接口。
+- `api/m2.test.mjs`：12 个考试、断网补发、版本、截止、自动结算、统计、排行榜场景。
+- `api/m3.test.mjs`：15 个管理权限/CRUD、试卷限制/缺口、快照、纠错、禁用、Excel、看板场景。
+- `ui/app-m1.spec.mjs`：M1 真实页面操作和逐步截图；答案通过题目详情校验，注册、选择、答题、提交、跳页全部经 UI 操作，不用 API 代替操作。
 - `ui/app.spec.mjs`：注册 → 选考试 → 随机十题（故意错一道）→ 结果 → 错题本重练 → 固定卷 → 成绩单 → 统计。
 - `ui/admin.spec.mjs`：登录 → 新建分类 → 新建题目 → 新建固定卷并上架。
 - `scripts/check-harness.mjs`：隔离假构建/假后端仅用于验证启停、端口保护、静态资源与代理，不是业务通过证据。
@@ -79,9 +121,10 @@ UI 每一步截图保存 `/data/crew/qzd-5b1e/shots/qa-m1/<运行时间>/<浏览
 
 ```bash
 sozai-lock light -- node --test scripts/check-harness.mjs
+sozai-lock light -- node --test scripts/check-offline-proxy.mjs
 node node_modules/@playwright/test/cli.js test --list
 ```
 
-`npm run test:api` / `npm run test:ui` 在依赖服务未启动时给出一条中文提示，退出 **2**，不假报通过。直接 `node --test` 也能运行：服务缺失时只注册一个失败的前置条件，退出 **1**，无成片请求堆栈。
+`npm run test:api` / `npm run test:ui` 在依赖服务未启动时给出一条中文提示，退出 **2**，不假报通过。也可直接指定 `node --test api/m1.test.mjs`：服务缺失时只报告一个失败的前置条件，退出 **1**，无成片请求堆栈。M1 推荐设置 `QA_SCOPE=m1` 使用 npm 脚本，以免把尚未实现的全范围用例一起收集。
 
-**当前 M1 限制**：业务代码尚未合入 main，API 场景尚未针对真实实现运行；UI 控件名是待校准的场景骨架，前端合并后需要按实际页面校准 `ui/`。栈的真实 Maven/uni-app 构建和应用配置也需在首次集成时验证。不得据工程自检将任何业务验收项标为通过。
+M1 接口和页面执行证据以 `docs/test-report.md` 为准。默认全范围的考试/后台场景仍待 M2/M3 合入校准，不能把 M1 结果作为全功能验收结果。

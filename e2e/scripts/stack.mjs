@@ -1,6 +1,6 @@
 import { spawn } from 'node:child_process';
 import { openSync, closeSync, constants } from 'node:fs';
-import { readFile, writeFile, rename, mkdir, mkdtemp, rm, readdir, access } from 'node:fs/promises';
+import { readFile, writeFile, rename, mkdir, mkdtemp, rm, readdir, access, cp } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { tmpdir } from 'node:os';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -12,6 +12,8 @@ const e2e = fileURLToPath(new URL('..', import.meta.url));
 const repo = path.dirname(e2e);
 const statePath = path.join(e2e, '.stack-state.json');
 const logDir = path.join(e2e, 'artifacts', 'stack');
+const m2 = process.env.QA_SCOPE === 'm2';
+const m1 = process.env.QA_SCOPE === 'm1' || m2; // M1/M2 both run without an admin frontend.
 let state;
 let buildChild;
 let stopping = false;
@@ -98,11 +100,11 @@ async function ready(url, label) {
 
 async function up() {
   if (await exists(statePath)) throw new Error('已有测试栈状态，请先 stack.sh status 或 stack.sh down');
-  for (const file of ['backend/pom.xml', 'app/package-lock.json', 'admin/package-lock.json']) {
+  for (const file of ['backend/pom.xml', 'app/package-lock.json', ...(m1 ? [] : ['admin/package-lock.json'])]) {
     if (!await exists(path.join(repo, file))) throw new Error(`缺少 ${file}：对应实现尚未合入，请收到工头通知后 git merge main`);
   }
-  const ports = [process.env.API_PORT || '8080', process.env.APP_PORT || '4173', process.env.ADMIN_PORT || '4174'].map(Number);
-  if (ports.some(p => !Number.isInteger(p) || p < 1024 || p > 65535) || new Set(ports).size !== 3) throw new Error('三个端口必须互不重复，范围 1024–65535');
+  const ports = [process.env.API_PORT || '8080', process.env.APP_PORT || '4173', ...(m1 ? [] : [process.env.ADMIN_PORT || '4174'])].map(Number);
+  if (ports.some(p => !Number.isInteger(p) || p < 1024 || p > 65535) || new Set(ports).size !== ports.length) throw new Error('端口必须互不重复，范围 1024–65535');
   for (const port of ports) await freePort(port);
   await mkdir(logDir, { recursive: true });
   const tempDir = await mkdtemp(path.join(tmpdir(), 'javaweb-e2e-'));
@@ -111,7 +113,7 @@ async function up() {
   await persist();
   try {
     await run('mvn', ['-B', '-ntp', '-DskipTests', 'package'], path.join(repo, 'backend'), 'backend-build');
-    for (const frontend of ['app', 'admin']) {
+    for (const frontend of m1 ? ['app'] : ['app', 'admin']) {
       await run('npm', ['ci', '--no-audit', '--no-fund'], path.join(repo, frontend), `${frontend}-install`);
       await run('npm', ['run', frontend === 'app' ? 'build:h5' : 'build'], path.join(repo, frontend), `${frontend}-build`, {
         ...process.env, VITE_API_BASE: '/api',
@@ -120,17 +122,25 @@ async function up() {
     const jars = (await readdir(path.join(repo, 'backend', 'target'))).filter(f => f.endsWith('.jar') && !f.endsWith('-sources.jar'));
     if (jars.length !== 1) throw new Error(`预期一个后端 jar，实际 ${jars.length} 个`);
     const apiUrl = `http://127.0.0.1:${ports[0]}`;
+    const seedArgs = [];
+    if (m1) {
+      const seedDir = path.join(tempDir, 'seed');
+      await cp(path.join(repo, 'backend/src/main/resources/seed'), seedDir, { recursive: true });
+      const seed = m2 ? (await import('../lib/m2-fixtures.mjs')).m2Seed() : (await import('../lib/m1-fixtures.mjs')).m1Seed();
+      await writeFile(path.join(seedDir, '99-qa-m1.json'), JSON.stringify(seed));
+      seedArgs.push(`--app.seed.location=file:${seedDir}/`);
+    }
     await start('java', ['-Xmx512m', '-jar', path.join(repo, 'backend', 'target', jars[0]),
       '--spring.profiles.active=dev', `--server.port=${ports[0]}`, '--server.address=127.0.0.1',
       `--spring.datasource.url=jdbc:h2:file:${path.join(tempDir, 'db')};MODE=MySQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1`,
-      `--app.upload-dir=${path.join(tempDir, 'uploads')}`,
+      `--app.upload.dir=${path.join(tempDir, 'uploads')}`, ...seedArgs,
     ], 'backend', tempDir);
     await ready(`${apiUrl}/api/app/version?platform=android`, '后端');
-    await start(process.execPath, [path.join(e2e, 'scripts', 'static-server.mjs'), path.join(repo, 'app', 'dist', 'build', 'h5'), String(ports[1]), apiUrl], 'app');
-    await start(process.execPath, [path.join(e2e, 'scripts', 'static-server.mjs'), path.join(repo, 'admin', 'dist'), String(ports[2]), apiUrl], 'admin');
+    await start(process.execPath, [path.join(e2e, 'scripts', 'static-server.mjs'), path.join(repo, 'app', 'dist', 'build', 'h5'), String(ports[1]), apiUrl, '/quiz'], 'app');
+    if (!m1) await start(process.execPath, [path.join(e2e, 'scripts', 'static-server.mjs'), path.join(repo, 'admin', 'dist'), String(ports[2]), apiUrl], 'admin');
     await ready(`http://127.0.0.1:${ports[1]}`, 'H5');
-    await ready(`http://127.0.0.1:${ports[2]}`, '管理后台');
-    console.log(`本地测试栈就绪\nBASE_URL=${apiUrl}\nAPP_URL=http://127.0.0.1:${ports[1]}\nADMIN_URL=http://127.0.0.1:${ports[2]}`);
+    if (!m1) await ready(`http://127.0.0.1:${ports[2]}`, '管理后台');
+    console.log(`本地测试栈就绪\nBASE_URL=${apiUrl}\nAPP_URL=http://127.0.0.1:${ports[1]}/quiz/${m1 ? '' : `\nADMIN_URL=http://127.0.0.1:${ports[2]}`}`);
   } catch (error) { if (!stopping) await stop(); throw error; }
 }
 

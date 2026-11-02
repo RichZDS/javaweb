@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 const defaultDirectory = fileURLToPath(new URL('../backend/src/main/resources/seed/', import.meta.url));
 const directory = path.resolve(process.argv[2] ?? defaultDirectory);
 const errors = [];
+const warnings = [];
 const fail = (at, message) => errors.push(`${at}: ${message}`);
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const nonempty = value => typeof value === 'string' && value.trim().length > 0;
@@ -75,6 +76,13 @@ for (const { file, data } of documents) {
     if (!object(question)) { fail(at, '题目必须为对象'); return; }
     const q = { ...question, file, at };
     questions.push(q);
+    // A heuristic for implausible distractors, not a correctness rule: a genuine
+    // security question may legitimately discuss passwords and still be valid.
+    if (Array.isArray(q.options)) q.options.forEach((option, optionIndex) => {
+      if (typeof option !== 'string') return;
+      const suspicious = option.match(/密码|所有用户|自动增加/g);
+      if (suspicious) warnings.push(`${at} (${q.ref ?? '无 ref'}) 选项 ${String.fromCharCode(65 + optionIndex)} 命中“${[...new Set(suspicious)].join('、')}”，请人工复核干扰项是否相关`);
+    });
     if (q.ref !== undefined) {
       if (!nonempty(q.ref) || !keyPattern.test(q.ref)) fail(at, 'ref 格式非法');
       else if (references.has(q.ref) || categories.has(q.ref)) fail(at, `ref 重复或与分类 key 冲突：${q.ref}`);
@@ -238,6 +246,8 @@ console.log(`总题数 ${questions.length}；各题型 ${JSON.stringify(countBy(
 console.log(`难度 ${JSON.stringify(countBy(questions, q => q.difficulty))}；判断 T=${trueCount} F=${judge.length - trueCount}`);
 console.log(`输出填空题 ${JSON.stringify(codeCounts)}；实际执行证据需另核对 qb-verify，静态校验不冒充实跑。`);
 console.log(`试卷 ${papers.length}；模式 ${JSON.stringify(countBy(papers, p => p.mode))}`);
+for (const warning of warnings) console.warn(`WARN ${warning}`);
+console.log(`选项相关性人工复核警告：${warnings.length}（仅提示，不改变退出码）`);
 if (errors.length) {
   for (const error of errors) console.error(`ERROR ${error}`);
   console.error(`FAIL：${errors.length} 个错误`);

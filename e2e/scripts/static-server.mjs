@@ -3,7 +3,7 @@ import { createReadStream } from 'node:fs';
 import { stat, realpath } from 'node:fs/promises';
 import path from 'node:path';
 
-const [rootArg, portArg, apiArg] = process.argv.slice(2);
+const [rootArg, portArg, apiArg, mount = ''] = process.argv.slice(2);
 const root = await realpath(rootArg);
 const api = new URL(apiArg);
 if (!['127.0.0.1', 'localhost', '[::1]'].includes(api.hostname)) throw new Error('仅允许代理本机 API');
@@ -14,7 +14,8 @@ const types = {
   '.webp': 'image/webp', '.woff2': 'font/woff2', '.ico': 'image/x-icon',
 };
 const server = http.createServer(async (req, res) => {
-  const pathname = new URL(req.url, 'http://localhost').pathname;
+  let pathname = new URL(req.url, 'http://localhost').pathname;
+  if (mount && (pathname === mount || pathname.startsWith(`${mount}/`))) pathname = pathname.slice(mount.length) || '/';
   if (pathname.startsWith('/api/') || pathname.startsWith('/uploads/')) {
     const upstream = http.request({
       hostname: api.hostname, port: api.port, path: req.url, method: req.method,
