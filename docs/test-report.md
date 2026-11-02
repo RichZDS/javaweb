@@ -162,7 +162,44 @@ M2 已验证：进行中同卷复用且不计已考次数、答案保密/查题�
 
 | 编号 | 程度 / 归属 | 复现 / 期望 | 实际 / 证据 | 状态 |
 | --- | --- | --- | --- | --- |
-| R2-K01 | 轻微 / 后端 | 开练习后提交 `userAnswer:[1]`；api 0.1 要求每项原生字符串，应 400 且不记作答 | 200 `OK`，回传 `userAnswer:["1"]`；`native-string-gap.log`、M1 新用例失败 | 已排期，未修复 |
-| R2-K02 | 轻微 / 后端 | 查看已结算成绩单；api 6 新增 items.blankCount、imageUrl 字段应完整返回 | 两份真实成绩单的 8 个 item 均缺两个字段；`result-field-gap.log`、`walk-result.json`。当前 App 有填空数回退逻辑，主流程没有因此阻断 | 已排期，未交付 |
+| R2-K01 | 轻微 / 后端 | 开练习后提交 `userAnswer:[1]`；api 0.1 要求每项原生字符串，应 400 且不记作答 | 第二轮 200 `OK`，回传 `userAnswer:["1"]`；原证据 `native-string-gap.log` | 第三轮 **已修复**：400，字段 userAnswer[0]，未增加作答 |
+| R2-K02 | 轻微 / 后端 | 查看已结算成绩单；api 6 新增 items.blankCount、imageUrl 字段应完整返回 | 第二轮两份成绩单均缺两个字段；原证据 `result-field-gap.log` | 第三轮 **已交付**：接口断言通过，带图题成绩单也返回真实上传路径 |
 
 本轮未测 M3 管理/Excel、已另行交给前后端修复的 PM-M3 问题、跨日/跨周历史边界、原生 App 真机/安装包。没有把这些缺证据项标为通过。清理已确认：后端 PID 238463、App PID 238666 退出，状态文件及临时 H2 删除，8080/4173 可重新绑定；所有测试进程均已结束。此次只改 e2e/ 和本报告。
+
+## 2026-11-02 · QA-RUN-03 本地全接口、管理后台与 M4 补测
+
+接口产品基线 `00d806c`；随后按 QA-INFO-02 同步前端 M4 `a05d377` 并重建 UI。两基线间后端生产源码和 pom 未变（只新增性能测试类），因此复用已通过的全接口结果，没有重复跑未变代码。选项打乱和预发布验证按后续通知另节记录，不混入本节。
+
+| 命令 / 检查 | 通过 | 失败 | skipped | rc | 证据（e2e/ 下） |
+| --- | ---: | ---: | ---: | ---: | --- |
+| `sozai-lock light -- node --test scripts/check-harness.mjs` | 11 | 0 | 0 | 0 | `artifacts/rule-kill/harness.log` |
+| `QA_SCOPE=all bash scripts/stack.sh up` | — | — | — | 0 | `artifacts/run-03/stack-up.log`、`artifacts/run-03-m4/stack-up.log` |
+| `QA_SCOPE=all sozai-lock light -- npm run test:api` | 48 | 0 | 0 | 0 | `artifacts/run-03/api-initial.log`；约179.4秒 |
+| `sozai-lock light -- node scripts/repro-native-strings.mjs` | 1 | 0 | 0 | 0 | `artifacts/run-03/native-strings.log` |
+| `QA_SCOPE=m3 QA_STAGE=run-03-admin QA_MAIN_COMMIT=a05d377 sozai-lock light -- npm run test:ui` | 1 | 0 | 0 | 0 | `artifacts/run-03-m4/admin-ui.log`、`admin-ui-results.json`、`admin-walk.json` |
+| `QA_SCOPE=pm QA_STAGE=run-03-pm QA_MAIN_COMMIT=a05d377 sozai-lock light -- npm run test:ui` | 1 | 0 | 0 | 0 | `artifacts/run-03-m4/pm-ui.log`、`pm-walk.json` |
+| `QA_SCOPE=settings QA_STAGE=run-03-settings QA_MAIN_COMMIT=a05d377 sozai-lock light -- npm run test:ui` | 1 | 0 | 0 | 0 | `artifacts/run-03-m4/settings-ui.log`、`settings-walk.json` |
+
+全接口 **48/48，通过且0跳过**，包括 M1、M2、全部 M3 管理接口、Excel四题型/错误行/模板/无效文件。R2-K01 原生字符串已返回400并指明 `userAnswer[0]`；R2-K02 在手动/超时成绩单字段断言中通过，后台走查带图题的成绩单返回 `blankCount=0` 和真实 `imageUrl`。本地没有新增已确认业务缺陷。
+
+**后台实证**：普通用户网页登录被拒且管理接口403；UI建立分类63/64/65，录入题417，Java代码预览高亮，图片真实上传并显示。Excel三行中两行成功、一行失败（第4行，答案Z不存在）。固定卷10上架；规则卷11要求5道单选但仅2道，显示缺口并返回409，修改为2道后成功上架。纠错采纳并保存回复。用户2被禁用后新登录及旧令牌均403。看板真实值为用户1、已发布题419、试卷11、今日作答1、待处理0，五项与API一致且相对于本轮初值增量正确；固定卷1次考试、均分5、及格率100%。
+
+**PM复测**：
+
+- PM-M3-01 已修复：同一用户在两个考试各有一道错题/收藏；切目标后列表、分组、收藏和“重练全部”均只含当前考试那道题。
+- PM-M3-02 已修复：已结束练习回看未答题显示“未作答”，无提交按钮；点击选项不发提交请求，作答数保持1，顶栏可返回原结果。
+- PM-M3-03 已修复：仅中断新目标分类请求，新目标下不残留旧科目，显示原因和重试；恢复请求后只显示新目标科目。
+- PM-M3-04 已修复：成绩单展开未答填空题显示中性的“— 未作答”，不再显示“回答错误”；总览0错/3未答保持正确。
+- PM-M3-05 已修复：A考试已有5题40%的薄弱点；切到B并仅中断weak请求，B总览0作答、薄弱点为空且显示B专属失败/重试，不残留A弱项；恢复后单模块重试得到B空结果。
+- 设置页已测：字号从16px变为19px，夜间模式作用于页面与导航；错题移出阈值从3改4，重载后字号/夜间/阈值均保持；错旧密码返回400，正确改密后旧密码401、新密码可登录。H5显示“网页版总是最新”和“不支持提醒”的说明；原生升级安装/系统通知没有伪称通过。
+
+稳定截图共 **30张**（已查看关键页面）：
+
+- 后台12张：`/data/crew/qzd-5b1e/shots/qa-run-03-admin/2026-11-02T12-24-12-851Z/admin-desktop/`
+- PM-M3-01/02/03八张：`/data/crew/qzd-5b1e/shots/qa-run-03-pm/2026-11-02T12-26-26-916Z/app-iphone13/`
+- 设置及PM-M3-04/05十张：`/data/crew/qzd-5b1e/shots/qa-run-03-settings/2026-11-02T12-30-46-343Z/app-iphone13/`
+
+后台前两次退出1是测试定位校准：级联标签带题量后缀，复选框的原生input隐藏、可见外层才是点击目标。均保留原日志，未当作产品缺陷；校准后完整流程通过。
+
+**RULE-KILL-01 已落实**：QA随机端口和地址自动发现；服务PID/cwd/启动时间登记并逐个核验，cwd必须属于本工作树，发现错配保留状态拒绝停止；取消构建/测试同样只对已验证进程树逐个发正PID信号，不按名字/端口或负PID组杀。隔离自检包含另一模拟工作树的同名服务保护。后端cwd改为本工作树backend，数据/上传仍在独立临时目录。新用户名统一qa_前缀。最终清理证据追加在对应阶段日志，后续选项打乱使用新环境。

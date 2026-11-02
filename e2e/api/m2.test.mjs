@@ -72,6 +72,8 @@ scenario('EX-07/15/16/24 ST-02/03：加权成绩、未答排除、重复/并发�
   assert.deepEqual(a, b); assert.equal(a.score, 4); assert.equal(a.totalScore, 10);
   assert.equal(a.correctCount, 2); assert.equal(a.wrongCount, 1); assert.equal(a.unansweredCount, 1);
   assert.equal(a.passed, false); assert.equal(a.items.length, 4);
+  assert.ok(a.items.every(q => Number.isInteger(q.blankCount) && Object.hasOwn(q, 'imageUrl')));
+  assert.equal(a.items.find(q => q.type === 'FILL').blankCount, 2);
   assert.equal(a.items.reduce((sum, q) => sum + q.score, 0), a.score);
   assert.equal(a.byType.find(x => x.type === 'MULTIPLE').score, 0);
   assert.equal(a.byType.find(x => x.type === 'JUDGE').total, 3);
@@ -101,6 +103,7 @@ scenario('EX-09/10/14：一分钟卷断网改答，截止后补发拒绝，只�
   await saveExam(f, sheet, neverSent.questionId, ['A', 'C'], 1, false, 409, 'EXAM_EXPIRED');
   const result = await f.api.get(`/api/exam-records/${sheet.recordId}`);
   assert.equal(result.status, 'FINISHED'); assert.equal(result.score, 1); assert.equal(result.unansweredCount, 3);
+  assert.ok(result.items.every(q => Number.isInteger(q.blankCount) && Object.hasOwn(q, 'imageUrl')));
   assert.equal(result.submittedAt, sheet.deadlineAt);
   assert.deepEqual(result.items[0].userAnswer, ['A']);
   assert.equal((await f.api.get('/api/stats/overview')).answerCount, 1);

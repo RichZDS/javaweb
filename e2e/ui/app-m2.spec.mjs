@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { m2Fixture, paperTitles } from '../lib/m2-fixtures.mjs';
+import { APP_URL } from '../lib/stack-urls.mjs';
 import { step, tap, button, responseFor } from './support.mjs';
 
 test('QA-RUN-02 考试：断网拦截→恢复补传→关页重开→手动/到时交卷→统计对账', async ({ page: firstPage, context }, info) => {
@@ -9,7 +10,7 @@ test('QA-RUN-02 考试：断网拦截→恢复补传→关页重开→手动/到
   let sheet;
   let minute;
   const evidence = { main: process.env.QA_MAIN_COMMIT || 'db63cdc', userId: f.user.id, submitRequests: [], pageErrors: [], stats: [] };
-  const appUrl = process.env.APP_URL || 'http://127.0.0.1:4173/quiz/';
+  const appUrl = APP_URL;
   context.on('page', p => p.on('pageerror', error => evidence.pageErrors.push(error.message)));
   page.on('pageerror', error => evidence.pageErrors.push(error.message));
   context.on('request', request => {

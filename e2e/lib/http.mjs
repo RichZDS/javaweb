@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { randomBytes } from 'node:crypto';
+import { BASE_URL } from './stack-urls.mjs';
 
-export const BASE_URL = (process.env.BASE_URL || 'http://localhost:8080').replace(/\/$/, '');
+export { BASE_URL };
 export const unique = (prefix = 'qa') => `${prefix}${randomBytes(6).toString('hex')}`;
 export const password = () => `Qa_${randomBytes(12).toString('hex')}`;
 
@@ -56,7 +57,7 @@ export class Api {
 }
 
 export async function register() {
-  const credentials = { username: unique(), password: password() };
+  const credentials = { username: unique('qa_'), password: password() };
   const data = await new Api().post('/api/auth/register', credentials, 201);
   assert.equal(typeof data.token, 'string');
   assert.ok(Date.parse(data.expiresAt) > Date.now());

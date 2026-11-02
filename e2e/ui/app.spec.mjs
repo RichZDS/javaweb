@@ -6,7 +6,7 @@ import { step, tap, button, responseFor } from './support.mjs';
 test('P0 学员主流程：注册→目标→10题→错题重练→固定考试→统计', async ({ page }, info) => {
   const f = await fixture({ count: 12, types: ['SINGLE'] });
   const p = await paper(f);
-  const credentials = { username: unique('ui'), password: password() };
+  const credentials = { username: unique('qa_ui'), password: password() };
   let api;
   let session;
   await step(page, info, '01_AC-01_注册', async () => {

@@ -1,9 +1,10 @@
 import { test, expect } from '@playwright/test';
 import { Api, unique, password } from '../lib/http.mjs';
+import { APP_URL } from '../lib/stack-urls.mjs';
 import { step, tap, button, responseFor } from './support.mjs';
 
 test('QA-RUN-01 App M1 真实页面：注册→目标→十题→结果→错题本→重练', async ({ page }, info) => {
-  const credentials = { username: unique('walk'), password: password() };
+  const credentials = { username: unique('qa_walk'), password: password() };
   const evidence = { main: process.env.QA_MAIN_COMMIT || 'af09a2d', steps: [], pageErrors: [], deferredRequests: [] };
   page.on('pageerror', error => evidence.pageErrors.push(error.message));
   page.on('response', response => {
@@ -21,7 +22,7 @@ test('QA-RUN-01 App M1 真实页面：注册→目标→十题→结果→错题
     return ['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname) ? route.continue() : route.abort();
   });
   await step(page, info, '01_AC-01_注册并登录', async () => {
-    await page.goto(process.env.APP_URL || 'http://127.0.0.1:4173/quiz/', { waitUntil: 'domcontentloaded' });
+    await page.goto(APP_URL, { waitUntil: 'domcontentloaded' });
     await tap(page, '去注册');
     await field('用户名').fill(credentials.username);
     await field('密码').fill(credentials.password);
