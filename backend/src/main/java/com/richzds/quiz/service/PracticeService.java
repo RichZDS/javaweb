@@ -457,6 +457,9 @@ public class PracticeService {
 
     @Transactional
     public SubmitResult submit(long userId, long sessionId, SubmitRequest req) {
+        // 先锁本人：同一个人的判分（练习提交、考试结算）写错题本时一个一个来，见 WrongBookService.recordWrong。
+        // 加锁顺序和别处一致：用户 → 练习
+        userService.lockRow(userId);
         PracticeSession s = lockOwn(userId, sessionId);
         List<Long> ids = questionIds(s);
         long questionId = req.questionId();
@@ -622,7 +625,7 @@ public class PracticeService {
 
     /**
      * 取本人的练习并锁住这一行（SELECT … FOR UPDATE），同一次练习的提交、结束一个一个来。
-     * 必须是事务里的第一条语句：MySQL 可重复读下，快照在第一次普通读时建立；先拿锁再读，
+     * 必须在事务里的任何普通读之前（提交时前面只有一条锁 user 的 UPDATE）：MySQL 可重复读下，快照在第一次普通读时建立；先拿锁再读，
      * 才能看到前一个提交刚写进去的作答记录。否则最后几题同时提交时，每个请求都只数到“还差一题”，
      * 练习永远不会自动完成（每日一练也就不会写 completedAt）。
      */

@@ -361,6 +361,18 @@ public class ExamService {
         List<String> answer = gradingService.normalize(QuestionType.valueOf(item.type()), given, item.blankCount());
         int version = req.version();
         boolean marked = Boolean.TRUE.equals(req.marked());
+        // 先 INSERT（这道题第一次保存），唯一键冲突再按版本条件 UPDATE。不能“先 UPDATE、没有再 INSERT”：
+        // InnoDB 可重复读下 UPDATE 没命中会加间隙锁；全班同时开考时，新建的考试记录在索引里挨着，
+        // 大家第一次保存答案落在同一个间隙，各自的 INSERT 互相等对方的间隙锁，就死锁了（返回 500）。
+        // 同一场考试的保存已经被上面的考试记录锁串行化，所以冲突分支不会和别的请求抢同一行。
+        try {
+            answerMapper.insert(new ExamAnswer().setRecordId(recordId).setQuestionId(questionId)
+                    .setUserAnswer(JsonUtil.write(answer)).setVersion(version).setMarked(marked)
+                    .setReceivedAt(now));
+            return new SaveAnswerResult(true, version);
+        } catch (DuplicateKeyException e) {
+            // 这道题已经存过：只接受更大的版本
+        }
         int updated = answerMapper.update(null, new LambdaUpdateWrapper<ExamAnswer>()
                 .eq(ExamAnswer::getRecordId, recordId)
                 .eq(ExamAnswer::getQuestionId, questionId)
@@ -373,16 +385,6 @@ public class ExamService {
             return new SaveAnswerResult(true, version);
         }
         ExamAnswer existing = findAnswer(recordId, questionId);
-        if (existing == null) {
-            try {
-                answerMapper.insert(new ExamAnswer().setRecordId(recordId).setQuestionId(questionId)
-                        .setUserAnswer(JsonUtil.write(answer)).setVersion(version).setMarked(marked)
-                        .setReceivedAt(now));
-                return new SaveAnswerResult(true, version);
-            } catch (DuplicateKeyException e) {
-                existing = findAnswer(recordId, questionId);
-            }
-        }
         return new SaveAnswerResult(false, existing == null ? 0 : existing.getVersion());
     }
 
