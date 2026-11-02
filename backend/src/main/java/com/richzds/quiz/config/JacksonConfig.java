@@ -8,6 +8,9 @@ import java.time.format.DateTimeFormatter;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.cfg.CoercionAction;
+import com.fasterxml.jackson.databind.cfg.CoercionInputShape;
+import com.fasterxml.jackson.databind.type.LogicalType;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,5 +30,17 @@ public class JacksonConfig {
                 gen.writeString(INSTANT_FORMAT.format(value));
             }
         });
+    }
+
+    /**
+     * 字符串字段只收 JSON 字符串（docs/api.md 0.1 节）：数字、布尔不再悄悄转成 "12"、"true"，
+     * 包括 userAnswer 数组里的每一项。数字、布尔字段的严格化见 application.yml 的 spring.jackson 配置。
+     */
+    @Bean
+    public Jackson2ObjectMapperBuilderCustomizer strictTextualCustomizer() {
+        return builder -> builder.postConfigurer(mapper -> mapper.coercionConfigFor(LogicalType.Textual)
+                .setCoercion(CoercionInputShape.Integer, CoercionAction.Fail)
+                .setCoercion(CoercionInputShape.Float, CoercionAction.Fail)
+                .setCoercion(CoercionInputShape.Boolean, CoercionAction.Fail));
     }
 }

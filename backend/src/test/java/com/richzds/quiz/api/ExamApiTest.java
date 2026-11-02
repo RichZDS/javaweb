@@ -132,11 +132,15 @@ class ExamApiTest extends ApiTestBase {
         long rid = start(u, fx.paper()).data().get("recordId").asLong();
         long q = fx.qs().get(0).getId();
 
-        assertThat(data(save(u, rid, q, List.of("B"), 1)).get("accepted").asBoolean()).isTrue();
+        JsonNode first = data(save(u, rid, q, List.of("B"), 1));
+        assertThat(first.get("accepted").asBoolean()).isTrue();
+        assertThat(first.get("version").asInt()).as("成功时返回本次版本").isEqualTo(1);
         JsonNode same = data(save(u, rid, q, List.of("C"), 1));
         assertThat(same.get("accepted").asBoolean()).isFalse();
         assertThat(same.get("version").asInt()).isEqualTo(1);
-        assertThat(data(save(u, rid, q, List.of("A"), 3)).get("accepted").asBoolean()).isTrue();
+        JsonNode third = data(save(u, rid, q, List.of("A"), 3));
+        assertThat(third.get("accepted").asBoolean()).isTrue();
+        assertThat(third.get("version").asInt()).isEqualTo(3);
         JsonNode old = data(save(u, rid, q, List.of("D"), 2));
         assertThat(old.get("accepted").asBoolean()).as("旧版本到得晚也不覆盖").isFalse();
         assertThat(old.get("version").asInt()).isEqualTo(3);
@@ -247,7 +251,11 @@ class ExamApiTest extends ApiTestBase {
         assertThat(second.get("maxScore").asInt()).isEqualTo(25);
         assertThat(second.get("correctAnswer").toString()).isEqualTo("[\"A\"]");
         assertThat(second.get("analysisHtml").asText()).contains("<strong>原因</strong>");
+        assertThat(second.get("blankCount").asInt()).isZero();
+        assertThat(second.has("imageUrl")).isTrue();
+        assertThat(second.get("imageUrl").isNull()).isTrue();
         JsonNode fill = items.get(3);
+        assertThat(fill.get("blankCount").asInt()).isEqualTo(1);
         assertThat(fill.get("correctAnswer").isNull()).isTrue();
         assertThat(fill.get("acceptedAnswers").toString()).isEqualTo("[[\"int\"]]");
         assertThat(fill.get("userAnswer").toString()).isEqualTo("[\"char\"]");
