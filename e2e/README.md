@@ -18,7 +18,7 @@ heavy sozai-lock heavy -- npm ci
 
 ```bash
 npm run stack:up
-# stack.sh 内部获取 heavy 和 sozai-lock heavy；外层不要再套锁。
+# stack.mjs 对每个构建命令获取闸门；外层不要再套锁。
 sozai-lock light -- npm run test:api
 heavy sozai-lock heavy -- npm run test:ui
 npm run stack:down
@@ -34,6 +34,8 @@ heavy sozai-lock heavy -- npm run test:ui
 ```
 
 `stack:up` 打后端 jar（`-DskipTests`，不是后端单测验收），对前端执行 `npm ci` 和构建，启动 dev 配置后端和两个静态服务，等待就绪。H2 文件、上传目录及后端工作目录在独立临时目录中；静态服务将 `/api/**` 和 `/uploads/**` 转发到该后端。后端、App、后台均只绑定 `127.0.0.1`。
+
+每个 Maven/npm 构建命令在 `stack.mjs` 内检查 PATH：有 `heavy` 就经过班子闸门，有 `sozai-lock` 就同时经过本机 heavy 档，顺序固定为 `heavy → sozai-lock`。没有这些工具时直接执行，便于其他机器运行。`stack.sh` 不在外层重复加锁，直接调用 `node scripts/stack.mjs up` 也使用相同的构建闸门；服务运行期间不占构建锁。
 
 默认端口为后端 `8080`、App `4173`、后台 `4174`。启动前检查端口，冲突时报错，不停止别人服务。关闭时校验 PID 的 Linux 进程启动标识，只停止本栈进程，删除有本栈标记的临时目录。构建或启动失败会自动回收；日志保留在 `e2e/artifacts/stack/`。`bash scripts/stack.sh status` 可查看本栈状态。
 
