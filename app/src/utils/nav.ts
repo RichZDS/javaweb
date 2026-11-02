@@ -22,6 +22,7 @@ export const PAGES = {
   favorites: '/pages/favorite/index',
   practiceRecords: '/pages/practice/records',
   leaderboard: '/pages/stats/leaderboard',
+  settings: '/pages/settings/index',
 } as const
 
 let redirecting = false

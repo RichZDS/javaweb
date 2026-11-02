@@ -5,14 +5,11 @@
       <text class="head-link" @tap="go(PAGES.examRecords)">考试记录</text>
     </view>
 
-    <view v-if="state === 'loading' && !papers.length" class="empty">加载中…</view>
-    <view v-else-if="state === 'error' && !papers.length" class="empty">
-      <view>试卷没加载出来</view>
-      <button class="btn-plain retry" size="mini" @tap="load">重试</button>
-    </view>
-    <view v-else-if="state === 'ready' && !papers.length" class="empty">这个考试下还没有上架的试卷</view>
+    <ModuleError v-if="!papers && status === 'error'" :title="`${user.targetCategoryName}的试卷没加载出来`" :error="error" @retry="refresh" />
+    <view v-else-if="!papers" class="empty">加载中…</view>
+    <view v-else-if="!papers.length" class="empty">这个考试下还没有上架的试卷</view>
 
-    <view v-for="p in papers" :key="p.paperId" class="card paper">
+    <view v-for="p in papers ?? []" :key="p.paperId" class="card paper">
       <view class="paper-top">
         <text class="paper-title">{{ p.title }}</text>
         <text class="tag">{{ p.mode === 'RULE' ? '随机组卷' : '固定卷' }}</text>
@@ -30,42 +27,28 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
 import { onPullDownRefresh, onShow } from '@dcloudio/uni-app'
 import { examApi } from '@/api'
-import type { ExamPaper } from '@/api/types'
+import ModuleError from '@/components/ModuleError.vue'
 import { useTheme } from '@/composables/useTheme'
+import { useTargetData } from '@/composables/useTargetData'
 import { useUserStore } from '@/stores/user'
 import { PAGES, ensureReady } from '@/utils/nav'
 
 const { themeClass } = useTheme()
 const user = useUserStore()
 
-const papers = ref<ExamPaper[]>([])
-const state = ref<'loading' | 'ready' | 'error'>('loading')
-let loadedFor: number | null = null
+// 试卷列表按目标考试分开存：切换考试立即清空，失败只显示当前考试的失败
+const { data: papers, status, error, refresh } = useTargetData((id) => examApi.list(id))
 
 onShow(() => {
-  if (!ensureReady()) return
-  if (loadedFor !== user.targetCategoryId) papers.value = []
-  load()
+  if (ensureReady()) refresh()
 })
 
 onPullDownRefresh(async () => {
-  await load()
+  await refresh()
   uni.stopPullDownRefresh()
 })
-
-async function load() {
-  state.value = 'loading'
-  try {
-    papers.value = await examApi.list()
-    loadedFor = user.targetCategoryId
-    state.value = 'ready'
-  } catch {
-    state.value = 'error'
-  }
-}
 
 function go(url: string) {
   uni.navigateTo({ url })

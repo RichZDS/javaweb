@@ -80,6 +80,10 @@ export const useUserStore = defineStore('user', () => {
     setUser(await authApi.updateMe(body))
   }
 
+  async function setWrongThreshold(value: number) {
+    setUser(await authApi.updateSettings({ wrongRemoveThreshold: Math.round(Number(value)) }))
+  }
+
   return {
     token,
     expiresAt,
@@ -93,6 +97,7 @@ export const useUserStore = defineStore('user', () => {
     register,
     refresh,
     update,
+    setWrongThreshold,
     clear,
   }
 })

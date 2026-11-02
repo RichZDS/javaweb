@@ -61,18 +61,38 @@ const cards = computed(() => {
   ]
 })
 
+// 按天的离散数据：直线连接、每天一个点，不做平滑；两条线颜色区分明显，左右轴各写单位
+const ANSWER_COLOR = '#3a6cf4'
+const ACTIVE_COLOR = '#f08c00'
 const dailyOption = computed(() => ({
+  color: [ANSWER_COLOR, ACTIVE_COLOR],
   tooltip: { trigger: 'axis' },
-  legend: { data: ['作答次数', '活跃人数'] },
-  grid: { left: 48, right: 48, top: 40, bottom: 32 },
+  legend: { data: ['作答次数（次）', '活跃人数（人）'] },
+  grid: { left: 64, right: 64, top: 48, bottom: 32 },
   xAxis: { type: 'category', data: data.value?.daily.map((d) => d.date.slice(5)) ?? [] },
   yAxis: [
-    { type: 'value', name: '次', minInterval: 1 },
-    { type: 'value', name: '人', minInterval: 1 },
+    { type: 'value', name: '作答（次）', minInterval: 1, axisLine: { show: true, lineStyle: { color: ANSWER_COLOR } } },
+    { type: 'value', name: '活跃（人）', minInterval: 1, axisLine: { show: true, lineStyle: { color: ACTIVE_COLOR } } },
   ],
   series: [
-    { name: '作答次数', type: 'line', smooth: true, data: data.value?.daily.map((d) => d.answerCount) ?? [] },
-    { name: '活跃人数', type: 'line', smooth: true, yAxisIndex: 1, data: data.value?.daily.map((d) => d.activeUsers) ?? [] },
+    {
+      name: '作答次数（次）',
+      type: 'line',
+      smooth: false,
+      symbol: 'circle',
+      symbolSize: 6,
+      data: data.value?.daily.map((d) => d.answerCount) ?? [],
+    },
+    {
+      name: '活跃人数（人）',
+      type: 'line',
+      smooth: false,
+      symbol: 'rect',
+      symbolSize: 6,
+      yAxisIndex: 1,
+      lineStyle: { type: 'dashed' },
+      data: data.value?.daily.map((d) => d.activeUsers) ?? [],
+    },
   ],
 }))
 

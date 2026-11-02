@@ -1,45 +1,39 @@
 <template>
   <view class="page-root stats" :class="themeClass">
-    <view v-if="failed && !overview" class="empty">
-      <view>统计没加载出来</view>
-      <button class="btn-plain retry" size="mini" @tap="load">重试</button>
+    <!-- 每一块都只显示当前目标考试的数据；某一块失败只影响那一块 -->
+    <view class="card">
+      <view class="card-title">{{ examName }} · 学习总览</view>
+      <view v-if="overview.data.value" class="grid">
+        <view v-for="cell in cells" :key="cell.label" class="cell">
+          <text class="num">{{ cell.value }}</text>
+          <text class="muted">{{ cell.label }}</text>
+        </view>
+      </view>
+      <ModuleError v-else-if="overview.status.value === 'error'" :title="`${examName}的学习总览没加载出来`" :error="overview.error.value" @retry="overview.refresh" />
+      <view v-else class="muted">加载中…</view>
     </view>
 
-    <template v-else>
-      <!-- 总览 -->
-      <view class="card">
-        <view class="card-title">{{ user.targetCategoryName }} · 学习总览</view>
-        <view v-if="overview" class="grid">
-          <view v-for="cell in cells" :key="cell.label" class="cell">
-            <text class="num">{{ cell.value }}</text>
-            <text class="muted">{{ cell.label }}</text>
-          </view>
-        </view>
-        <view v-else class="muted">加载中…</view>
-      </view>
+    <view class="card link-card" @tap="go(PAGES.leaderboard)">
+      <uni-icons type="medal" size="22" color="#f0a020" />
+      <text class="link-text">本周排行榜</text>
+      <uni-icons type="right" size="16" color="#98a0ad" />
+    </view>
 
-      <view class="card link-card" @tap="go(PAGES.leaderboard)">
-        <uni-icons type="medal" size="22" color="#f0a020" />
-        <text class="link-text">本周排行榜</text>
-        <uni-icons type="right" size="16" color="#98a0ad" />
-      </view>
-
-      <!-- 近 30 天趋势 -->
-      <view class="card">
-        <view class="card-title">近 30 天趋势</view>
+    <!-- 近 30 天趋势 -->
+    <view class="card">
+      <view class="card-title">近 30 天趋势</view>
+      <template v-if="daily.data.value">
         <view v-if="!trend.total" class="muted">近 30 天还没有作答记录</view>
-        <UChart
-          v-else
-          type="line"
-          :categories="trend.categories"
-          :series="trendSeries"
-          :opts="trendOpts"
-        />
-      </view>
+        <UChart v-else type="line" :categories="trend.categories" :series="trendSeries" :opts="trendOpts" />
+      </template>
+      <ModuleError v-else-if="daily.status.value === 'error'" :title="`${examName}的趋势没加载出来`" :error="daily.error.value" @retry="daily.refresh" />
+      <view v-else class="muted">加载中…</view>
+    </view>
 
-      <!-- 章节正确率 -->
-      <view class="card">
-        <view class="card-title">章节正确率</view>
+    <!-- 章节正确率 -->
+    <view class="card">
+      <view class="card-title">章节正确率</view>
+      <template v-if="categoryStats.data.value">
         <view v-if="!chapters.categories.length" class="muted">还没有做过题的章节</view>
         <UChart
           v-else
@@ -50,13 +44,18 @@
           :opts="barOpts"
         />
         <view v-if="chapters.skipped" class="muted note">另有 {{ chapters.skipped }} 个章节还没做过，未画出</view>
-      </view>
+      </template>
+      <ModuleError v-else-if="categoryStats.status.value === 'error'" :title="`${examName}的章节正确率没加载出来`" :error="categoryStats.error.value" @retry="categoryStats.refresh" />
+      <view v-else class="muted">加载中…</view>
+    </view>
 
-      <!-- 薄弱点 -->
-      <view class="card">
-        <view class="card-title">薄弱点 <text class="muted">（近 30 天，至少做过 5 道不同题的章节）</text></view>
-        <view v-if="!weak.length" class="muted">暂时没有：多做几道题再来看</view>
-        <view v-for="w in weak" :key="w.categoryId" class="weak" @tap="practiceWeak(w)">
+    <!-- 薄弱点 -->
+    <view class="card">
+      <view class="card-title">薄弱点 <text class="muted">（近 30 天，至少做过 5 道不同题的章节）</text></view>
+      <view class="muted note weak-note">每道题只看最近一次作答，所以这里的正确率和上面的章节正确率可能不同。</view>
+      <template v-if="weak.data.value">
+        <view v-if="!weak.data.value.length" class="muted">暂时没有：多做几道题再来看</view>
+        <view v-for="w in weak.data.value" :key="w.categoryId" class="weak" @tap="practiceWeak(w)">
           <view class="weak-main">
             <text class="weak-name">{{ lastSegment(w.categoryPath) }}</text>
             <text class="muted">{{ w.categoryPath }} · {{ w.sampleCount }} 题</text>
@@ -64,34 +63,29 @@
           <text class="weak-rate">{{ formatRate(w.correctRate) }}</text>
           <text class="weak-go">专项练</text>
         </view>
-      </view>
+      </template>
+      <ModuleError v-else-if="weak.status.value === 'error'" :title="`${examName}的薄弱点没加载出来`" :error="weak.error.value" @retry="weak.refresh" />
+      <view v-else class="muted">加载中…</view>
+    </view>
 
-      <!-- 考试分数 -->
-      <view class="card">
-        <view class="card-title">考试分数</view>
+    <!-- 考试分数 -->
+    <view class="card">
+      <view class="card-title">考试分数</view>
+      <template v-if="examStats.data.value">
         <view v-if="!papers.length" class="muted">还没有考试成绩</view>
         <template v-else>
           <scroll-view scroll-x class="papers">
-            <text
-              v-for="p in papers"
-              :key="p.paperId"
-              class="paper"
-              :class="{ on: p.paperId === paperId }"
-              @tap="paperId = p.paperId"
-            >
+            <text v-for="p in papers" :key="p.paperId" class="paper" :class="{ on: p.paperId === currentPaperId }" @tap="paperId = p.paperId">
               {{ p.title }}
             </text>
           </scroll-view>
-          <UChart
-            type="line"
-            :categories="scoreData.categories"
-            :series="[{ name: '得分', data: scoreData.scores }]"
-            :opts="scoreOpts"
-          />
+          <UChart type="line" :categories="scoreData.categories" :series="[{ name: '得分', data: scoreData.scores }]" :opts="scoreOpts" />
           <view class="muted note">虚线为及格线 {{ scoreData.passScore }} 分（满分 {{ scoreData.totalScore }}）</view>
         </template>
-      </view>
-    </template>
+      </template>
+      <ModuleError v-else-if="examStats.status.value === 'error'" :title="`${examName}的考试分数没加载出来`" :error="examStats.error.value" @retry="examStats.refresh" />
+      <view v-else class="muted">加载中…</view>
+    </view>
   </view>
 </template>
 
@@ -99,9 +93,11 @@
 import { computed, ref } from 'vue'
 import { onPullDownRefresh, onShow } from '@dcloudio/uni-app'
 import { practiceApi, statsApi } from '@/api'
-import type { CategoryStat, DailyStat, ExamScoreStat, StatsOverview, WeakPoint } from '@/api/types'
+import type { WeakPoint } from '@/api/types'
 import UChart from '@/components/UChart.vue'
+import ModuleError from '@/components/ModuleError.vue'
 import { useTheme } from '@/composables/useTheme'
+import { useTargetData } from '@/composables/useTargetData'
 import { useUserStore } from '@/stores/user'
 import { formatRate } from '@/logic/format'
 import { chapterData, examScoreData, integerSplit, lastSegment, paperOptions, trendData } from '@/logic/stats'
@@ -109,17 +105,18 @@ import { PAGES, ensureReady } from '@/utils/nav'
 
 const { themeClass } = useTheme()
 const user = useUserStore()
+const examName = computed(() => user.targetCategoryName || '当前考试')
 
-const overview = ref<StatsOverview | null>(null)
-const daily = ref<DailyStat[]>([])
-const categoryStats = ref<CategoryStat[]>([])
-const weak = ref<WeakPoint[]>([])
-const examStats = ref<ExamScoreStat[]>([])
+// 每块数据按目标考试分开存（PM-M3-05）
+const overview = useTargetData((id) => statsApi.overview(id))
+const daily = useTargetData((id) => statsApi.daily(id, 30))
+const categoryStats = useTargetData((id) => statsApi.categories(id))
+const weak = useTargetData((id) => statsApi.weak(id, 30, 5))
+const examStats = useTargetData((id) => statsApi.exams(id))
 const paperId = ref<number | null>(null)
-const failed = ref(false)
 
 const cells = computed(() => {
-  const o = overview.value
+  const o = overview.data.value
   if (!o) return []
   return [
     { label: '累计作答', value: o.answerCount },
@@ -131,7 +128,7 @@ const cells = computed(() => {
   ]
 })
 
-const trend = computed(() => trendData(daily.value))
+const trend = computed(() => trendData(daily.data.value ?? []))
 const trendSeries = computed(() => [
   { name: '作答次数', data: trend.value.answers, index: 0 },
   { name: '正确率 %', data: trend.value.rates, index: 1 },
@@ -141,7 +138,7 @@ const trendOpts = {
   yAxis: { data: [{ min: 0, title: '次' }, { min: 0, max: 100, position: 'right', title: '%' }] },
 }
 
-const chapters = computed(() => chapterData(categoryStats.value))
+const chapters = computed(() => chapterData(categoryStats.data.value ?? []))
 /** 条形图的横轴是数值轴：两端对齐、每个刻度都显示（labelCount 为 0 表示不抽稀） */
 const barOpts = {
   // 标出数值：正确率为 0 的章节没有条，也能看出是 0 而不是没数据
@@ -151,8 +148,12 @@ const barOpts = {
   xAxis: { min: 0, max: 100, boundaryGap: 'justify', labelCount: 0, disableGrid: false, gridType: 'dash' },
   extra: { bar: { width: 14 } },
 }
-const papers = computed(() => paperOptions(examStats.value))
-const scoreData = computed(() => examScoreData(examStats.value, paperId.value ?? -1))
+const papers = computed(() => paperOptions(examStats.data.value ?? []))
+/** 选中的试卷不在当前考试的成绩里（如刚切换考试）时默认第一份 */
+const currentPaperId = computed(() =>
+  papers.value.some((p) => p.paperId === paperId.value) ? paperId.value : papers.value[0]?.paperId ?? null,
+)
+const scoreData = computed(() => examScoreData(examStats.data.value ?? [], currentPaperId.value ?? -1))
 const scoreOpts = computed(() => ({
   yAxis: {
     splitNumber: integerSplit(scoreData.value.totalScore),
@@ -173,24 +174,8 @@ onPullDownRefresh(async () => {
   uni.stopPullDownRefresh()
 })
 
-async function load() {
-  failed.value = false
-  const [o, d, c, w, e] = await Promise.allSettled([
-    statsApi.overview(),
-    statsApi.daily(30),
-    statsApi.categories(),
-    statsApi.weak(30, 5),
-    statsApi.exams(),
-  ])
-  if (o.status === 'fulfilled') overview.value = o.value
-  else failed.value = true
-  if (d.status === 'fulfilled') daily.value = d.value
-  if (c.status === 'fulfilled') categoryStats.value = c.value
-  if (w.status === 'fulfilled') weak.value = w.value
-  if (e.status === 'fulfilled') {
-    examStats.value = e.value
-    if (!papers.value.some((p) => p.paperId === paperId.value)) paperId.value = papers.value[0]?.paperId ?? null
-  }
+function load() {
+  return Promise.all([overview.refresh(), daily.refresh(), categoryStats.refresh(), weak.refresh(), examStats.refresh()])
 }
 
 function go(url: string) {
@@ -249,6 +234,10 @@ async function practiceWeak(w: WeakPoint) {
 
 .note {
   margin-top: 6px;
+}
+
+.weak-note {
+  margin: -4px 0 6px;
 }
 
 .weak {

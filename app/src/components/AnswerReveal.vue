@@ -1,6 +1,7 @@
 <template>
   <view class="ar">
-    <view v-if="!recite" class="ar-verdict" :class="correct ? 'ok' : 'bad'">
+    <view v-if="unanswered" class="ar-verdict none">— 未作答</view>
+    <view v-else-if="!recite" class="ar-verdict" :class="correct ? 'ok' : 'bad'">
       {{ correct ? '✓ 回答正确' : '✗ 回答错误' }}
     </view>
     <view class="ar-row">
@@ -9,7 +10,7 @@
     </view>
     <view v-if="!recite" class="ar-row">
       <text class="ar-label">{{ userLabel }}</text>
-      <text class="ar-value" :class="correct ? 'ok-text' : 'bad-text'">{{ userText }}</text>
+      <text class="ar-value" :class="unanswered ? 'none-text' : correct ? 'ok-text' : 'bad-text'">{{ userText }}</text>
     </view>
     <view class="ar-analysis">
       <view class="ar-label">解析</view>
@@ -35,6 +36,8 @@ const props = withDefaults(
     /** 背题模式：只显示答案和解析 */
     recite?: boolean
     userLabel?: string
+    /** 没有作答（考试里未答的题）：显示「未作答」，不算答错 */
+    unanswered?: boolean
   }>(),
   {
     correct: null,
@@ -44,6 +47,7 @@ const props = withDefaults(
     analysisHtml: null,
     recite: false,
     userLabel: '你的答案',
+    unanswered: false,
   },
 )
 
@@ -71,6 +75,10 @@ const userText = computed(() => formatAnswer(props.type, props.userAnswer))
 
   &.bad {
     color: var(--c-wrong);
+  }
+
+  &.none {
+    color: var(--c-text-3);
   }
 }
 
@@ -100,6 +108,10 @@ const userText = computed(() => formatAnswer(props.type, props.userAnswer))
 
 .bad-text {
   color: var(--c-wrong);
+}
+
+.none-text {
+  color: var(--c-text-3);
 }
 
 .ar-analysis {
