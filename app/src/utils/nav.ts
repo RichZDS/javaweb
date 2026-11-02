@@ -15,6 +15,13 @@ export const PAGES = {
   wrong: '/pages/wrong/index',
   question: '/pages/question/detail',
   search: '/pages/search/index',
+  examNotice: '/pages/exam/notice',
+  examAnswer: '/pages/exam/answer',
+  examResult: '/pages/exam/result',
+  examRecords: '/pages/exam/records',
+  favorites: '/pages/favorite/index',
+  practiceRecords: '/pages/practice/records',
+  leaderboard: '/pages/stats/leaderboard',
 } as const
 
 let redirecting = false

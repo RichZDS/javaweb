@@ -68,7 +68,7 @@ onLoad((query) => {
 async function load() {
   state.value = 'loading'
   try {
-    q.value = await questionApi.detail(id.value, ['EXAM_IN_PROGRESS', 'NOT_FOUND'])
+    q.value = await questionApi.detail(id.value)
     state.value = 'ready'
   } catch (e) {
     if (e instanceof ApiError && e.code === 'EXAM_IN_PROGRESS') state.value = 'locked'

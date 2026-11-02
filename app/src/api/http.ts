@@ -1,9 +1,12 @@
 /**
  * 统一请求封装（uni.request / uni.uploadFile）。
  * - 自动带 `Authorization: Bearer <token>`
- * - 401：清令牌、跳登录
- * - 其他错误：按后端 message 弹提示；没连上服务器：「网络不好，稍后重试」
- * 调用方需要自己处理某个错误码时，用 `silent` 关掉对应提示，再 catch ApiError。
+ * - 401：清令牌、跳登录（不管是否静默）
+ * - 提示规则：用户主动操作（提交、开考、保存、删除，即 POST / PUT / DELETE / 上传）失败时，
+ *   按后端 message 弹提示，没连上服务器提示「网络不好，稍后重试」；
+ *   页面加载数据（GET）默认不弹，由页面自己显示「—」、空状态或「重试」按钮。
+ *   GET 也属于用户主动操作时（如点「继续练习」）传 `silent: false`。
+ * 调用方需要自己处理某个错误码时，用 `silent: ['错误码']` 关掉对应提示，再 catch ApiError。
  */
 import { ApiError, describeError, interpretResponse, joinUrl, networkError } from '@/logic/http'
 
@@ -93,8 +96,9 @@ export function upload<T>(path: string, filePath: string, options: RequestOption
 }
 
 export const http = {
+  /** 页面加载数据：默认不弹错误提示 */
   get: <T>(path: string, query?: Record<string, unknown>, options?: Omit<RequestOptions, 'query'>) =>
-    request<T>('GET', path, { ...options, query }),
+    request<T>('GET', path, { ...options, silent: options?.silent ?? true, query }),
   post: <T>(path: string, data?: unknown, options?: Omit<RequestOptions, 'data'>) =>
     request<T>('POST', path, { ...options, data }),
   put: <T>(path: string, data?: unknown, options?: Omit<RequestOptions, 'data'>) =>

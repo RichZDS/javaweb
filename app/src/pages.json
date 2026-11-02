@@ -18,7 +18,14 @@
 		{ "path": "pages/practice/result", "style": { "navigationBarTitleText": "练习结果" } },
 		{ "path": "pages/wrong/index", "style": { "navigationBarTitleText": "错题本", "enablePullDownRefresh": true } },
 		{ "path": "pages/question/detail", "style": { "navigationBarTitleText": "题目详情" } },
-		{ "path": "pages/search/index", "style": { "navigationBarTitleText": "搜题" } }
+		{ "path": "pages/search/index", "style": { "navigationBarTitleText": "搜题" } },
+		{ "path": "pages/exam/notice", "style": { "navigationBarTitleText": "考前须知" } },
+		{ "path": "pages/exam/answer", "style": { "navigationBarTitleText": "考试" } },
+		{ "path": "pages/exam/result", "style": { "navigationBarTitleText": "成绩单" } },
+		{ "path": "pages/exam/records", "style": { "navigationBarTitleText": "考试记录", "enablePullDownRefresh": true } },
+		{ "path": "pages/favorite/index", "style": { "navigationBarTitleText": "收藏夹", "enablePullDownRefresh": true } },
+		{ "path": "pages/practice/records", "style": { "navigationBarTitleText": "练习记录", "enablePullDownRefresh": true } },
+		{ "path": "pages/stats/leaderboard", "style": { "navigationBarTitleText": "排行榜", "enablePullDownRefresh": true } }
 	],
 	"tabBar": {
 		"color": "#8a919e",
