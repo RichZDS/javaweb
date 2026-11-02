@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process';
-import { openSync, closeSync } from 'node:fs';
+import { openSync, closeSync, constants } from 'node:fs';
 import { readFile, writeFile, rename, mkdir, mkdtemp, rm, readdir, access } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { tmpdir } from 'node:os';
@@ -16,6 +16,13 @@ let state;
 let buildChild;
 let stopping = false;
 async function exists(file) { return access(file).then(() => true, () => false); }
+async function executable(name, cwd, env) {
+  for (const directory of (env.PATH || '').split(path.delimiter)) {
+    const candidate = path.resolve(cwd, directory, name);
+    if (await access(candidate, constants.X_OK).then(() => true, () => false)) return candidate;
+  }
+  return null;
+}
 async function birth(pid) {
   try {
     const raw = await readFile(`/proc/${pid}/stat`, 'utf8');
@@ -45,11 +52,18 @@ async function stop() {
   console.log('本测试栈进程和临时 H2 目录已清理，构建与服务日志保留在 e2e/artifacts/stack/');
 }
 async function run(command, args, cwd, label, env = process.env) {
+  // Gate each build so direct stack.mjs callers are covered too. Keep the shared
+  // lock order heavy -> sozai-lock; stack.sh must not hold either lock outside us.
+  let invocation = [command, ...args];
+  const machineGate = await executable('sozai-lock', cwd, env);
+  const crewGate = await executable('heavy', cwd, env);
+  if (machineGate) invocation = [machineGate, 'heavy', '--', ...invocation];
+  if (crewGate) invocation = [crewGate, ...invocation];
   const log = openSync(path.join(logDir, `${label}.log`), 'w', 0o600);
   console.log(`构建 ${label}（日志 e2e/artifacts/stack/${label}.log）`);
   try {
     const code = await new Promise((resolve, reject) => {
-      const child = spawn(command, args, { cwd, env, detached: true, stdio: ['ignore', log, log] });
+      const child = spawn(invocation[0], invocation.slice(1), { cwd, env, detached: true, stdio: ['ignore', log, log] });
       buildChild = child;
       child.once('error', reject);
       child.once('exit', (code, signal) => resolve(signal ? 1 : code));
@@ -100,7 +114,7 @@ async function up() {
     for (const frontend of ['app', 'admin']) {
       await run('npm', ['ci', '--no-audit', '--no-fund'], path.join(repo, frontend), `${frontend}-install`);
       await run('npm', ['run', frontend === 'app' ? 'build:h5' : 'build'], path.join(repo, frontend), `${frontend}-build`, {
-      ...process.env, VITE_API_BASE: '/api',
+        ...process.env, VITE_API_BASE: '/api',
       });
     }
     const jars = (await readdir(path.join(repo, 'backend', 'target'))).filter(f => f.endsWith('.jar') && !f.endsWith('-sources.jar'));

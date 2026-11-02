@@ -31,7 +31,8 @@ async function exec(file, args, env) {
 async function sandbox(t) {
   const root = await mkdtemp(path.join(tmpdir(), 'javaweb-harness-'));
   const bin = path.join(root, 'bin');
-  const env = { ...process.env, PATH: `${bin}:${process.env.PATH}`, API_PORT: String(await port()), APP_PORT: String(await port()), ADMIN_PORT: String(await port()) };
+  // Only our fake executables: no accidental host gates or toolchain during self-checks.
+  const env = { ...process.env, PATH: bin, API_PORT: String(await port()), APP_PORT: String(await port()), ADMIN_PORT: String(await port()) };
   const stack = path.join(root, 'e2e/scripts/stack.mjs');
   for (const dir of ['bin', 'backend/target', 'app/dist/build/h5', 'admin/dist', 'e2e/scripts']) await mkdir(path.join(root, dir), { recursive: true });
   await cp(path.join(scripts, 'stack.mjs'), stack);
@@ -51,6 +52,25 @@ process.on('SIGTERM',()=>{server.closeAllConnections();server.close(()=>process.
   await writeFile(path.join(root, 'admin/dist/app.js'), 'globalThis.fixture = true;');
   t.after(async () => { await exec(stack, ['down'], env); await rm(root, { recursive: true, force: true }); });
   return { root, bin, stack, env, stateFile: path.join(root, 'e2e/.stack-state.json') };
+}
+
+for (const machineGate of [false, true]) {
+  test(`栈自检：五个构建命令均通过 heavy${machineGate ? ' → sozai-lock' : ''}，运行服务不持锁`, { timeout: 30000 }, async t => {
+    const f = await sandbox(t);
+    const trace = path.join(f.root, 'gates.log');
+    const fakeGate = name => `#!/bin/sh\necho '${name} '"$*" >> "$QA_GATE_TRACE"\n${name === 'sozai-lock' ? 'shift 2\n' : ''}exec "$@"\n`;
+    await writeFile(path.join(f.bin, 'heavy'), fakeGate('heavy'), { mode: 0o755 });
+    if (machineGate) await writeFile(path.join(f.bin, 'sozai-lock'), fakeGate('sozai-lock'), { mode: 0o755 });
+    const result = await exec(f.stack, ['up'], { ...f.env, QA_GATE_TRACE: trace });
+    assert.equal(result.code, 0, result.output);
+    const builds = ['mvn -B -ntp -DskipTests package', 'npm ci --no-audit --no-fund', 'npm run build:h5', 'npm ci --no-audit --no-fund', 'npm run build'];
+    const expected = builds.flatMap(command => machineGate ? [
+      `heavy ${path.join(f.bin, 'sozai-lock')} heavy -- ${command}`, `sozai-lock heavy -- ${command}`,
+    ] : [`heavy ${command}`]);
+    assert.deepEqual((await readFile(trace, 'utf8')).trim().split('\n'), expected);
+    assert.equal((await exec(f.stack, ['down'], f.env)).code, 0);
+    assert.deepEqual((await readFile(trace, 'utf8')).trim().split('\n'), expected);
+  });
 }
 
 test('栈自检：起服务、SPA/静态资源/API 代理、重复启动拒绝、完整关闭', { timeout: 30000 }, async t => {
