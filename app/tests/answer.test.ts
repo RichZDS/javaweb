@@ -74,6 +74,11 @@ describe('能否提交', () => {
   it('选择题提交时去重', () => {
     expect(toSubmitAnswer('MULTIPLE', ['A', 'A', 'C'])).toEqual(['A', 'C'])
   })
+
+  it('每一项都是字符串（后端严格校验）', () => {
+    expect(toSubmitAnswer('FILL', [5 as unknown as string, null as unknown as string], 2)).toEqual(['5', ''])
+    expect(toSubmitAnswer('SINGLE', [1 as unknown as string])).toEqual(['1'])
+  })
 })
 
 describe('展示格式', () => {

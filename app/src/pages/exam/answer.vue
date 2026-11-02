@@ -22,7 +22,7 @@
 
       <view v-if="locked" class="locked-bar">考试时间已到，不能再作答</view>
 
-      <swiper class="swiper" :style="{ height: swiperHeight + 'px' }" :current="current" :duration="250" @change="onSwipe">
+      <swiper class="swiper" :style="{ height: swiperHeight - (locked ? 32 : 0) + 'px' }" :current="current" :duration="250" @change="onSwipe">
         <swiper-item v-for="(q, i) in sheet.questions" :key="q.questionId">
           <scroll-view scroll-y class="scroll">
             <view v-if="Math.abs(i - current) <= 1" class="qwrap">
@@ -212,7 +212,11 @@ async function load() {
     persist(merged)
     syncer = new ExamSyncer(merged, {
       send: (e) =>
-        examApi.saveAnswer(recordId.value, e.questionId, { userAnswer: e.userAnswer, version: e.version, marked: e.marked }),
+        examApi.saveAnswer(recordId.value, e.questionId, {
+          userAnswer: e.userAnswer.map(String),
+          version: Number(e.version),
+          marked: e.marked === true,
+        }),
       fetchServer: async (questionId) => {
         const fresh = await examApi.record(recordId.value)
         return isExamSheet(fresh) ? fresh.answers.find((a) => a.questionId === questionId) ?? null : null
@@ -478,7 +482,11 @@ async function submit(auto: boolean) {
 }
 
 .locked-bar {
-  padding: 6px 12px;
+  /* 高度 32px，模板里 swiper 高度会相应减掉 */
+  height: 32px;
+  line-height: 32px;
+  box-sizing: border-box;
+  padding: 0 12px;
   background: var(--c-wrong-weak);
   color: var(--c-wrong);
   font-size: var(--fs-sm);

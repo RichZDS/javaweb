@@ -63,12 +63,14 @@
     <view class="section-title">科目与章节</view>
     <view v-if="treeState === 'loading'" class="empty">加载中…</view>
     <view v-else-if="treeState === 'error'" class="empty">
-      <view>题库没加载出来</view>
+      <view>{{ user.targetCategoryName }}的科目没加载出来</view>
+      <view class="err-reason">{{ treeError }}</view>
       <button class="btn-plain retry" size="mini" @tap="load">重试</button>
     </view>
     <view v-else-if="!subjects.length" class="empty">这个考试下还没有题目</view>
 
-    <view v-for="subject in subjects" :key="subject.id" class="card subject">
+    <!-- 只在加载成功后显示，切换目标考试时不会把旧考试的科目留在新标题下 -->
+    <view v-for="subject in treeState === 'ready' ? subjects : []" :key="subject.id" class="card subject">
       <view class="subject-head" @tap="toggle(subject.id)">
         <view class="subject-main">
           <text class="subject-name">{{ subject.name }}</text>
@@ -104,6 +106,7 @@ import type { CategoryNode, PracticeSession, StatsOverview } from '@/api/types'
 import { useTheme } from '@/composables/useTheme'
 import { useUserStore } from '@/stores/user'
 import { formatDateTime, formatRate } from '@/logic/format'
+import { describeError, toApiError } from '@/logic/http'
 import { PAGES, ensureReady } from '@/utils/nav'
 import { MODE_LABEL } from '@/utils/labels'
 
@@ -112,6 +115,7 @@ const user = useUserStore()
 
 const tree = ref<CategoryNode | null>(null)
 const treeState = ref<'loading' | 'ready' | 'error'>('loading')
+const treeError = ref('')
 const overview = ref<StatsOverview | null>(null)
 const current = ref<PracticeSession | null>(null)
 const wrongTotal = ref(0)
@@ -122,11 +126,8 @@ const subjects = computed(() => tree.value?.children ?? [])
 
 onShow(() => {
   if (!ensureReady()) return
-  // 切换目标考试后重新加载并清空展开状态；否则静默刷新数字
-  if (loadedFor !== user.targetCategoryId) {
-    treeState.value = 'loading'
-    Object.keys(expanded).forEach((k) => delete expanded[Number(k)])
-  }
+  // 切换了目标考试：立即清掉旧考试的科目和数字，再按新目标加载；否则静默刷新
+  if (loadedFor !== user.targetCategoryId) resetForTarget()
   load()
 })
 
@@ -135,15 +136,28 @@ onPullDownRefresh(async () => {
   uni.stopPullDownRefresh()
 })
 
+function resetForTarget() {
+  tree.value = null
+  overview.value = null
+  current.value = null
+  wrongTotal.value = 0
+  treeState.value = 'loading'
+  loadedFor = null
+  Object.keys(expanded).forEach((k) => delete expanded[Number(k)])
+}
+
 async function load() {
   const rootId = user.targetCategoryId
   if (!rootId) return
+  if (!tree.value) treeState.value = 'loading'
   const [treeRes, overviewRes, currentRes, groupsRes] = await Promise.allSettled([
     categoryApi.tree(rootId),
     statsApi.overview(),
     practiceApi.current(),
     wrongApi.groups(),
   ])
+  // 请求期间又切换了目标考试：丢掉这次的结果
+  if (rootId !== user.targetCategoryId) return
   if (treeRes.status === 'fulfilled') {
     tree.value = treeRes.value
     treeState.value = 'ready'
@@ -151,6 +165,7 @@ async function load() {
     const first = subjects.value[0]
     if (first && Object.keys(expanded).length === 0) expanded[first.id] = true
   } else if (!tree.value) {
+    treeError.value = describeError(toApiError(treeRes.reason))
     treeState.value = 'error'
   }
   if (overviewRes.status === 'fulfilled') overview.value = overviewRes.value
@@ -466,6 +481,12 @@ async function continuePractice() {
   height: 100%;
   border-radius: 3px;
   background: var(--c-primary);
+}
+
+.err-reason {
+  margin-top: 4px;
+  font-size: var(--fs-xs);
+  color: var(--c-wrong);
 }
 
 .retry {

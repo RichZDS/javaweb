@@ -1,5 +1,11 @@
 <template>
   <view class="page-root wrongbook" :class="themeClass">
+    <!-- 范围：只看当前目标考试的错题（列表、分组计数、重练都用同一范围） -->
+    <view class="scope">
+      <text>当前考试：<text class="scope-name">{{ user.targetCategoryName || '未选择' }}</text></text>
+      <text class="scope-link" @tap="goTarget">切换</text>
+    </view>
+
     <!-- 按章节分组筛选 -->
     <scroll-view scroll-x class="groups">
       <view class="group" :class="{ on: categoryId === null }" @tap="pick(null)">全部 {{ totalCount }}</view>
@@ -55,8 +61,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { onLoad, onPullDownRefresh, onReachBottom, onShow } from '@dcloudio/uni-app'
-import { practiceApi, wrongApi } from '@/api'
-import type { WrongGroup, WrongQuestion } from '@/api/types'
+import { categoryApi, practiceApi, wrongApi } from '@/api'
+import type { CategoryNode, WrongGroup, WrongQuestion } from '@/api/types'
 import { useTheme } from '@/composables/useTheme'
 import { useUserStore } from '@/stores/user'
 import { TYPE_LABEL, formatAnswer } from '@/logic/answer'
@@ -80,15 +86,27 @@ let firstShow = true
 /** 连续答对几次自动移出，按本人设置（默认 3） */
 const threshold = computed(() => user.user?.wrongRemoveThreshold ?? 3)
 const totalCount = computed(() => groups.value.reduce((s, g) => s + g.count, 0))
+/** 目标考试下所有分类 id：分组只保留属于当前考试的章节（后端默认已按目标考试，这里再兜一层） */
+const targetIds = ref<Set<number> | null>(null)
+let loadedFor: number | null = null
 const hasMore = computed(() => list.value.length < total.value)
 
 onLoad((query) => {
   if (query?.categoryId) categoryId.value = Number(query.categoryId)
 })
 
-// 从错题练习回来时数量会变，每次显示都刷新
+// 从错题练习回来时数量会变，每次显示都刷新；切换了目标考试则清掉旧范围重新加载
 onShow(() => {
-  reload(!firstShow)
+  if (loadedFor !== user.targetCategoryId) {
+    if (loadedFor !== null) categoryId.value = null
+    list.value = []
+    groups.value = []
+    targetIds.value = null
+    loadedFor = user.targetCategoryId
+    reload()
+  } else {
+    reload(!firstShow)
+  }
   firstShow = false
 })
 
@@ -102,17 +120,42 @@ onReachBottom(() => {
 })
 
 async function reload(quiet = false) {
-  wrongApi
-    .groups()
-    .then((g) => (groups.value = g))
-    .catch(() => {})
+  loadGroups()
   await fetchPage(1, quiet)
+}
+
+async function loadGroups() {
+  const rootId = user.targetCategoryId
+  try {
+    if (rootId && !targetIds.value) targetIds.value = collectIds(await categoryApi.tree(rootId))
+    const all = await wrongApi.groups()
+    if (rootId !== user.targetCategoryId) return
+    groups.value = targetIds.value ? all.filter((g) => targetIds.value!.has(g.categoryId)) : all
+  } catch {
+    /* 分组是辅助筛选，失败时只显示「全部」 */
+  }
+}
+
+function collectIds(node: CategoryNode): Set<number> {
+  const ids = new Set<number>()
+  const walk = (n: CategoryNode) => {
+    ids.add(n.id)
+    n.children?.forEach(walk)
+  }
+  walk(node)
+  return ids
+}
+
+function goTarget() {
+  uni.navigateTo({ url: PAGES.target })
 }
 
 async function fetchPage(p: number, quiet = false) {
   if (!quiet) state.value = 'loading'
   try {
-    const res = await wrongApi.list({ categoryId: categoryId.value ?? undefined, sort: sort.value, page: p, size: PAGE_SIZE })
+    // 「全部」= 当前目标考试下的全部错题，和「重练全部」同一范围
+    const scope = categoryId.value ?? user.targetCategoryId ?? undefined
+    const res = await wrongApi.list({ categoryId: scope, sort: sort.value, page: p, size: PAGE_SIZE })
     list.value = p === 1 ? res.items : [...list.value, ...res.items]
     total.value = res.total
     page.value = p
@@ -184,6 +227,24 @@ async function practiceGroup() {
 <style lang="scss" scoped>
 .wrongbook {
   padding-bottom: 16px;
+}
+
+.scope {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px 0;
+  font-size: var(--fs-sm);
+  color: var(--c-text-2);
+}
+
+.scope-name {
+  font-weight: 600;
+  color: var(--c-text);
+}
+
+.scope-link {
+  color: var(--c-primary);
 }
 
 .groups {

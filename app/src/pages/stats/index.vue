@@ -144,6 +144,10 @@ const trendOpts = {
 const chapters = computed(() => chapterData(categoryStats.value))
 /** 条形图的横轴是数值轴：两端对齐、每个刻度都显示（labelCount 为 0 表示不抽稀） */
 const barOpts = {
+  // 标出数值：正确率为 0 的章节没有条，也能看出是 0 而不是没数据
+  dataLabel: true,
+  // 右侧留出数值标签的位置（100 不被截掉）
+  padding: [12, 30, 4, 4],
   xAxis: { min: 0, max: 100, boundaryGap: 'justify', labelCount: 0, disableGrid: false, gridType: 'dash' },
   extra: { bar: { width: 14 } },
 }

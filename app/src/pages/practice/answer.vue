@@ -12,10 +12,12 @@
         <text class="progress-text">{{ current + 1 }} / {{ questions.length }}</text>
         <view class="progress-bar"><view class="progress-fill" :style="{ width: doneRate + '%' }" /></view>
         <text class="top-btn" @tap="openCard">答题卡</text>
-        <text class="top-btn strong" @tap="finish">{{ finished ? '看结果' : '结束' }}</text>
+        <text class="top-btn strong" @tap="finish">{{ finishLabel }}</text>
       </view>
 
-      <swiper class="swiper" :style="{ height: swiperHeight + 'px' }" :current="current" :duration="250" @change="onSwipe">
+      <view v-if="ended" class="ended-bar">这次练习已结束，正在回看，不能再作答</view>
+
+      <swiper class="swiper" :style="{ height: swiperHeight - (ended ? ENDED_BAR_HEIGHT : 0) + 'px' }" :current="current" :duration="250" @change="onSwipe">
         <swiper-item v-for="(q, i) in questions" :key="q.id">
           <scroll-view scroll-y class="scroll">
             <!-- 只渲染当前题和左右两题，题多时也不卡 -->
@@ -39,8 +41,14 @@
                 提交答案
               </button>
 
+              <!-- 已结束的练习里没交的题：没有答案数据，明确标为未作答 -->
+              <view v-if="ended && !q.submitted && !session.reciteMode" class="unanswered">
+                <text class="unanswered-title">未作答</text>
+                <text class="muted">这题在练习结束前没有提交，不计入作答和正确率。</text>
+              </view>
+
               <AnswerReveal
-                v-if="isLocked(q)"
+                v-else-if="isLocked(q)"
                 :type="q.type"
                 :correct="q.correct"
                 :user-answer="q.userAnswer"
@@ -55,7 +63,7 @@
                 <text class="note-text">{{ q.note }}</text>
               </view>
 
-              <button v-if="finished && i === questions.length - 1" class="btn-plain submit" @tap="finish">
+              <button v-if="(finished || ended) && i === questions.length - 1" class="btn-plain submit" @tap="finish">
                 查看本次结果
               </button>
               <view class="scroll-space" />
@@ -93,7 +101,7 @@
         <AnswerCard :statuses="statuses" :current="current" :labels="cardLabels" @jump="jump">
           <view class="card-foot">
             <text class="muted">已提交 {{ submittedCount }} / {{ questions.length }}</text>
-            <button class="btn-primary card-finish" size="mini" @tap="finish">{{ finished ? '查看结果' : '结束练习' }}</button>
+            <button class="btn-primary card-finish" size="mini" @tap="finish">{{ finishLabel === '结束' ? '结束练习' : finishLabel }}</button>
           </view>
         </AnswerCard>
       </uni-popup>
@@ -152,6 +160,9 @@ import { cardStatus, emptyAnswer, hasAnyAnswer, isComplete, toSubmitAnswer, type
 import { FEEDBACK_LABEL, MODE_LABEL } from '@/utils/labels'
 import { PAGES } from '@/utils/nav'
 
+/** 「已结束」提示条的高度，和样式里的 .ended-bar 保持一致 */
+const ENDED_BAR_HEIGHT = 32
+
 interface PopupRef {
   open: () => void
   close: () => void
@@ -181,6 +192,12 @@ const sendingFeedback = ref(false)
 const questions = computed<PracticeQuestion[]>(() => session.value?.questions ?? [])
 const currentQ = computed(() => questions.value[current.value])
 const submittedCount = computed(() => questions.value.filter((q) => q.submitted).length)
+/** 练习已结束（主动结束或全部提交后自动完成）：只读回看 */
+const ended = computed(() => !!session.value && session.value.status !== 'IN_PROGRESS')
+const finishLabel = computed(() => {
+  if (ended.value) return session.value?.reciteMode ? '退出' : '返回结果'
+  return finished.value ? '看结果' : '结束'
+})
 const finished = computed(
   () => !!session.value && !session.value.reciteMode && questions.value.length > 0 && submittedCount.value === questions.value.length,
 )
@@ -232,7 +249,7 @@ async function load(jumpTo: number | null = null) {
 // ---------- 作答 ----------
 
 function isLocked(q: PracticeQuestion): boolean {
-  return q.submitted || !!session.value?.reciteMode
+  return q.submitted || !!session.value?.reciteMode || ended.value
 }
 
 function shownAnswer(q: PracticeQuestion): string[] {
@@ -350,6 +367,12 @@ onUnload(saveProgress)
 
 async function finish() {
   if (!session.value) return
+  if (ended.value) {
+    // 回看已结束的练习：背题直接退出，普通练习回结果页
+    if (session.value.reciteMode) uni.navigateBack({ fail: () => uni.switchTab({ url: PAGES.home }) })
+    else uni.redirectTo({ url: `${PAGES.practiceResult}?id=${sessionId.value}` })
+    return
+  }
   if (session.value.reciteMode) {
     if (!(await confirmModal('结束背题？'))) return
     saveProgress()
@@ -533,6 +556,33 @@ async function sendFeedback() {
 .note-text {
   white-space: pre-wrap;
   font-size: var(--fs-sm);
+}
+
+.ended-bar {
+  height: 32px;
+  line-height: 32px;
+  box-sizing: border-box;
+  padding: 0 12px;
+  background: var(--c-warn-weak);
+  color: var(--c-warn);
+  font-size: var(--fs-sm);
+  text-align: center;
+}
+
+.unanswered {
+  margin-top: 16px;
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px dashed var(--c-border);
+  background: var(--c-card);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.unanswered-title {
+  font-weight: 600;
+  color: var(--c-text-2);
 }
 
 .scroll-space {
