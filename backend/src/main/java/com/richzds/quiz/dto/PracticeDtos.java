@@ -3,6 +3,7 @@ package com.richzds.quiz.dto;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -33,17 +34,23 @@ public final class PracticeDtos {
             Boolean acceptFewer,
             @Size(max = 50, message = "标签太长") String tag,
             Long fromSessionId,
-            Long fromExamRecordId) {
+            Long fromExamRecordId,
+            Boolean shuffleOptions) {
     }
 
-    public record SessionView(Long id, String mode, boolean reciteMode, String status, int questionCount,
+    public record SessionView(Long id, String mode, boolean reciteMode, boolean shuffleOptions, String status,
+                              int questionCount,
                               int answeredCount, int correctCount, int currentIndex, Instant startedAt,
                               Instant completedAt, LocalDate dailyDate, List<SessionQuestion> questions) {
     }
 
-    /** 练习里的一道题：题目字段 + 作答情况；提交后（或背题模式）再平铺答案字段。 */
+    /**
+     * 练习里的一道题：题目字段 + 作答情况；提交后（或背题模式）再平铺答案字段。
+     * 打乱了选项时，选项、userAnswer、correctAnswer 都用新标签，optionMapping 是新标签 → 原标签，否则为 null。
+     */
     public record SessionQuestion(@JsonUnwrapped QuestionView question, boolean submitted, List<String> userAnswer,
-                                  Boolean correct, @JsonUnwrapped AnswerView answer) {
+                                  Boolean correct, Map<String, String> optionMapping,
+                                  @JsonUnwrapped AnswerView answer) {
     }
 
     public record SubmitRequest(
@@ -54,7 +61,8 @@ public final class PracticeDtos {
     }
 
     public record SubmitResult(Long questionId, boolean correct, List<String> userAnswer, List<String> correctAnswer,
-                               List<List<String>> acceptedAnswers, String analysisHtml, boolean alreadySubmitted) {
+                               List<List<String>> acceptedAnswers, String analysisHtml, boolean alreadySubmitted,
+                               Map<String, String> optionMapping) {
     }
 
     public record ProgressRequest(@NotNull(message = "不能为空") @Min(value = 0, message = "不能为负")

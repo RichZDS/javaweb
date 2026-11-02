@@ -2,6 +2,7 @@ package com.richzds.quiz.dto;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -18,22 +19,25 @@ public final class ExamDtos {
 
     public record PaperItem(Long paperId, String title, Long categoryId, String mode, int questionCount,
                             int totalScore, int passScore, int durationMin, int myAttempts, Integer myBestScore,
-                            Long inProgressRecordId) {
+                            Long inProgressRecordId, boolean shuffleOptions) {
     }
 
     public record PaperDetail(Long paperId, String title, Long categoryId, String mode, int questionCount,
                               int totalScore, int passScore, int durationMin, int myAttempts, Integer myBestScore,
-                              Long inProgressRecordId, String description, String scoringRules) {
+                              Long inProgressRecordId, boolean shuffleOptions, String description,
+                              String scoringRules) {
     }
 
     /** 进行中的答卷，不含任何答案和解析。 */
-    public record ExamSheet(Long recordId, Long paperId, String title, String status, Instant startedAt,
+    public record ExamSheet(Long recordId, Long paperId, String title, String status, boolean shuffleOptions,
+                            Instant startedAt,
                             Instant deadlineAt, Instant serverTime, int durationMin, int totalScore, int passScore,
                             List<SheetQuestion> questions, List<SavedAnswer> answers) {
     }
 
+    /** 打乱了选项时 options 用新标签，optionMapping 是新标签 → 原标签，否则为 null。 */
     public record SheetQuestion(int index, Long questionId, String type, String stemHtml, List<OptionView> options,
-                                int blankCount, String imageUrl, int score) {
+                                int blankCount, String imageUrl, int score, Map<String, String> optionMapping) {
     }
 
     public record SavedAnswer(Long questionId, List<String> userAnswer, int version, boolean marked,
@@ -65,7 +69,8 @@ public final class ExamDtos {
 
     public record ResultItem(int index, Long questionId, String type, String stemHtml, List<OptionView> options,
                              int blankCount, String imageUrl, List<String> userAnswer, List<String> correctAnswer, List<List<String>> acceptedAnswers,
-                             boolean correct, int score, int maxScore, String analysisHtml) {
+                             boolean correct, int score, int maxScore, String analysisHtml,
+                             Map<String, String> optionMapping) {
     }
 
     public record RecordItem(Long recordId, Long paperId, String title, String status, Integer score,
