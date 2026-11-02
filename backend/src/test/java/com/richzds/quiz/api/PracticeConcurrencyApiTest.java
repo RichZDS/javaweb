@@ -2,6 +2,7 @@ package com.richzds.quiz.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -22,13 +23,14 @@ import com.richzds.quiz.entity.Category;
 import com.richzds.quiz.entity.ExamPaper;
 import com.richzds.quiz.entity.PaperQuestion;
 import com.richzds.quiz.entity.Question;
+import com.richzds.quiz.exam.ExamSettlementJob;
 import com.richzds.quiz.mapper.ExamPaperMapper;
 import com.richzds.quiz.mapper.PaperQuestionMapper;
 import com.richzds.quiz.support.ApiTestBase;
 
 /**
  * 并发场景：同一次练习的多道题同时提交（练习必须自动完成，每日一练要靠它写 completedAt）、
- * 同时收藏同一道题、同一道考试题的多个版本同时保存。
+ * 同时收藏同一道题、同一道考试题的多个版本同时保存、同一场考试同时交卷多次。
  * 连接用可重复读隔离级别，和 MySQL 的默认值一致（H2 默认是读已提交，复现不了快照读漏数的问题）。
  */
 @TestPropertySource(properties = "spring.datasource.hikari.transaction-isolation=TRANSACTION_REPEATABLE_READ")
@@ -38,6 +40,8 @@ class PracticeConcurrencyApiTest extends ApiTestBase {
     ExamPaperMapper paperMapper;
     @Autowired
     PaperQuestionMapper paperQuestionMapper;
+    @Autowired
+    ExamSettlementJob settlementJob;
 
     static final int ROUNDS = 15;
     static final int QUESTIONS = 10;
@@ -155,5 +159,135 @@ class PracticeConcurrencyApiTest extends ApiTestBase {
         } finally {
             pool.shutdownNow();
         }
+    }
+
+    /**
+     * BUG-QA-004：同一场考试同时交卷多次（连点交卷、自动交卷撞上手动交卷）。只结算一次，而且每个请求返回的
+     * 成绩单完全一致、等于库里存的成绩；不能有请求拿着结算前的快照，返回“进行中、0 分、全错”。
+     */
+    @Test
+    void concurrentExamSubmitsAllReturnTheStoredResult() throws Exception {
+        Login u = register("conc4");
+        Category[] t = tree("T");
+        List<Question> qs = singles(t[2], QUESTIONS);
+        LocalDateTime now = LocalDateTime.ofInstant(clock.instant(), ZoneOffset.UTC);
+        ExamPaper p = new ExamPaper().setTitle("并发交卷")
+                .setCategoryId(t[0].getId()).setMode("FIXED").setDurationMin(30).setTotalScore(QUESTIONS * 10)
+                .setPassScore(10).setStatus("ONLINE").setCreatedAt(now).setUpdatedAt(now);
+        paperMapper.insert(p);
+        for (int i = 0; i < qs.size(); i++) {
+            paperQuestionMapper.insert(new PaperQuestion().setPaperId(p.getId())
+                    .setQuestionId(qs.get(i).getId()).setScore(10).setSort(i));
+        }
+        ExecutorService pool = Executors.newFixedThreadPool(6);
+        int mismatched = 0;
+        try {
+            for (int round = 0; round < ROUNDS; round++) {
+                long rid = data(call(post("/api/exams/" + p.getId() + "/start", u, null))).get("recordId").asLong();
+                for (int i = 0; i < qs.size(); i++) {
+                    // 一半答对（A），一半答错（B）
+                    call(put("/api/exam-records/" + rid + "/answers/" + qs.get(i).getId(), u,
+                            Map.of("userAnswer", List.of(i % 2 == 0 ? "A" : "B"), "version", 1)));
+                }
+                CountDownLatch go = new CountDownLatch(1);
+                List<Future<Resp>> results = new ArrayList<>();
+                for (int i = 0; i < 6; i++) {
+                    results.add(pool.submit(() -> {
+                        go.await();
+                        return call(post("/api/exam-records/" + rid + "/submit", u, null));
+                    }));
+                }
+                go.countDown();
+                List<JsonNode> bodies = new ArrayList<>();
+                for (Future<Resp> f : results) {
+                    bodies.add(data(f.get(30, TimeUnit.SECONDS)));
+                }
+                int stored = jdbc.queryForObject("SELECT score FROM exam_record WHERE id = ?", Integer.class, rid);
+                long storedCorrect = jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM exam_answer WHERE record_id = ? AND is_correct = TRUE", Long.class, rid);
+                assertThat(stored).isEqualTo(QUESTIONS / 2 * 10);
+                assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM answer_record WHERE source = 'EXAM' AND source_id = ?",
+                        Long.class, rid)).as("只结算一次").isEqualTo(QUESTIONS);
+                for (JsonNode b : bodies) {
+                    if (!b.equals(bodies.get(0)) || !"FINISHED".equals(b.get("status").asText())
+                            || b.get("score").asInt() != stored || b.get("correctCount").asLong() != storedCorrect) {
+                        mismatched++;
+                    }
+                }
+            }
+        } finally {
+            pool.shutdownNow();
+        }
+        assertThat(mismatched).as("和库里成绩不一致的交卷返回数（共 %d 轮，每轮 6 个并发交卷）", ROUNDS).isZero();
+    }
+
+    /**
+     * 到了截止时间，自动交卷、打开记录和定时结算撞在一起：只结算一次（记为超时），
+     * 交卷和查看记录返回的成绩单都和库里一致。
+     */
+    @Test
+    void submitRacingTheTimeoutJobReturnsTheStoredResult() throws Exception {
+        Login u = register("conc5");
+        Category[] t = tree("T");
+        List<Question> qs = singles(t[2], QUESTIONS);
+        LocalDateTime now = LocalDateTime.ofInstant(clock.instant(), ZoneOffset.UTC);
+        ExamPaper p = new ExamPaper().setTitle("到时交卷")
+                .setCategoryId(t[0].getId()).setMode("FIXED").setDurationMin(30).setTotalScore(QUESTIONS * 10)
+                .setPassScore(10).setStatus("ONLINE").setCreatedAt(now).setUpdatedAt(now);
+        paperMapper.insert(p);
+        for (int i = 0; i < qs.size(); i++) {
+            paperQuestionMapper.insert(new PaperQuestion().setPaperId(p.getId())
+                    .setQuestionId(qs.get(i).getId()).setScore(10).setSort(i));
+        }
+        ExecutorService pool = Executors.newFixedThreadPool(6);
+        int mismatched = 0;
+        try {
+            for (int round = 0; round < ROUNDS; round++) {
+                long rid = data(call(post("/api/exams/" + p.getId() + "/start", u, null))).get("recordId").asLong();
+                for (int i = 0; i < qs.size(); i++) {
+                    call(put("/api/exam-records/" + rid + "/answers/" + qs.get(i).getId(), u,
+                            Map.of("userAnswer", List.of(i % 2 == 0 ? "A" : "B"), "version", 1)));
+                }
+                clock.advance(Duration.ofMinutes(31));
+                // 时钟跳过 5 分钟后第一个请求会写 last_active_at；先让它写掉。否则 5 个并发请求都在鉴权时改这一行，
+                // H2 可重复读会把“等锁期间行被改过”报成死锁（InnoDB 只是排队），测到的就不是结算本身了
+                call(get("/api/me", u));
+                CountDownLatch go = new CountDownLatch(1);
+                Future<Integer> job = pool.submit(() -> {
+                    go.await();
+                    return settlementJob.run();
+                });
+                List<Future<Resp>> results = new ArrayList<>();
+                for (int i = 0; i < 5; i++) {
+                    boolean submit = i % 2 == 0;
+                    results.add(pool.submit(() -> {
+                        go.await();
+                        return submit ? call(post("/api/exam-records/" + rid + "/submit", u, null))
+                                : call(get("/api/exam-records/" + rid, u));
+                    }));
+                }
+                go.countDown();
+                job.get(30, TimeUnit.SECONDS);
+                List<JsonNode> bodies = new ArrayList<>();
+                for (Future<Resp> f : results) {
+                    bodies.add(data(f.get(30, TimeUnit.SECONDS)));
+                }
+                int stored = jdbc.queryForObject("SELECT score FROM exam_record WHERE id = ?", Integer.class, rid);
+                assertThat(stored).isEqualTo(QUESTIONS / 2 * 10);
+                assertThat(jdbc.queryForObject("SELECT finish_reason FROM exam_record WHERE id = ?", String.class, rid))
+                        .isEqualTo("TIMEOUT");
+                assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM answer_record WHERE source = 'EXAM' AND source_id = ?",
+                        Long.class, rid)).as("只结算一次").isEqualTo(QUESTIONS);
+                for (JsonNode b : bodies) {
+                    if (!b.equals(bodies.get(0)) || !"FINISHED".equals(b.get("status").asText())
+                            || b.get("score").asInt() != stored) {
+                        mismatched++;
+                    }
+                }
+            }
+        } finally {
+            pool.shutdownNow();
+        }
+        assertThat(mismatched).as("和库里成绩不一致的返回数（共 %d 轮，每轮 3 个交卷 + 2 个查看）", ROUNDS).isZero();
     }
 }

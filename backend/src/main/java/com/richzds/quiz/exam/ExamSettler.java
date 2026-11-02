@@ -29,6 +29,7 @@ import com.richzds.quiz.service.CategoryService;
 import com.richzds.quiz.service.CategoryTree;
 import com.richzds.quiz.service.GradingService;
 import com.richzds.quiz.service.PracticeService;
+import com.richzds.quiz.service.UserService;
 import com.richzds.quiz.service.WrongBookService;
 
 /**
@@ -54,11 +55,13 @@ public class ExamSettler {
     private final GradingService gradingService;
     private final WrongBookService wrongBookService;
     private final CategoryService categoryService;
+    private final UserService userService;
     private final Clock clock;
 
     public ExamSettler(ExamRecordMapper recordMapper, ExamAnswerMapper answerMapper, ExamPaperMapper paperMapper,
                        AnswerRecordMapper answerRecordMapper, GradingService gradingService,
-                       WrongBookService wrongBookService, CategoryService categoryService, Clock clock) {
+                       WrongBookService wrongBookService, CategoryService categoryService, UserService userService,
+                       Clock clock) {
         this.recordMapper = recordMapper;
         this.answerMapper = answerMapper;
         this.paperMapper = paperMapper;
@@ -66,18 +69,25 @@ public class ExamSettler {
         this.gradingService = gradingService;
         this.wrongBookService = wrongBookService;
         this.categoryService = categoryService;
+        this.userService = userService;
         this.clock = clock;
     }
 
     /**
      * 结算一场考试。已过截止时间的一律记为 TIMEOUT，交卷时间记为截止时间；否则按 reason（手动交卷）。
      *
-     * @return 这次调用是否真的做了结算（false 表示早已结算）
+     * <p>第一条语句先锁考生本人的 user 行：同一个人的结算（交卷、查看记录、开考时顺带结算、定时任务）
+     * 一个一个来。MySQL 可重复读的快照在第一次普通读时才建立，先拿锁再读，后到的就看得到前一个刚提交的
+     * 结算，直接返回 false；否则后到的读到的还是“进行中”，抢占失败后调用方拿旧快照拼出“0 分、全错”的
+     * 成绩单（BUG-QA-004）。加锁顺序固定为：用户 → 考试记录 → 考试答案 → 作答记录 / 错题。
+     *
+     * @return 这次调用是否真的做了结算（false 表示早已结算，或记录不是这个人的）
      */
     @Transactional
-    public boolean settle(long recordId, String reason) {
+    public boolean settle(long userId, long recordId, String reason) {
+        userService.lockRow(userId);
         ExamRecord record = recordMapper.selectById(recordId);
-        if (record == null || !STATUS_IN_PROGRESS.equals(record.getStatus())) {
+        if (record == null || record.getUserId() != userId || !STATUS_IN_PROGRESS.equals(record.getStatus())) {
             return false;
         }
         LocalDateTime now = TimeUtil.nowUtc(clock);
@@ -149,17 +159,16 @@ public class ExamSettler {
     }
 
     /**
-     * 已过截止时间但还没结算的考试 id；userId 为 null 时查全部。
+     * 已过截止时间但还没结算的考试（只取 id 和 userId）；userId 为 null 时查全部。
      * 调用方逐个调 {@link #settle}（经代理，每条一个事务）。
      */
-    public List<Long> expiredIds(Long userId) {
+    public List<ExamRecord> expired(Long userId) {
         return recordMapper.selectList(new LambdaQueryWrapper<ExamRecord>()
-                        .select(ExamRecord::getId)
-                        .eq(userId != null, ExamRecord::getUserId, userId)
-                        .eq(ExamRecord::getStatus, STATUS_IN_PROGRESS)
-                        .le(ExamRecord::getDeadlineAt, TimeUtil.nowUtc(clock))
-                        .orderByAsc(ExamRecord::getDeadlineAt))
-                .stream().map(ExamRecord::getId).toList();
+                .select(ExamRecord::getId, ExamRecord::getUserId)
+                .eq(userId != null, ExamRecord::getUserId, userId)
+                .eq(ExamRecord::getStatus, STATUS_IN_PROGRESS)
+                .le(ExamRecord::getDeadlineAt, TimeUtil.nowUtc(clock))
+                .orderByAsc(ExamRecord::getDeadlineAt));
     }
 
     public static AnswerKey keyOf(ExamSnapshot.Item item) {

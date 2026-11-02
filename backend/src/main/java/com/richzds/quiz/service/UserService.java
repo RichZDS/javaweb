@@ -91,33 +91,32 @@ public class UserService {
         return view(requireUser(userId));
     }
 
+    /**
+     * 改资料。只写这次传了的列：先读整行再 updateById 写回，会把并发的修改一起覆盖掉，
+     * 比如管理员刚禁用账号时正好有一个改资料请求在途，账号就被写回成启用。
+     */
     @Transactional
     public UserView updateMe(long userId, UpdateMeRequest req) {
-        User user = requireUser(userId);
+        LambdaUpdateWrapper<User> set = new LambdaUpdateWrapper<User>().eq(User::getId, userId)
+                .set(User::getUpdatedAt, TimeUtil.nowUtc(clock));
         if (req.nickname() != null) {
             if (req.nickname().isBlank()) {
                 throw BizException.invalid("nickname", "昵称不能为空");
             }
-            user.setNickname(req.nickname().strip());
+            set.set(User::getNickname, req.nickname().strip());
         }
         if (req.avatarUrl() != null) {
-            user.setAvatarUrl(req.avatarUrl().isBlank() ? null : req.avatarUrl().strip());
+            set.set(User::getAvatarUrl, req.avatarUrl().isBlank() ? null : req.avatarUrl().strip());
         }
         if (req.targetCategoryId() != null) {
             Category c = categoryMapper.selectById(req.targetCategoryId());
             if (c == null || c.getLevel() != CategoryTree.LEVEL_EXAM) {
                 throw BizException.invalid("targetCategoryId", "目标考试必须是一级分类");
             }
-            user.setTargetCategoryId(c.getId());
+            set.set(User::getTargetCategoryId, c.getId());
         }
-        user.setUpdatedAt(TimeUtil.nowUtc(clock));
-        userMapper.updateById(user);
-        if (req.avatarUrl() != null && user.getAvatarUrl() == null) {
-            // updateById 会跳过 null 字段，清空头像要单独写
-            userMapper.update(null, new LambdaUpdateWrapper<User>()
-                    .eq(User::getId, userId).set(User::getAvatarUrl, null));
-        }
-        return view(user);
+        userMapper.update(null, set);
+        return view(requireUser(userId));
     }
 
     @Transactional
@@ -141,9 +140,10 @@ public class UserService {
         if (!passwordEncoder.matches(req.oldPassword(), user.getPasswordHash())) {
             throw BizException.invalid("oldPassword", "原密码不正确");
         }
-        user.setPasswordHash(passwordEncoder.encode(req.newPassword()));
-        user.setUpdatedAt(TimeUtil.nowUtc(clock));
-        userMapper.updateById(user);
+        // 只写密码这一列，理由同 updateMe
+        userMapper.update(null, new LambdaUpdateWrapper<User>().eq(User::getId, userId)
+                .set(User::getPasswordHash, passwordEncoder.encode(req.newPassword()))
+                .set(User::getUpdatedAt, TimeUtil.nowUtc(clock)));
     }
 
     /**
