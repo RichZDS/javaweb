@@ -146,6 +146,16 @@ public class UserService {
         userMapper.updateById(user);
     }
 
+    /**
+     * 锁住这个用户的行（UPDATE 一个不变的值），让同一个人的某类并发请求排队。
+     * 必须在事务里第一个调用：MySQL 可重复读的快照在第一次普通读时才建立，先拿锁，之后的读就能看到
+     * 前一个请求刚提交的数据。
+     */
+    public void lockRow(long userId) {
+        userMapper.update(null, new LambdaUpdateWrapper<User>().eq(User::getId, userId)
+                .setSql("updated_at = updated_at"));
+    }
+
     public User requireUser(long userId) {
         User user = userMapper.selectById(userId);
         if (user == null) {

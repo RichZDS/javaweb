@@ -30,16 +30,18 @@ public class FavoriteService {
     private final CategoryService categoryService;
     private final QuestionAssembler assembler;
     private final WrongBookService wrongBookService;
+    private final UserService userService;
     private final Clock clock;
 
     public FavoriteService(FavoriteMapper favoriteMapper, QuestionService questionService,
                            CategoryService categoryService, QuestionAssembler assembler,
-                           WrongBookService wrongBookService, Clock clock) {
+                           WrongBookService wrongBookService, UserService userService, Clock clock) {
         this.favoriteMapper = favoriteMapper;
         this.questionService = questionService;
         this.categoryService = categoryService;
         this.assembler = assembler;
         this.wrongBookService = wrongBookService;
+        this.userService = userService;
         this.clock = clock;
     }
 
@@ -63,6 +65,8 @@ public class FavoriteService {
      */
     @Transactional
     public FavoriteItem upsert(long userId, long questionId, String note) {
+        // 同一个人的收藏操作排队：两个请求同时第一次收藏同一道题时，后一个等前一个提交后再读，能看到那一条
+        userService.lockRow(userId);
         Question q = questionService.requirePublished(questionId);
         LocalDateTime now = TimeUtil.nowUtc(clock);
         String cleaned = note == null ? null : (note.isBlank() ? "" : note.strip());

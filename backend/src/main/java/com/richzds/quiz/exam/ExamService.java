@@ -57,7 +57,6 @@ import com.richzds.quiz.mapper.ExamRecordMapper;
 import com.richzds.quiz.mapper.PaperQuestionMapper;
 import com.richzds.quiz.mapper.PaperRuleMapper;
 import com.richzds.quiz.mapper.QuestionMapper;
-import com.richzds.quiz.mapper.UserMapper;
 import com.richzds.quiz.service.CategoryService;
 import com.richzds.quiz.service.CategoryTree;
 import com.richzds.quiz.service.GradingService;
@@ -92,7 +91,6 @@ public class ExamService {
     private final ExamRecordMapper recordMapper;
     private final ExamAnswerMapper answerMapper;
     private final QuestionMapper questionMapper;
-    private final UserMapper userMapper;
     private final UserService userService;
     private final QuestionService questionService;
     private final CategoryService categoryService;
@@ -103,7 +101,7 @@ public class ExamService {
 
     public ExamService(ExamPaperMapper paperMapper, PaperQuestionMapper paperQuestionMapper,
                        PaperRuleMapper paperRuleMapper, ExamRecordMapper recordMapper, ExamAnswerMapper answerMapper,
-                       QuestionMapper questionMapper, UserMapper userMapper, UserService userService,
+                       QuestionMapper questionMapper, UserService userService,
                        QuestionService questionService, CategoryService categoryService, QuestionAssembler assembler,
                        GradingService gradingService, ExamSettler settler, Clock clock) {
         this.paperMapper = paperMapper;
@@ -112,7 +110,6 @@ public class ExamService {
         this.recordMapper = recordMapper;
         this.answerMapper = answerMapper;
         this.questionMapper = questionMapper;
-        this.userMapper = userMapper;
         this.userService = userService;
         this.questionService = questionService;
         this.categoryService = categoryService;
@@ -200,8 +197,7 @@ public class ExamService {
     @Transactional
     public Started start(long userId, long paperId) {
         // 锁住本人这一行，同一个人并发开考时排队，避免同一份卷建出两场进行中的考试
-        userMapper.update(null, new LambdaUpdateWrapper<User>().eq(User::getId, userId)
-                .setSql("updated_at = updated_at"));
+        userService.lockRow(userId);
         ExamPaper paper = requireOnline(paperId);
         LocalDateTime now = TimeUtil.nowUtc(clock);
         ExamRecord running = recordMapper.selectOne(new LambdaQueryWrapper<ExamRecord>()
@@ -345,10 +341,13 @@ public class ExamService {
      */
     @Transactional
     public SaveAnswerResult saveAnswer(long userId, long recordId, long questionId, SaveAnswerRequest req) {
-        requireOwn(userId, recordId);
-        LocalDateTime now = TimeUtil.nowUtc(clock);
+        // 加锁读放在事务第一句：先拿锁再建快照，后面读已存答案时才看得到别的请求刚提交的版本
         ExamRecord r = recordMapper.selectOne(new LambdaQueryWrapper<ExamRecord>()
                 .eq(ExamRecord::getId, recordId).last("FOR UPDATE"));
+        if (r == null || r.getUserId() != userId) {
+            throw BizException.notFound("考试记录");
+        }
+        LocalDateTime now = TimeUtil.nowUtc(clock);
         if (!ExamSettler.STATUS_IN_PROGRESS.equals(r.getStatus()) || !now.isBefore(r.getDeadlineAt())) {
             throw new BizException(ErrorCode.EXAM_EXPIRED, "考试已结束，答案不再接收");
         }

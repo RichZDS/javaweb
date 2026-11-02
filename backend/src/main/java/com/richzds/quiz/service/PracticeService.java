@@ -119,6 +119,8 @@ public class PracticeService {
 
     @Transactional
     public Started start(long userId, StartRequest req) {
+        // 同一个人开练习排队：同时开当天的每日一练或同一章节的顺序练习时，后一个能看到前一个刚建的那次并直接返回它
+        userService.lockRow(userId);
         PracticeMode mode = PracticeMode.valueOf(req.mode());
         User user = userService.requireUser(userId);
         CategoryTree tree = categoryService.tree();
@@ -439,7 +441,7 @@ public class PracticeService {
 
     @Transactional
     public SubmitResult submit(long userId, long sessionId, SubmitRequest req) {
-        PracticeSession s = requireOwn(userId, sessionId);
+        PracticeSession s = lockOwn(userId, sessionId);
         List<Long> ids = questionIds(s);
         long questionId = req.questionId();
         if (!ids.contains(questionId)) {
@@ -483,7 +485,7 @@ public class PracticeService {
         try {
             answerMapper.insert(record);
         } catch (DuplicateKeyException e) {
-            // 网络重试或并发重复提交：唯一索引保证只记第一次
+            // 网络重试或并发重复提交：唯一索引保证只记第一次（练习行已加锁，一般走不到这里）
             AnswerRecord first = findRecord(s.getId(), questionId);
             if (first == null) {
                 throw BizException.conflict("这道题正在提交，请稍后刷新");
@@ -516,7 +518,7 @@ public class PracticeService {
     /** 结束练习。每日一练只有全部提交后才算完成（写 completedAt），否则保持进行中、当天可以继续做。 */
     @Transactional
     public FinishResult finish(long userId, long sessionId) {
-        PracticeSession s = requireOwn(userId, sessionId);
+        PracticeSession s = lockOwn(userId, sessionId);
         List<Long> ids = questionIds(s);
         List<AnswerRecord> records = records(s.getId());
         LocalDateTime now = TimeUtil.nowUtc(clock);
@@ -600,6 +602,21 @@ public class PracticeService {
         return new SubmitResult(q.getId(), Boolean.TRUE.equals(r.getIsCorrect()), userAnswer, correctAnswer,
                 fill ? key.acceptedAnswers() : null, assembler.html(q.getAnalysis()), already,
                 shuffle == null ? null : shuffle.mapping());
+    }
+
+    /**
+     * 取本人的练习并锁住这一行（SELECT … FOR UPDATE），同一次练习的提交、结束一个一个来。
+     * 必须是事务里的第一条语句：MySQL 可重复读下，快照在第一次普通读时建立；先拿锁再读，
+     * 才能看到前一个提交刚写进去的作答记录。否则最后几题同时提交时，每个请求都只数到“还差一题”，
+     * 练习永远不会自动完成（每日一练也就不会写 completedAt）。
+     */
+    private PracticeSession lockOwn(long userId, long sessionId) {
+        PracticeSession s = sessionMapper.selectOne(new LambdaQueryWrapper<PracticeSession>()
+                .eq(PracticeSession::getId, sessionId).last("FOR UPDATE"));
+        if (s == null || s.getUserId() != userId) {
+            throw BizException.notFound("练习");
+        }
+        return s;
     }
 
     /** 取本人的练习；不存在或不是本人的都返回 404。 */
