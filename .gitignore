@@ -1,0 +1,27 @@
+# 通用
+.DS_Store
+*.log
+.idea/
+.vscode/
+*.iml
+.env
+.env.*
+!.env.example
+
+# 后端
+backend/target/
+backend/uploads/
+backend/data/
+
+# 前端
+node_modules/
+admin/dist/
+app/dist/
+app/unpackage/
+coverage/
+
+# 本地密钥和证书，绝不提交
+*.p12
+*.mobileprovision
+*.keystore
+*.jks
