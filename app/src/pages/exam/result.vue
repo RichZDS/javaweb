@@ -66,6 +66,7 @@
             <AnswerReveal
               :type="item.type"
               :correct="item.correct"
+              :unanswered="!answered(item)"
               :user-answer="item.userAnswer"
               :correct-answer="item.correctAnswer"
               :accepted-answers="item.acceptedAnswers"

@@ -1,11 +1,18 @@
 <script setup lang="ts">
 import { onLaunch } from '@dcloudio/uni-app'
 import { useUserStore } from '@/stores/user'
+import { useSettingsStore } from '@/stores/settings'
+import { checkUpdate, scheduleReminders } from '@/utils/native'
 
 onLaunch(() => {
   // 7 天内免登录：本地令牌还有效就直接用，后台拉一次最新资料（令牌被后端拒绝时会跳登录页）
   const user = useUserStore()
   if (user.loggedIn) user.refresh().catch(() => {})
+
+  // 以下只在 App 端生效：重排接下来 7 天的学习提醒；检查新版本
+  const settings = useSettingsStore()
+  scheduleReminders(settings.reminderOn, settings.reminderTime)
+  checkUpdate(false)
 })
 </script>
 

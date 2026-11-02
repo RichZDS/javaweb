@@ -12,10 +12,7 @@
       <button class="btn-primary practice" size="mini" :disabled="!list.length" @tap="practice">收藏练习</button>
     </view>
 
-    <view v-if="state === 'error' && !list.length" class="empty">
-      <view>收藏没加载出来</view>
-      <button class="btn-plain retry" size="mini" @tap="fetchPage(1)">重试</button>
-    </view>
+    <ModuleError v-if="state === 'error' && !list.length" :title="`${user.targetCategoryName}的收藏没加载出来`" :error="loadError" @retry="fetchPage(1)" />
     <view v-else-if="state === 'ready' && !list.length" class="empty">还没有收藏的题，做题时点底部「收藏」就会出现在这里</view>
 
     <view v-for="item in list" :key="item.questionId" class="card item" @tap="openDetail(item.questionId)">
@@ -40,6 +37,7 @@
 import { computed, ref } from 'vue'
 import { onPullDownRefresh, onReachBottom, onShow } from '@dcloudio/uni-app'
 import { categoryApi, favoriteApi, practiceApi } from '@/api'
+import ModuleError from '@/components/ModuleError.vue'
 import type { CategoryNode, FavoriteItem } from '@/api/types'
 import { useTheme } from '@/composables/useTheme'
 import { useUserStore } from '@/stores/user'
@@ -56,6 +54,7 @@ const categoryId = ref<number | null>(null)
 const page = ref(1)
 const total = ref(0)
 const state = ref<'loading' | 'ready' | 'error'>('loading')
+const loadError = ref<unknown>(null)
 const hasMore = computed(() => list.value.length < total.value)
 
 let loadedFor: number | null = null
@@ -87,14 +86,18 @@ onReachBottom(() => {
 })
 
 async function fetchPage(p: number) {
+  const target = user.targetCategoryId
   state.value = 'loading'
   try {
-    const res = await favoriteApi.list({ categoryId: categoryId.value ?? user.targetCategoryId ?? undefined, page: p, size: 20 })
+    const res = await favoriteApi.list({ categoryId: categoryId.value ?? target ?? undefined, page: p, size: 20 })
+    if (target !== user.targetCategoryId) return // 请求期间换了考试：丢弃
     list.value = p === 1 ? res.items : [...list.value, ...res.items]
     total.value = res.total
     page.value = p
     state.value = 'ready'
-  } catch {
+  } catch (e) {
+    if (target !== user.targetCategoryId) return
+    loadError.value = e
     state.value = 'error'
   }
 }

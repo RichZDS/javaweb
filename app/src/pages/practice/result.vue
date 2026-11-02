@@ -31,6 +31,14 @@
           </view>
         </view>
         <view v-if="modeText" class="mode-text">{{ modeText }}</view>
+        <!-- 每日一练：全部提交才算打卡 -->
+        <view v-if="daily" class="daily" :class="daily.done ? 'done' : 'todo'">
+          <text v-if="daily.done" class="daily-title">✓ 今日已打卡{{ daily.streak !== null ? `，连续 ${daily.streak} 天` : '' }}</text>
+          <template v-else>
+            <text class="daily-title">今日未打卡，还差 {{ daily.left }} 题</text>
+            <text class="daily-sub">10 道题全部提交才算完成今天的每日一练</text>
+          </template>
+        </view>
       </view>
 
       <view class="card">
@@ -50,6 +58,7 @@
       </view>
 
       <view class="btns">
+        <button v-if="daily && !daily.done" class="btn-primary" @tap="continueDaily">继续今日练习</button>
         <button class="btn-primary" :disabled="!result.wrongQuestionIds.length || retrying" :loading="retrying" @tap="retryWrong">
           一键重做错题
         </button>
@@ -63,10 +72,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { practiceApi } from '@/api'
+import { practiceApi, statsApi } from '@/api'
 import type { FinishResult, PracticeSession } from '@/api/types'
 import { useTheme } from '@/composables/useTheme'
 import { usePracticeStore } from '@/stores/practice'
+import { useUserStore } from '@/stores/user'
 import { TYPE_LABEL, formatAnswer, formatCorrect } from '@/logic/answer'
 import { formatDuration, formatRate, htmlToPreview } from '@/logic/format'
 import { ApiError } from '@/logic/http'
@@ -75,6 +85,7 @@ import { PAGES } from '@/utils/nav'
 
 const { themeClass } = useTheme()
 const practiceStore = usePracticeStore()
+const user = useUserStore()
 
 const sessionId = ref(0)
 const state = ref<'loading' | 'ready' | 'error'>('loading')
@@ -84,6 +95,15 @@ const retrying = ref(false)
 
 const totalCount = computed(() => session.value?.questionCount ?? result.value?.answeredCount ?? 0)
 const modeText = computed(() => (session.value ? MODE_LABEL[session.value.mode] : ''))
+const streak = ref<number | null>(null)
+
+/** 每日一练的打卡状态：以后端是否写了 completedAt 为准，还差几题 = 题数 − 已提交数 */
+const daily = computed(() => {
+  const s = session.value
+  if (!s || s.mode !== 'DAILY') return null
+  const done = !!s.completedAt
+  return { done, left: Math.max(0, s.questionCount - (result.value?.answeredCount ?? s.answeredCount)), streak: streak.value }
+})
 
 /** 错题按题号顺序列出，内容取自本次练习的题目 */
 const wrongItems = computed(() => {
@@ -110,6 +130,13 @@ async function load() {
     result.value = finishRes
     session.value = sessionRes
     state.value = 'ready'
+    // 打卡完成时显示连续天数（统计接口失败就只显示「已打卡」）
+    if (sessionRes.mode === 'DAILY' && sessionRes.completedAt) {
+      statsApi
+        .overview(user.targetCategoryId ?? undefined)
+        .then((o) => (streak.value = o.streakDays))
+        .catch(() => {})
+    }
   } catch {
     state.value = 'error'
   }
@@ -132,6 +159,11 @@ async function retryWrong() {
   } finally {
     retrying.value = false
   }
+}
+
+/** 每日一练没做完：回到同一组接着做（后端保持进行中） */
+function continueDaily() {
+  uni.redirectTo({ url: `${PAGES.practiceAnswer}?id=${sessionId.value}` })
 }
 
 function goHome() {
@@ -209,6 +241,33 @@ function goHome() {
 .sum-cap {
   font-size: var(--fs-xs);
   color: var(--c-text-3);
+}
+
+.daily {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  &.done {
+    background: var(--c-correct-weak);
+    color: var(--c-correct);
+  }
+
+  &.todo {
+    background: var(--c-warn-weak);
+    color: var(--c-warn);
+  }
+}
+
+.daily-title {
+  font-weight: 600;
+}
+
+.daily-sub {
+  font-size: var(--fs-xs);
 }
 
 .mode-text {

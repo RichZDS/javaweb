@@ -38,7 +38,10 @@ export const authApi = {
     http.post<AuthResult>('/auth/register', body, { anonymous: true }),
   me: () => http.get<User>('/me'),
   updateMe: (body: { nickname?: string; avatarUrl?: string; targetCategoryId?: number }) => http.put<User>('/me', body),
-  changePassword: (body: { oldPassword: string; newPassword: string }) => http.put<null>('/me/password', body),
+  changePassword: (body: { oldPassword: string; newPassword: string }) =>
+    http.put<null>('/me/password', body, { silent: ['VALIDATION_FAILED'] }),
+  /** 错题连续答对几次自动移出，1–10 的整数 */
+  updateSettings: (body: { wrongRemoveThreshold: number }) => http.put<User>('/me/settings', body),
   uploadImage: (filePath: string) => upload<{ url: string }>('/files', filePath),
 }
 
@@ -111,11 +114,12 @@ export function isExamSheet(data: ExamSheet | ExamResult): data is ExamSheet {
 
 // ---------- 7. 统计 ----------
 // 统计都是页面加载数据（GET 默认不弹提示）：失败时各块显示「—」，下拉刷新重试
+// categoryId 传当前目标考试，保证返回的数据属于页面正在显示的那个考试
 export const statsApi = {
   overview: (categoryId?: number) => http.get<StatsOverview>('/stats/overview', { categoryId }),
-  daily: (days = 30) => http.get<DailyStat[]>('/stats/daily', { days }),
-  categories: () => http.get<CategoryStat[]>('/stats/categories'),
-  weak: (days = 30, limit = 5) => http.get<WeakPoint[]>('/stats/weak', { days, limit }),
-  exams: (paperId?: number) => http.get<ExamScoreStat[]>('/stats/exams', { paperId }),
-  leaderboard: () => http.get<Leaderboard>('/stats/leaderboard', { period: 'WEEK' }),
+  daily: (categoryId?: number, days = 30) => http.get<DailyStat[]>('/stats/daily', { categoryId, days }),
+  categories: (categoryId?: number) => http.get<CategoryStat[]>('/stats/categories', { categoryId }),
+  weak: (categoryId?: number, days = 30, limit = 5) => http.get<WeakPoint[]>('/stats/weak', { categoryId, days, limit }),
+  exams: (categoryId?: number) => http.get<ExamScoreStat[]>('/stats/exams', { categoryId }),
+  leaderboard: (categoryId?: number) => http.get<Leaderboard>('/stats/leaderboard', { categoryId, period: 'WEEK' }),
 }

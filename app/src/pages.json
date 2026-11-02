@@ -25,7 +25,8 @@
 		{ "path": "pages/exam/records", "style": { "navigationBarTitleText": "考试记录", "enablePullDownRefresh": true } },
 		{ "path": "pages/favorite/index", "style": { "navigationBarTitleText": "收藏夹", "enablePullDownRefresh": true } },
 		{ "path": "pages/practice/records", "style": { "navigationBarTitleText": "练习记录", "enablePullDownRefresh": true } },
-		{ "path": "pages/stats/leaderboard", "style": { "navigationBarTitleText": "排行榜", "enablePullDownRefresh": true } }
+		{ "path": "pages/stats/leaderboard", "style": { "navigationBarTitleText": "排行榜", "enablePullDownRefresh": true } },
+		{ "path": "pages/settings/index", "style": { "navigationBarTitleText": "设置" } }
 	],
 	"tabBar": {
 		"color": "#8a919e",

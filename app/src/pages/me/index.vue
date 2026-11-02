@@ -53,6 +53,7 @@ const ENTRIES = [
   { name: '练习记录', url: PAGES.practiceRecords },
   { name: '考试记录', url: PAGES.examRecords },
   { name: '本周排行榜', url: PAGES.leaderboard },
+  { name: '设置', url: PAGES.settings },
 ]
 
 const { themeClass } = useTheme()

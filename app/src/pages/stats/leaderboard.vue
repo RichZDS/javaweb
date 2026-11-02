@@ -1,17 +1,14 @@
 <template>
   <view class="page-root board" :class="themeClass">
     <view class="head">
-      <text class="head-title">本周作答排行</text>
+      <text class="head-title">{{ user.targetCategoryName }} · 本周作答排行</text>
       <text class="muted">周一 00:00（北京时间）起，按正式作答次数</text>
     </view>
 
-    <view v-if="state === 'loading'" class="empty">加载中…</view>
-    <view v-else-if="state === 'error'" class="empty">
-      <view>排行榜没加载出来</view>
-      <button class="btn-plain retry" size="mini" @tap="load">重试</button>
-    </view>
+    <ModuleError v-if="!board && status === 'error'" :title="`${user.targetCategoryName}的排行榜没加载出来`" :error="error" @retry="refresh" />
+    <view v-else-if="!board" class="empty">加载中…</view>
 
-    <template v-else-if="board">
+    <template v-else>
       <view class="card me">
         <text>我的排名</text>
         <text class="me-rank">{{ board.me.rank ? `第 ${board.me.rank} 名` : '未上榜' }}</text>
@@ -33,33 +30,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { onLoad, onPullDownRefresh } from '@dcloudio/uni-app'
+import { onPullDownRefresh, onShow } from '@dcloudio/uni-app'
 import { statsApi } from '@/api'
-import type { Leaderboard } from '@/api/types'
 import { API_BASE } from '@/api/http'
+import ModuleError from '@/components/ModuleError.vue'
 import { useTheme } from '@/composables/useTheme'
+import { useTargetData } from '@/composables/useTargetData'
+import { useUserStore } from '@/stores/user'
 import { resolveAssetUrl } from '@/logic/http'
 
 const { themeClass } = useTheme()
-const board = ref<Leaderboard | null>(null)
-const state = ref<'loading' | 'ready' | 'error'>('loading')
+const user = useUserStore()
+// 排行榜按目标考试
+const { data: board, status, error, refresh } = useTargetData((id) => statsApi.leaderboard(id))
 
-onLoad(load)
+onShow(refresh)
 onPullDownRefresh(async () => {
-  await load()
+  await refresh()
   uni.stopPullDownRefresh()
 })
-
-async function load() {
-  state.value = 'loading'
-  try {
-    board.value = await statsApi.leaderboard()
-    state.value = 'ready'
-  } catch {
-    state.value = 'error'
-  }
-}
 
 function asset(url: string) {
   return resolveAssetUrl(API_BASE, url)

@@ -28,10 +28,7 @@
       <button class="btn-primary practice" size="mini" :disabled="!list.length" @tap="practiceGroup">重练{{ categoryId ? '本章' : '全部' }}</button>
     </view>
 
-    <view v-if="state === 'error' && !list.length" class="empty">
-      <view>错题没加载出来</view>
-      <button class="btn-plain retry" size="mini" @tap="reload">重试</button>
-    </view>
+    <ModuleError v-if="state === 'error' && !list.length" :title="`${user.targetCategoryName}的错题没加载出来`" :error="loadError" @retry="reload()" />
     <view v-else-if="state === 'ready' && !list.length" class="empty">错题本是空的，继续保持 👍</view>
 
     <view v-for="item in list" :key="item.questionId" class="card item" @tap="openDetail(item)">
@@ -62,6 +59,7 @@
 import { computed, ref } from 'vue'
 import { onLoad, onPullDownRefresh, onReachBottom, onShow } from '@dcloudio/uni-app'
 import { categoryApi, practiceApi, wrongApi } from '@/api'
+import ModuleError from '@/components/ModuleError.vue'
 import type { CategoryNode, WrongGroup, WrongQuestion } from '@/api/types'
 import { useTheme } from '@/composables/useTheme'
 import { useUserStore } from '@/stores/user'
@@ -81,6 +79,7 @@ const sort = ref<'RECENT' | 'MOST'>('RECENT')
 const page = ref(1)
 const total = ref(0)
 const state = ref<'loading' | 'ready' | 'error'>('loading')
+const loadError = ref<unknown>(null)
 let firstShow = true
 
 /** 连续答对几次自动移出，按本人设置（默认 3） */
@@ -151,16 +150,20 @@ function goTarget() {
 }
 
 async function fetchPage(p: number, quiet = false) {
+  const target = user.targetCategoryId
   if (!quiet) state.value = 'loading'
   try {
     // 「全部」= 当前目标考试下的全部错题，和「重练全部」同一范围
-    const scope = categoryId.value ?? user.targetCategoryId ?? undefined
+    const scope = categoryId.value ?? target ?? undefined
     const res = await wrongApi.list({ categoryId: scope, sort: sort.value, page: p, size: PAGE_SIZE })
+    if (target !== user.targetCategoryId) return // 请求期间换了考试：丢弃
     list.value = p === 1 ? res.items : [...list.value, ...res.items]
     total.value = res.total
     page.value = p
     state.value = 'ready'
-  } catch {
+  } catch (e) {
+    if (target !== user.targetCategoryId) return
+    loadError.value = e
     state.value = 'error'
   }
 }
