@@ -1,0 +1,925 @@
+{
+  "questions": [
+    {
+      "ref": "ds-linear-01",
+      "category": "ds-linear",
+      "type": "SINGLE",
+      "stem": "动态数组当前有 9 个元素，在下标 3 前插入一项（下标从 0 起），原有元素需后移几个？",
+      "analysis": "下标 3 到 8 共 6 项后移；把下标当成从 1 开始会少算一项。",
+      "difficulty": 2,
+      "tags": [
+        "线性表、栈与队列"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "3",
+        "6",
+        "5",
+        "9"
+      ],
+      "answer": [
+        "B"
+      ]
+    },
+    {
+      "ref": "ds-linear-02",
+      "category": "ds-linear",
+      "type": "SINGLE",
+      "stem": "带头结点单链表要删除结点 p，已知 p 的前驱 pre，最关键的指针修改是什么？",
+      "analysis": "要让前驱越过 p 指向后继；只改局部变量 p 不会改变链表连接。",
+      "difficulty": 2,
+      "tags": [
+        "线性表、栈与队列"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "p = pre",
+        "pre = p.next",
+        "pre.next = p.next",
+        "p.next = pre"
+      ],
+      "answer": [
+        "C"
+      ]
+    },
+    {
+      "ref": "ds-linear-03",
+      "category": "ds-linear",
+      "type": "SINGLE",
+      "stem": "浏览器只考虑“返回上一个页面”的历史功能，最直接的数据结构是什么？",
+      "analysis": "最近进入的页面应最先退出，对应后进先出；队列会先返回最早页面。",
+      "difficulty": 2,
+      "tags": [
+        "线性表、栈与队列"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "集合",
+        "栈",
+        "队列",
+        "优先队列"
+      ],
+      "answer": [
+        "B"
+      ]
+    },
+    {
+      "ref": "ds-linear-04",
+      "category": "ds-linear",
+      "type": "SINGLE",
+      "stem": "空栈依次入栈 4、7，出栈一次，再入栈 9，栈顶是什么？",
+      "analysis": "7 已弹出，新压入的 9 位于栈顶；4 仍在栈底。",
+      "difficulty": 2,
+      "tags": [
+        "线性表、栈与队列"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "7",
+        "4",
+        "9",
+        "空"
+      ],
+      "answer": [
+        "C"
+      ]
+    },
+    {
+      "ref": "ds-linear-05",
+      "category": "ds-linear",
+      "type": "SINGLE",
+      "stem": "单链表只有头指针，没有尾指针，要把新结点追加到末尾的时间复杂度是什么？",
+      "analysis": "必须沿链找到末结点，最坏访问 n 个结点；有尾指针才可直接追加。",
+      "difficulty": 2,
+      "tags": [
+        "线性表、栈与队列"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "O(n log n)",
+        "O(log n)",
+        "O(n)",
+        "O(1)"
+      ],
+      "answer": [
+        "C"
+      ]
+    },
+    {
+      "ref": "ds-linear-06",
+      "category": "ds-linear",
+      "type": "SINGLE",
+      "stem": "循环队列数组容量为 8，牺牲一个位置区分空满，最多存几个元素？",
+      "analysis": "保留一个位置后容量为 8-1；数组长度并不等于可用队列容量。",
+      "difficulty": 2,
+      "tags": [
+        "线性表、栈与队列"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "9",
+        "8",
+        "7",
+        "4"
+      ],
+      "answer": [
+        "C"
+      ]
+    },
+    {
+      "ref": "ds-linear-07",
+      "category": "ds-linear",
+      "type": "SINGLE",
+      "stem": "只记录 front 和 rear 且牺牲一格的循环队列，空队列的条件是什么？",
+      "analysis": "两指针相等表示没有有效元素；是否等于 0 与是否为空无必然联系。",
+      "difficulty": 2,
+      "tags": [
+        "线性表、栈与队列"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "front + rear == 0",
+        "rear == 0",
+        "front == 1",
+        "front == rear"
+      ],
+      "answer": [
+        "D"
+      ]
+    },
+    {
+      "ref": "ds-linear-08",
+      "category": "ds-linear",
+      "type": "SINGLE",
+      "stem": "需要频繁按下标随机读取第 k 项，通常更适合哪种结构？",
+      "analysis": "数组通过地址计算定位；链表按下标访问需逐结点行走。",
+      "difficulty": 2,
+      "tags": [
+        "线性表、栈与队列"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "单链表",
+        "数组",
+        "链式队列",
+        "链式栈"
+      ],
+      "answer": [
+        "B"
+      ]
+    },
+    {
+      "ref": "ds-linear-09",
+      "category": "ds-linear",
+      "type": "SINGLE",
+      "stem": "一个算法依次执行长度 n 的循环和长度 2n 的循环，总时间阶是什么？",
+      "analysis": "两个顺序循环相加为 3n，去掉常数得到 O(n)；不是嵌套循环。",
+      "difficulty": 3,
+      "tags": [
+        "线性表、栈与队列"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "O(log n)",
+        "O(2ⁿ)",
+        "O(n)",
+        "O(n²)"
+      ],
+      "answer": [
+        "C"
+      ]
+    },
+    {
+      "ref": "ds-linear-10",
+      "category": "ds-linear",
+      "type": "MULTIPLE",
+      "stem": "关于链表和顺序表，哪些说法成立？",
+      "analysis": "链表靠链接组织，数组靠连续位置支持随机访问；查找链表和数组中间插入通常要遍历或移动。",
+      "difficulty": 3,
+      "tags": [
+        "线性表、栈与队列"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "链表查找任意下标必为 O(1)",
+        "顺序表便于按下标访问",
+        "顺序表插入任何位置都不移动元素",
+        "链表结点可不连续存放"
+      ],
+      "answer": [
+        "B",
+        "D"
+      ]
+    },
+    {
+      "ref": "ds-linear-11",
+      "category": "ds-linear",
+      "type": "MULTIPLE",
+      "stem": "用栈处理括号匹配时，哪些做法正确？",
+      "analysis": "左括号等待匹配，右括号消费对应栈顶；结尾有剩余左括号也说明不匹配。",
+      "difficulty": 3,
+      "tags": [
+        "线性表、栈与队列"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "遇右括号直接忽略",
+        "遇右括号需检查栈顶是否匹配",
+        "扫描完不必检查栈是否为空",
+        "遇左括号入栈"
+      ],
+      "answer": [
+        "B",
+        "D"
+      ]
+    },
+    {
+      "ref": "ds-linear-12",
+      "category": "ds-linear",
+      "type": "MULTIPLE",
+      "stem": "关于队列，哪些说法正确？",
+      "analysis": "普通队列按进入次序；循环下标复用空间，无须每次搬移，最大值优先属于优先队列。",
+      "difficulty": 3,
+      "tags": [
+        "线性表、栈与队列"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "队列总是按最大值优先出队",
+        "常规队列遵循先进先出",
+        "循环队列可复用数组前部空间",
+        "每次出队都必须移动其余全部元素"
+      ],
+      "answer": [
+        "B",
+        "C"
+      ]
+    },
+    {
+      "ref": "ds-linear-13",
+      "category": "ds-linear",
+      "type": "JUDGE",
+      "stem": "对非空单链表，只知道尾结点地址也一定能在 O(1) 时间删除尾结点。",
+      "analysis": "删除尾结点还要更新前驱的 next，单链表无法由尾结点直接找到前驱。",
+      "difficulty": 1,
+      "tags": [
+        "线性表、栈与队列"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "answer": [
+        "F"
+      ]
+    },
+    {
+      "ref": "ds-linear-14",
+      "category": "ds-linear",
+      "type": "JUDGE",
+      "stem": "两个独立的线性循环依次执行，不能仅因出现两个循环就断定时间复杂度为 O(n²)。",
+      "analysis": "顺序执行取总和，嵌套执行才可能相乘；需看循环之间的关系。",
+      "difficulty": 1,
+      "tags": [
+        "线性表、栈与队列"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "answer": [
+        "T"
+      ]
+    },
+    {
+      "ref": "ds-linear-15",
+      "category": "ds-linear",
+      "type": "FILL",
+      "stem": "阅读下面完整程序，写出标准输出（不写末尾换行）：____。\n\n```python\na = [3, 6]\na.append(9)\nprint(a.pop(), len(a))\n```",
+      "analysis": "append 把 9 放到末尾，pop 返回并移除 9，列表剩 2 项；len 在删除之后求值。",
+      "difficulty": 3,
+      "tags": [
+        "线性表、栈与队列",
+        "看代码写输出"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "answer": [
+        [
+          "9 2"
+        ]
+      ],
+      "fillOptions": {
+        "ignoreCase": false,
+        "ignoreSpaces": false
+      }
+    },
+    {
+      "ref": "ds-tree-01",
+      "category": "ds-tree",
+      "type": "SINGLE",
+      "stem": "根深度记为 0，满二叉树深度为 3，共有多少结点？",
+      "analysis": "共有 1+2+4+8=15 个结点；8 只算最底层，16 多算了一个。",
+      "difficulty": 2,
+      "tags": [
+        "树与图"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "7",
+        "16",
+        "8",
+        "15"
+      ],
+      "answer": [
+        "D"
+      ]
+    },
+    {
+      "ref": "ds-tree-02",
+      "category": "ds-tree",
+      "type": "SINGLE",
+      "stem": "二叉树结点的左子树都已访问，随后访问结点自身再访问右子树，这是什么遍历？",
+      "analysis": "中序顺序为左、根、右；先序先根，后序最后根。",
+      "difficulty": 2,
+      "tags": [
+        "树与图"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "先序",
+        "层序",
+        "中序",
+        "后序"
+      ],
+      "answer": [
+        "C"
+      ]
+    },
+    {
+      "ref": "ds-tree-03",
+      "category": "ds-tree",
+      "type": "SINGLE",
+      "stem": "有 12 个结点的非空树有多少条边？",
+      "analysis": "树每个非根结点恰有一条连向父结点的边，所以是 n-1。",
+      "difficulty": 2,
+      "tags": [
+        "树与图"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "12",
+        "24",
+        "11",
+        "13"
+      ],
+      "answer": [
+        "C"
+      ]
+    },
+    {
+      "ref": "ds-tree-04",
+      "category": "ds-tree",
+      "type": "SINGLE",
+      "stem": "无权图要找从起点到各点经过边数最少的路径，通常使用什么？",
+      "analysis": "广搜逐层推进，首次到达的层数就是最少边数；深搜首次到达不保证最短。",
+      "difficulty": 2,
+      "tags": [
+        "树与图"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "普通二叉搜索树查找",
+        "只做深度优先搜索就保证最短",
+        "广度优先搜索",
+        "按结点编号排序"
+      ],
+      "answer": [
+        "C"
+      ]
+    },
+    {
+      "ref": "ds-tree-05",
+      "category": "ds-tree",
+      "type": "SINGLE",
+      "stem": "一个无向简单图有 5 个顶点且每对顶点都有边，边数是多少？",
+      "analysis": "无向边每对只计一次，为 5×4÷2=10；20 把两个方向重复计算。",
+      "difficulty": 2,
+      "tags": [
+        "树与图"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "20",
+        "25",
+        "5",
+        "10"
+      ],
+      "answer": [
+        "D"
+      ]
+    },
+    {
+      "ref": "ds-tree-06",
+      "category": "ds-tree",
+      "type": "SINGLE",
+      "stem": "稀疏图顶点很多、边较少，哪种结构通常更省存储？",
+      "analysis": "邻接表存顶点及实际边，约 O(V+E)；矩阵无论有无边都占 O(V²)。",
+      "difficulty": 2,
+      "tags": [
+        "树与图"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "邻接表",
+        "完整邻接矩阵",
+        "固定存全部可能的边",
+        "给每对顶点存一整条路径"
+      ],
+      "answer": [
+        "A"
+      ]
+    },
+    {
+      "ref": "ds-tree-07",
+      "category": "ds-tree",
+      "type": "SINGLE",
+      "stem": "小根堆的根结点保证是什么？",
+      "analysis": "小根堆的父结点不大于子结点，沿路径可推出根最小；其余位置不保证全局有序。",
+      "difficulty": 2,
+      "tags": [
+        "树与图"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "中位数",
+        "最后插入的元素",
+        "堆中最小元素",
+        "堆中最大元素"
+      ],
+      "answer": [
+        "C"
+      ]
+    },
+    {
+      "ref": "ds-tree-08",
+      "category": "ds-tree",
+      "type": "SINGLE",
+      "stem": "二叉搜索树按中序遍历输出（关键字互异），结果有什么性质？",
+      "analysis": "左子树小于根且右子树大于根，中序递归产生递增序列。",
+      "difficulty": 3,
+      "tags": [
+        "树与图"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "按插入时间排列",
+        "递增有序",
+        "必为层序",
+        "必为递减"
+      ],
+      "answer": [
+        "B"
+      ]
+    },
+    {
+      "ref": "ds-tree-09",
+      "category": "ds-tree",
+      "type": "SINGLE",
+      "stem": "对带非负权图，从单源求最短路径可选下列哪个算法？",
+      "analysis": "Dijkstra 的已确定最短距离性质依赖非负边权；Kruskal 求最小生成树并非单源最短路径。",
+      "difficulty": 4,
+      "tags": [
+        "树与图"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "Kruskal 直接给出所有源点距离",
+        "对边权做冒泡排序即得到路径",
+        "只取每个结点的一条最重边",
+        "Dijkstra"
+      ],
+      "answer": [
+        "D"
+      ]
+    },
+    {
+      "ref": "ds-tree-10",
+      "category": "ds-tree",
+      "type": "MULTIPLE",
+      "stem": "关于树的遍历，哪些成立？",
+      "analysis": "层序要逐层处理，递归由调用栈保存上下文；一般图可能有环，先序先访问根。",
+      "difficulty": 3,
+      "tags": [
+        "树与图"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "递归先序遍历可借助调用栈",
+        "层序遍历可借助队列",
+        "先序遍历永远先访问叶子",
+        "中序遍历适用于所有图且必无重复"
+      ],
+      "answer": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "ref": "ds-tree-11",
+      "category": "ds-tree",
+      "type": "MULTIPLE",
+      "stem": "关于图，哪些成立？",
+      "analysis": "无向边两端关系相同；拓扑序要求有向无环，环与连通不是互斥概念。",
+      "difficulty": 3,
+      "tags": [
+        "树与图"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "任意有向图都存在拓扑序",
+        "有环图一定不连通",
+        "无向图邻接矩阵通常对称",
+        "有向边有起点和终点方向"
+      ],
+      "answer": [
+        "C",
+        "D"
+      ]
+    },
+    {
+      "ref": "ds-tree-12",
+      "category": "ds-tree",
+      "type": "MULTIPLE",
+      "stem": "最小生成树的哪些性质成立（连通无向带权图）？",
+      "analysis": "生成树连通无环且覆盖全部顶点；最小总权不保证两点最短路，相同权值也可能有多解。",
+      "difficulty": 4,
+      "tags": [
+        "树与图"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "含 V-1 条边",
+        "包含全部顶点",
+        "保证任意两点在树上的路径都是原图最短路",
+        "无论权值怎样都只有唯一一棵"
+      ],
+      "answer": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "ref": "ds-tree-13",
+      "category": "ds-tree",
+      "type": "JUDGE",
+      "stem": "非空二叉树的每个结点都必须恰好有两个孩子。",
+      "analysis": "二叉树限制最多两个孩子，允许零个或一个；恰好两个是更强的特殊条件。",
+      "difficulty": 1,
+      "tags": [
+        "树与图"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "answer": [
+        "F"
+      ]
+    },
+    {
+      "ref": "ds-tree-14",
+      "category": "ds-tree",
+      "type": "JUDGE",
+      "stem": "无向图从一个起点做一次广搜，若仍有顶点未被访问，则该图不连通。",
+      "analysis": "广搜可到达起点所在连通分量全部顶点，未访问点属于其他分量。",
+      "difficulty": 1,
+      "tags": [
+        "树与图"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "answer": [
+        "T"
+      ]
+    },
+    {
+      "ref": "ds-tree-15",
+      "category": "ds-tree",
+      "type": "FILL",
+      "stem": "阅读下面完整程序，写出标准输出（不写末尾换行）：____。\n\n```python\nfrom collections import deque\nq = deque([2, 5])\nq.append(8)\nprint(q.popleft(), list(q))\n```",
+      "analysis": "popleft 删除队首 2，剩余顺序仍为 5、8；不能按栈的后进先出理解。",
+      "difficulty": 3,
+      "tags": [
+        "树与图",
+        "看代码写输出"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "answer": [
+        [
+          "2 [5, 8]"
+        ]
+      ],
+      "fillOptions": {
+        "ignoreCase": false,
+        "ignoreSpaces": false
+      }
+    },
+    {
+      "ref": "ds-search-01",
+      "category": "ds-search",
+      "type": "SINGLE",
+      "stem": "对升序数组做二分查找，首要前提是什么？",
+      "analysis": "二分依赖有序性判断舍弃哪一半；大小和正负不影响该性质。",
+      "difficulty": 2,
+      "tags": [
+        "查找、排序与散列"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "元素个数必须是 2 的幂",
+        "数据已有序",
+        "数据必须全相等",
+        "每个元素必须为正数"
+      ],
+      "answer": [
+        "B"
+      ]
+    },
+    {
+      "ref": "ds-search-02",
+      "category": "ds-search",
+      "type": "SINGLE",
+      "stem": "在 0 到 15 的有序数组中二分寻找 15，采用向下取整中点，依次比较哪些值？",
+      "analysis": "中点依次为 (0+15)//2=7、11、13、14、15；不能暗中改为向上取整。",
+      "difficulty": 2,
+      "tags": [
+        "查找、排序与散列"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "0、1、2、15",
+        "15",
+        "8、12、14、15",
+        "7、11、13、14、15"
+      ],
+      "answer": [
+        "D"
+      ]
+    },
+    {
+      "ref": "ds-search-03",
+      "category": "ds-search",
+      "type": "SINGLE",
+      "stem": "稳定排序主要保证什么？",
+      "analysis": "稳定性针对相等键的相对顺序，与运行耗时和空间无关。",
+      "difficulty": 2,
+      "tags": [
+        "查找、排序与散列"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "每次运行耗时完全相等",
+        "只处理正数",
+        "相等关键字的记录保持原相对次序",
+        "额外空间恒为零"
+      ],
+      "answer": [
+        "C"
+      ]
+    },
+    {
+      "ref": "ds-search-04",
+      "category": "ds-search",
+      "type": "SINGLE",
+      "stem": "插入排序处理已经升序的 n 个元素，常见实现的时间复杂度是什么？",
+      "analysis": "每轮只需比较新元素与前一个，无需移动，合计线性；最坏平方不等于最好平方。",
+      "difficulty": 2,
+      "tags": [
+        "查找、排序与散列"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "O(n)",
+        "O(n²) 必然",
+        "O(2ⁿ)",
+        "O(1)"
+      ],
+      "answer": [
+        "A"
+      ]
+    },
+    {
+      "ref": "ds-search-05",
+      "category": "ds-search",
+      "type": "SINGLE",
+      "stem": "朴素快速排序总选首元素为轴，对已升序且互异的输入最坏时间是多少？",
+      "analysis": "每轮分割为 0 和 n-1，工作量 n+(n-1)+…；随机轴可减轻但题设未随机。",
+      "difficulty": 2,
+      "tags": [
+        "查找、排序与散列"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "O(1)",
+        "O(log n)",
+        "O(n²)",
+        "O(n)"
+      ],
+      "answer": [
+        "C"
+      ]
+    },
+    {
+      "ref": "ds-search-06",
+      "category": "ds-search",
+      "type": "SINGLE",
+      "stem": "归并排序合并两个已升序列表时，常规做法是什么？",
+      "analysis": "每个列表用指针指向下一未取元素，取较小者，才能保持所有记录且有序。",
+      "difficulty": 2,
+      "tags": [
+        "查找、排序与散列"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "直接连接即可总有序",
+        "反复比较两端当前最小未取元素",
+        "每次扫描全部元素找最大",
+        "先删掉所有相同值"
+      ],
+      "answer": [
+        "B"
+      ]
+    },
+    {
+      "ref": "ds-search-07",
+      "category": "ds-search",
+      "type": "SINGLE",
+      "stem": "散列冲突指什么？",
+      "analysis": "散列值域通常比键域小，不同键可能同桶；这不代表两个键相等。",
+      "difficulty": 2,
+      "tags": [
+        "查找、排序与散列"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "排序前后位置不同",
+        "不同键映射到相同桶位置",
+        "同一个键被读取两次",
+        "两个键长度不同"
+      ],
+      "answer": [
+        "B"
+      ]
+    },
+    {
+      "ref": "ds-search-08",
+      "category": "ds-search",
+      "type": "SINGLE",
+      "stem": "开放寻址散列表删除元素后直接标为空，最可能导致什么问题？",
+      "analysis": "查找遇空可能提前结束，导致后续冲突键不可达；通常需要删除标记或重排。",
+      "difficulty": 3,
+      "tags": [
+        "查找、排序与散列"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "所有键自动排序",
+        "表容量自动变大",
+        "查找探测链被提前截断",
+        "冲突永久消失"
+      ],
+      "answer": [
+        "C"
+      ]
+    },
+    {
+      "ref": "ds-search-09",
+      "category": "ds-search",
+      "type": "SINGLE",
+      "stem": "采用 h(k)=k mod 7，键 23 映射到哪个桶？",
+      "analysis": "23=3×7+2，余数为 2；商 3 不是桶号。",
+      "difficulty": 2,
+      "tags": [
+        "查找、排序与散列"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "16",
+        "2",
+        "7",
+        "3"
+      ],
+      "answer": [
+        "B"
+      ]
+    },
+    {
+      "ref": "ds-search-10",
+      "category": "ds-search",
+      "type": "MULTIPLE",
+      "stem": "关于比较排序，哪些说法正确？",
+      "analysis": "堆排序每次调整对数深度，归并在相等时先取左边可保稳定；快速交换可能打乱相等项。",
+      "difficulty": 3,
+      "tags": [
+        "查找、排序与散列"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "归并排序可以实现稳定",
+        "所有快速排序都天然稳定",
+        "比较排序在任意输入上都能保证 O(1) 时间",
+        "堆排序最坏时间为 O(n log n)"
+      ],
+      "answer": [
+        "A",
+        "D"
+      ]
+    },
+    {
+      "ref": "ds-search-11",
+      "category": "ds-search",
+      "type": "MULTIPLE",
+      "stem": "关于散列表，哪些说法正确？",
+      "analysis": "拉链法保留冲突记录，装载反映密度；哈希相等仍需比较键。",
+      "difficulty": 3,
+      "tags": [
+        "查找、排序与散列"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "装载因子是元素数与桶数之比的一种度量",
+        "拉链法可在同一桶保存多个不同键",
+        "键相等只需哈希值相等即可确定",
+        "发生一次冲突就必须丢弃新键"
+      ],
+      "answer": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "ref": "ds-search-12",
+      "category": "ds-search",
+      "type": "MULTIPLE",
+      "stem": "查找复杂度的哪些描述正确？",
+      "analysis": "平衡保证树高；普通树可能退化成链，二分无序数据会错误舍弃候选。",
+      "difficulty": 4,
+      "tags": [
+        "查找、排序与散列"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "顺序查找无序表最坏 O(n)",
+        "普通未平衡搜索树必定 O(log n)",
+        "平衡搜索树查找可保证 O(log n)",
+        "二分查找无序数组总能正确命中"
+      ],
+      "answer": [
+        "A",
+        "C"
+      ]
+    },
+    {
+      "ref": "ds-search-13",
+      "category": "ds-search",
+      "type": "JUDGE",
+      "stem": "归并时把相等键的左段记录先取出，有助于保持排序稳定。",
+      "analysis": "两段内部已稳定时，先取左段可保持它原先在右段之前的次序。",
+      "difficulty": 1,
+      "tags": [
+        "查找、排序与散列"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "answer": [
+        "T"
+      ]
+    },
+    {
+      "ref": "ds-search-14",
+      "category": "ds-search",
+      "type": "JUDGE",
+      "stem": "哈希值不同的两个键也可以被判定为相同键，不受 equals/hashCode 约定影响。",
+      "analysis": "在遵守相等键必须同哈希的约定时，哈希不同意味着键不等；哈希相同反而不能推出相等。",
+      "difficulty": 1,
+      "tags": [
+        "查找、排序与散列"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "answer": [
+        "F"
+      ]
+    },
+    {
+      "ref": "ds-search-15",
+      "category": "ds-search",
+      "type": "FILL",
+      "stem": "阅读下面完整程序，写出标准输出（不写末尾换行）：____。\n\n```python\na = [(2, \"x\"), (1, \"y\"), (2, \"z\")]\na.sort(key=lambda p: p[0])\nprint(\"\".join(p[1] for p in a))\n```",
+      "analysis": "按第一项升序得到 1、2、2；Python 排序稳定，所以相同键的 x 仍在 z 前。",
+      "difficulty": 3,
+      "tags": [
+        "查找、排序与散列",
+        "看代码写输出"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "answer": [
+        [
+          "yxz"
+        ]
+      ],
+      "fillOptions": {
+        "ignoreCase": false,
+        "ignoreSpaces": false
+      }
+    }
+  ]
+}

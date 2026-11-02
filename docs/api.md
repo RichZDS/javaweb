@@ -33,6 +33,16 @@
 - 写操作的返回：新建成功 HTTP 201，`data` 是新建后的完整对象；修改成功 200，`data` 是修改后的完整对象；删除成功 200，`data` 为 `null`（题目删除例外，见第 9 节）。
 - 富文本：题干、选项、解析都按 Markdown 存储。接口同时返回原文和后端渲染好的 HTML（字段名加 `Html` 后缀）。代码块渲染成带内联样式的 `<pre><code>`，用等宽字体和简单关键字高亮（Java、C、Python、SQL）。HTML 只允许白名单标签，防 XSS。
 
+### 0.1 补充约定（后端 M1 定稿）
+
+- 注册成功返回 201；登录用户名或密码错误返回 401 `UNAUTHORIZED`（客户端在登录页不要因此跳转）；改密码时原密码错返回 400，`data.fields` 指向 `oldPassword`。
+- 纠错提交返回 201，data 为 `{id, questionId, type, content, status, reply, createdAt, handledAt}`。
+- `PUT /api/favorites/{questionId}` 新收藏和改笔记都返回 200，data 为收藏列表项；`note` 不传表示不改，传空串表示清空。
+- 分页 `size` 超过 100 按 100，`page` 小于 1 按 1，不报错。
+- 练习：`SEQUENTIAL` 必须且只能给一个分类；`RANDOM`、`TAG` 不给 `categoryIds` 时用目标考试；`DAILY` 题不足 10 道时按实际数量出（0 道 409）；`RETRY` 只取仍是已发布状态的题。
+- 分类树上的题量、已做数、正确率只算已发布的题；所有统计只算 `answered = true` 的作答。
+- 调小 `wrongRemoveThreshold` 不会立即批量移出，等这道题下一次在错题练习或重做中答对时再按新阈值判断。
+
 ## 1. 题目的表示
 
 题型 `type`：`SINGLE` 单选、`MULTIPLE` 多选、`JUDGE` 判断、`FILL` 填空。
@@ -96,7 +106,7 @@
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
 | GET | `/api/categories?rootId=` | 分类树。不传 `rootId` 时 `data` 是数组，列出全部一级分类（`children` 为空数组，用于选目标考试）；传了时 `data` 是该考试的根节点对象，`children` 里是整棵树。每个节点：`{id, parentId, name, level, sort, questionCount, doneCount, correctRate, children}`。`doneCount` 是本人做过的不同题数，`correctRate` 是本人在该节点下的正确率，没作答时为 `null` |
-| GET | `/api/questions/search?keyword=&categoryId=&page=&size=` | 按题干关键词搜，返回 `{id, categoryId, categoryPath, type, stemPreview}`，`stemPreview` 是去掉格式的前 80 个字 |
+| GET | `/api/questions/search?keyword=&categoryId=&page=&size=` | 按题干关键词搜，返回 `{id, categoryId, categoryPath, type, stemPreview}`，`stemPreview` 是去掉格式的前 80 个字。`keyword` 必填，去掉首尾空白后 1–50 个字，缺失或为空返回 400 `VALIDATION_FAILED`（`fields` 指向 `keyword`） |
 | GET | `/api/questions/{id}` | 题目 + 答案 + 解析。若本人有进行中的考试包含这道题，返回 403 `EXAM_IN_PROGRESS` |
 | POST | `/api/questions/{id}/feedback` | 纠错 `{type: "ANSWER_WRONG"|"STEM_WRONG"|"ANALYSIS_UNCLEAR"|"OTHER", content}`，content 1–500 字 |
 
@@ -252,7 +262,7 @@
 | POST | `/api/admin/questions/import` | multipart `file`（xlsx，≤ 5 MB）→ `{total, success, failed: [{row, reason}]}`；整表先校验，部分行错时只导入正确的行 |
 | GET | `/api/admin/papers?categoryId=&status=&page=&size=` | 试卷列表 |
 | GET | `/api/admin/papers/{id}` | 详情：固定卷带 `questions: [{questionId, score, sort, stemPreview, type}]`，规则卷带 `rules: [{categoryId, type, count, score}]` |
-| POST | `/api/admin/papers` | `{title, categoryId, description, mode: "FIXED"|"RULE", durationMin, passScore, questions?, rules?}`，总分由题目或规则自动算出 |
+| POST | `/api/admin/papers` | `{title, categoryId, description, mode: "FIXED"|"RULE", durationMin, passScore, questions?, rules?}`，总分由题目或规则自动算出。`categoryId` 是一级分类（考试）。规则卷每条规则的 `categoryId` 可以是 1–3 级任意分类，但必须属于这份试卷的考试，抽题时包含它下面的全部章节；同一道题不会被两条规则重复抽到。固定卷的题也必须属于这份试卷的考试 |
 | PUT | `/api/admin/papers/{id}` | 修改；有人考过的试卷只能改标题、描述、上下架 |
 | PUT | `/api/admin/papers/{id}/status` | `{status: "ONLINE"|"OFFLINE"}`。上架时校验：固定卷至少 1 道题且 `passScore ≤ totalScore`；规则卷题量够，不够返回 409 带 `gaps` |
 | DELETE | `/api/admin/papers/{id}` | 没人考过才能删 |

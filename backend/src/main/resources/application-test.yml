@@ -1,0 +1,19 @@
+# 自动化测试：H2 内存库。CI 会用环境变量 SPRING_DATASOURCE_* 覆盖成 MySQL 8，所以数据源只写在这里。
+spring:
+  datasource:
+    url: jdbc:h2:mem:quiz_test;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+
+app:
+  jwt:
+    secret: test-only-jwt-secret-for-automated-tests-0123456789
+  admin:
+    username: admin
+    password: admin-test-pass
+  seed:
+    # 自动启动时不导入；SeedLoaderTest 手动调用，读测试资源里的小样例
+    enabled: false
+    location: classpath:seed-sample/
+  upload:
+    dir: ./target/test-uploads

@@ -1,0 +1,58 @@
+# 公共配置。未指定 profile 时默认用 dev；生产用 SPRING_PROFILES_ACTIVE=prod。
+spring:
+  application:
+    name: quiz-backend
+  profiles:
+    default: dev
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+server:
+  port: 8080
+  error:
+    include-stacktrace: never
+    include-message: never
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    banner: false
+    db-config:
+      id-type: auto
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+
+app:
+  jwt:
+    expire-days: 7
+  seed:
+    enabled: false
+    location: classpath:seed/
+  upload:
+    dir: ./uploads
+  cors:
+    allowed-origin-patterns: []
+  release:
+    android:
+      latest-version: 1.0.0
+      min-version: 1.0.0
+      download-url: ""
+      notes: ""
+    ios:
+      latest-version: 1.0.0
+      min-version: 1.0.0
+      download-url: ""
+      notes: ""

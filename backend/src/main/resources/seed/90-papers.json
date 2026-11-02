@@ -1,0 +1,376 @@
+{
+  "papers": [
+    {
+      "title": "计算机考研 408 · 基础综合固定卷",
+      "category": "cs408",
+      "mode": "FIXED",
+      "durationMin": 40,
+      "passScore": 60,
+      "description": "原创 20 题：单选 10、多选 4、判断 3、填空 3；每题 5 分，满分 100 分，60 分及格。多选和填空须整题全对。",
+      "questions": [
+        {
+          "ref": "os-process-09",
+          "score": 5
+        },
+        {
+          "ref": "os-process-05",
+          "score": 5
+        },
+        {
+          "ref": "ds-search-03",
+          "score": 5
+        },
+        {
+          "ref": "ds-linear-03",
+          "score": 5
+        },
+        {
+          "ref": "cn-link-08",
+          "score": 5
+        },
+        {
+          "ref": "co-memory-08",
+          "score": 5
+        },
+        {
+          "ref": "ds-linear-06",
+          "score": 5
+        },
+        {
+          "ref": "os-process-03",
+          "score": 5
+        },
+        {
+          "ref": "os-files-07",
+          "score": 5
+        },
+        {
+          "ref": "os-memory-04",
+          "score": 5
+        },
+        {
+          "ref": "os-files-12",
+          "score": 5
+        },
+        {
+          "ref": "co-data-10",
+          "score": 5
+        },
+        {
+          "ref": "ds-tree-10",
+          "score": 5
+        },
+        {
+          "ref": "co-data-12",
+          "score": 5
+        },
+        {
+          "ref": "co-cpu-14",
+          "score": 5
+        },
+        {
+          "ref": "ds-linear-13",
+          "score": 5
+        },
+        {
+          "ref": "ds-search-14",
+          "score": 5
+        },
+        {
+          "ref": "ds-search-15",
+          "score": 5
+        },
+        {
+          "ref": "ds-linear-15",
+          "score": 5
+        },
+        {
+          "ref": "os-files-15",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "title": "计算机考研 408 · 进阶练习规则卷",
+      "category": "cs408",
+      "mode": "RULE",
+      "durationMin": 50,
+      "passScore": 60,
+      "description": "从本考试原创题库随机组 20 题，四种题型各有覆盖；每题 5 分，满分 100 分，60 分及格。",
+      "rules": [
+        {
+          "category": "cs408",
+          "type": "SINGLE",
+          "count": 10,
+          "score": 5
+        },
+        {
+          "category": "cs408",
+          "type": "MULTIPLE",
+          "count": 4,
+          "score": 5
+        },
+        {
+          "category": "cs408",
+          "type": "JUDGE",
+          "count": 3,
+          "score": 5
+        },
+        {
+          "category": "cs408",
+          "type": "FILL",
+          "count": 3,
+          "score": 5
+        }
+      ]
+    },
+    {
+      "title": "Java 程序设计 · 基础综合固定卷",
+      "category": "java",
+      "mode": "FIXED",
+      "durationMin": 40,
+      "passScore": 60,
+      "description": "原创 20 题：单选 10、多选 4、判断 3、填空 3；每题 5 分，满分 100 分，60 分及格。多选和填空须整题全对。",
+      "questions": [
+        {
+          "ref": "jo-inherit-02",
+          "score": 5
+        },
+        {
+          "ref": "jc-generic-01",
+          "score": 5
+        },
+        {
+          "ref": "ji-exception-02",
+          "score": 5
+        },
+        {
+          "ref": "jt-sync-03",
+          "score": 5
+        },
+        {
+          "ref": "jt-pool-04",
+          "score": 5
+        },
+        {
+          "ref": "jc-generic-04",
+          "score": 5
+        },
+        {
+          "ref": "jo-interface-04",
+          "score": 5
+        },
+        {
+          "ref": "jt-life-01",
+          "score": 5
+        },
+        {
+          "ref": "jt-life-02",
+          "score": 5
+        },
+        {
+          "ref": "jb-strings-01",
+          "score": 5
+        },
+        {
+          "ref": "jc-set-05",
+          "score": 5
+        },
+        {
+          "ref": "jc-generic-05",
+          "score": 5
+        },
+        {
+          "ref": "jt-pool-06",
+          "score": 5
+        },
+        {
+          "ref": "jt-life-05",
+          "score": 5
+        },
+        {
+          "ref": "ji-stream-07",
+          "score": 5
+        },
+        {
+          "ref": "jc-generic-06",
+          "score": 5
+        },
+        {
+          "ref": "jt-life-07",
+          "score": 5
+        },
+        {
+          "ref": "jt-sync-08",
+          "score": 5
+        },
+        {
+          "ref": "jo-class-07",
+          "score": 5
+        },
+        {
+          "ref": "jb-strings-08",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "title": "Java 程序设计 · 进阶练习规则卷",
+      "category": "java",
+      "mode": "RULE",
+      "durationMin": 50,
+      "passScore": 60,
+      "description": "从本考试原创题库随机组 20 题，四种题型各有覆盖；每题 5 分，满分 100 分，60 分及格。",
+      "rules": [
+        {
+          "category": "java",
+          "type": "SINGLE",
+          "count": 10,
+          "score": 5
+        },
+        {
+          "category": "java",
+          "type": "MULTIPLE",
+          "count": 4,
+          "score": 5
+        },
+        {
+          "category": "java",
+          "type": "JUDGE",
+          "count": 3,
+          "score": 5
+        },
+        {
+          "category": "java",
+          "type": "FILL",
+          "count": 3,
+          "score": 5
+        }
+      ]
+    },
+    {
+      "title": "数据库原理与 MySQL · 基础综合固定卷",
+      "category": "db",
+      "mode": "FIXED",
+      "durationMin": 40,
+      "passScore": 60,
+      "description": "原创 20 题：单选 10、多选 4、判断 3、填空 3；每题 5 分，满分 100 分，60 分及格。多选和填空须整题全对。",
+      "questions": [
+        {
+          "ref": "di-design-05",
+          "score": 5
+        },
+        {
+          "ref": "dq-select-02",
+          "score": 5
+        },
+        {
+          "ref": "dm-keys-01",
+          "score": 5
+        },
+        {
+          "ref": "dq-group-02",
+          "score": 5
+        },
+        {
+          "ref": "dq-join-01",
+          "score": 5
+        },
+        {
+          "ref": "dm-keys-03",
+          "score": 5
+        },
+        {
+          "ref": "dt-isolation-01",
+          "score": 5
+        },
+        {
+          "ref": "dt-acid-01",
+          "score": 5
+        },
+        {
+          "ref": "dq-join-04",
+          "score": 5
+        },
+        {
+          "ref": "dt-acid-02",
+          "score": 5
+        },
+        {
+          "ref": "di-tree-06",
+          "score": 5
+        },
+        {
+          "ref": "dm-rel-05",
+          "score": 5
+        },
+        {
+          "ref": "dq-group-06",
+          "score": 5
+        },
+        {
+          "ref": "dt-isolation-05",
+          "score": 5
+        },
+        {
+          "ref": "dt-isolation-07",
+          "score": 5
+        },
+        {
+          "ref": "dt-acid-07",
+          "score": 5
+        },
+        {
+          "ref": "dt-lock-08",
+          "score": 5
+        },
+        {
+          "ref": "dt-isolation-08",
+          "score": 5
+        },
+        {
+          "ref": "dq-join-08",
+          "score": 5
+        },
+        {
+          "ref": "dm-normal-08",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "title": "数据库原理与 MySQL · 进阶练习规则卷",
+      "category": "db",
+      "mode": "RULE",
+      "durationMin": 50,
+      "passScore": 60,
+      "description": "从本考试原创题库随机组 20 题，四种题型各有覆盖；每题 5 分，满分 100 分，60 分及格。",
+      "rules": [
+        {
+          "category": "db",
+          "type": "SINGLE",
+          "count": 10,
+          "score": 5
+        },
+        {
+          "category": "db",
+          "type": "MULTIPLE",
+          "count": 4,
+          "score": 5
+        },
+        {
+          "category": "db",
+          "type": "JUDGE",
+          "count": 3,
+          "score": 5
+        },
+        {
+          "category": "db",
+          "type": "FILL",
+          "count": 3,
+          "score": 5
+        }
+      ]
+    }
+  ]
+}
