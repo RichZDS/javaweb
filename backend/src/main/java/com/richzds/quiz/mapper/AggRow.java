@@ -3,13 +3,13 @@ package com.richzds.quiz.mapper;
 import java.time.LocalDate;
 
 /**
- * 聚合查询的通用结果行。SQL 里用下划线别名（group_id、total_count…），按驼峰自动映射；
+ * 聚合查询的通用结果行。SQL 里用下划线别名（group_id、stat_day、total_count…），按驼峰自动映射；
  * 别名匹配不区分大小写，所以 H2（小写标识符）和 MySQL 都能映射上。
  */
 public class AggRow {
 
     private Long groupId;
-    private LocalDate day;
+    private LocalDate statDay;
     private Long totalCount;
     private Long distinctCount;
     private Long correctCount;
@@ -22,12 +22,12 @@ public class AggRow {
         this.groupId = groupId;
     }
 
-    public LocalDate getDay() {
-        return day;
+    public LocalDate getStatDay() {
+        return statDay;
     }
 
-    public void setDay(LocalDate day) {
-        this.day = day;
+    public void setStatDay(LocalDate statDay) {
+        this.statDay = statDay;
     }
 
     public long total() {

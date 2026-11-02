@@ -70,7 +70,8 @@ java -jar quiz-backend.jar
 | `APP_RELEASE_ANDROID_NOTES` | `app.release.android.notes` | 否 | 空 | 更新说明 |
 | `APP_RELEASE_IOS_LATEST_VERSION` 等 | `app.release.ios.*` | 否 | 同上 | 四项与 Android 一一对应 |
 
-其他配置（一般不用改）：`app.jwt.expire-days`（默认 7）、`app.seed.location`（种子文件目录，默认
+其他配置（一般不用改）：`app.jwt.expire-days`（默认 7）、`app.exam.auto-settle`（默认 `true`，每 30 秒结算到时的考试；
+test 配置里为 `false`，测试直接调用结算任务）、`app.seed.location`（种子文件目录，默认
 `classpath:seed/`，也可以写 `file:/path/to/seed/`）、`app.cors.allowed-origin-patterns`（默认空，即不开跨域）、
 `server.port`（默认 8080）。
 
@@ -99,3 +100,9 @@ com.richzds.quiz
 - 练习：`SEQUENTIAL` 需要且只能给一个分类，忽略 `count`、`types`、`scope`；`RANDOM`、`TAG` 没给 `categoryIds` 时用本人目标考试；
   `DAILY` 题库不足 10 道时用实际数量（0 道返回 409）；`RETRY` 只取仍是已发布状态的题。
 - 统计和进度只算正式作答（`answer_record.answered = TRUE`），背题模式不产生作答记录。
+- 考试：开考时把标题、题目、标准答案、分值存进 `exam_record.question_snapshot`，成绩单只从快照和结算结果算；
+  超时结算的交卷时间记为截止时间；结算时每题都写一条作答记录，没答的 `answered = FALSE`、不进错题本。
+  同一人并发开考按用户行加锁排队；保存答案和结算用 `SELECT … FOR UPDATE` 互斥。
+- 规则卷：规则分类可以是 1–3 级，必须属于试卷所在考试；规则之间不重复抽题（`RuleDrawer`，导入和开考共用）。
+- 统计：“哪一天”在 SQL 里按 `graded_at + 8 小时` 取日期（Asia/Shanghai 自 1991 年起无夏令时）；
+  排行榜和其他统计一样默认按目标考试，只算正常状态的用户，并列同名次。

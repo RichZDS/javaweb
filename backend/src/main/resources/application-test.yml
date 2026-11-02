@@ -17,3 +17,6 @@ app:
     location: classpath:seed-sample/
   upload:
     dir: ./target/test-uploads
+  exam:
+    # 测试里不让定时任务在后台结算，用例直接调 ExamSettlementJob.run()
+    auto-settle: false

@@ -48,6 +48,8 @@ app:
     dir: ./uploads
   cors:
     allowed-origin-patterns: []
+  exam:
+    auto-settle: true
   release:
     android:
       latest-version: 1.0.0
