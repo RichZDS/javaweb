@@ -15,9 +15,11 @@ scenario('EX-01/02/03/19：目录/须知、同卷复用、不泄露答案、考�
   assert.ok(catalog.some(p => p.title === paperTitles.fixed));
   const notice = await f.api.get(`/api/exams/${f.paper.paperId}`);
   assert.equal(notice.questionCount, 4); assert.equal(notice.totalScore, 10);
+  assert.equal(notice.myAttempts, 0); assert.equal(notice.myBestScore, null);
   assert.equal(typeof notice.scoringRules, 'string');
   const sheet = await startExam(f); const reused = await startExam(f, 200);
   assert.equal(reused.recordId, sheet.recordId); assert.equal(reused.deadlineAt, sheet.deadlineAt);
+  assert.equal((await f.api.get(`/api/exams/${f.paper.paperId}`)).myAttempts, 0);
   sheet.questions.forEach(noAnswers);
   assert.equal(new Set(sheet.questions.map(q => q.questionId)).size, 4);
   await f.api.get(`/api/questions/${sheet.questions[0].questionId}`, 403, 'EXAM_IN_PROGRESS');
@@ -99,6 +101,7 @@ scenario('EX-09/10/14：一分钟卷断网改答，截止后补发拒绝，只�
   await saveExam(f, sheet, neverSent.questionId, ['A', 'C'], 1, false, 409, 'EXAM_EXPIRED');
   const result = await f.api.get(`/api/exam-records/${sheet.recordId}`);
   assert.equal(result.status, 'FINISHED'); assert.equal(result.score, 1); assert.equal(result.unansweredCount, 3);
+  assert.equal(result.submittedAt, sheet.deadlineAt);
   assert.deepEqual(result.items[0].userAnswer, ['A']);
   assert.equal((await f.api.get('/api/stats/overview')).answerCount, 1);
   assert.deepEqual(items(await f.api.get('/api/wrong-questions')), []);
@@ -114,7 +117,8 @@ scenario('EX-13：不访问记录详情/交卷，截止后由后台结算并进�
   const results = await f.api.get(`/api/stats/exams?paperId=${f.paper.paperId}`);
   assert.equal(results.length, 1); assert.equal(results[0].recordId, sheet.recordId);
   assert.equal(results[0].score, 1);
-  assert.equal((await f.api.get(`/api/exam-records/${sheet.recordId}`)).status, 'FINISHED');
+  const settled = await f.api.get(`/api/exam-records/${sheet.recordId}`);
+  assert.equal(settled.status, 'FINISHED'); assert.equal(settled.submittedAt, sheet.deadlineAt);
 }, { timeout: 135000 });
 
 scenario('EX-20 ST-09：同卷两次成绩、最好成绩、考试历史与统计一致', async () => {
@@ -189,17 +193,29 @@ scenario('ST-04/08：不足五道不进薄弱点，切换目标隔离统计并�
 });
 
 scenario('DY-08：周榜按作答条数排序，最多20项，本人计数与排名可核对', async () => {
-  const high = await m1Fixture('single'); const low = await m1Fixture('single');
-  for (const [f, count] of [[high, 5], [low, 3]]) {
+  const high = await m1Fixture('single'); const peer = await m1Fixture('single'); const low = await m1Fixture('single');
+  for (const [f, count] of [[high, 5], [peer, 5], [low, 3]]) {
     for (let i = 0; i < count; i++) await answer(f, await startM1(f, { acceptFewer: true }), f.questions[0]);
   }
   const a = await high.api.get('/api/stats/leaderboard?period=WEEK');
   const b = await low.api.get('/api/stats/leaderboard?period=WEEK');
+  const tied = await peer.api.get('/api/stats/leaderboard?period=WEEK');
   assert.equal(a.me.answerCount, 5); assert.equal(b.me.answerCount, 3); assert.ok(a.me.rank < b.me.rank);
+  assert.equal(tied.me.rank, a.me.rank);
   assert.ok(a.items.length <= 20);
+  assert.equal(a.items[0].rank, 1);
   for (let i = 1; i < a.items.length; i++) {
     assert.ok(a.items[i - 1].answerCount >= a.items[i].answerCount);
-    assert.ok(a.items[i - 1].rank <= a.items[i].rank);
+    assert.equal(a.items[i].rank, a.items[i - 1].answerCount === a.items[i].answerCount ? a.items[i - 1].rank : i + 1);
   }
   assert.equal((await high.api.get('/api/stats/overview')).answerCount, a.me.answerCount);
+});
+
+scenario('API-0.2：无目标考试列全卷，统计 days/limit/period 越界返回400', async () => {
+  const f = await register();
+  const papers = await f.api.get('/api/exams');
+  assert.ok(new Set(papers.map(p => p.categoryId)).size > 1);
+  for (const path of ['/api/stats/daily?days=0', '/api/stats/daily?days=366', '/api/stats/weak?limit=0', '/api/stats/weak?limit=51', '/api/stats/leaderboard?period=MONTH']) {
+    await f.api.get(path, 400, 'VALIDATION_FAILED');
+  }
 });
