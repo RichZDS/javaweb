@@ -5,7 +5,7 @@
       "category": "dm-rel",
       "type": "SINGLE",
       "stem": "关系表中的一行通常对应什么？",
-      "analysis": "关系模型中行是元组，列是属性；不能把表内一行等同数据库整体。",
+      "analysis": "关系中一行是元组，一列是属性，属性取值的允许集合是域；关系模式描述表结构，而不是某条具体行。",
       "difficulty": 2,
       "tags": [
         "关系、元组与关系运算"
@@ -13,9 +13,9 @@
       "source": "原创（qzd 产品题库）",
       "options": [
         "一条元组",
-        "一个索引文件",
-        "一条网络连接",
-        "整个数据库"
+        "一个属性",
+        "一个属性的取值域",
+        "整个关系模式"
       ],
       "answer": [
         "A"
@@ -26,17 +26,17 @@
       "category": "dm-rel",
       "type": "SINGLE",
       "stem": "关系代数的选择运算主要做什么？",
-      "analysis": "选择按谓词选元组；保留指定属性是投影。",
+      "analysis": "选择按谓词保留满足条件的元组，即筛行；投影选择属性列；连接组合两个关系的匹配元组，并集则合并相容关系的元组集合。",
       "difficulty": 2,
       "tags": [
         "关系、元组与关系运算"
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "给表自动加主键",
-        "排序全部文件",
+        "只保留指定属性列",
+        "把两个关系的元组按条件连接",
         "按条件筛选行",
-        "只保留指定列"
+        "对两个相容关系求并集"
       ],
       "answer": [
         "C"
@@ -47,17 +47,17 @@
       "category": "dm-rel",
       "type": "SINGLE",
       "stem": "关系代数的投影主要做什么？",
-      "analysis": "投影针对列；经典集合语义还会消除重复元组，不应混同 SQL 默认 bag 语义。",
+      "analysis": "投影保留指定属性，经典集合语义下还会去除重复元组；按条件选行属于选择，连接与排序也各有不同目的。",
       "difficulty": 2,
       "tags": [
         "关系、元组与关系运算"
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "仅筛选满足条件的行",
-        "修改事务隔离级别",
+        "仅筛选满足条件的元组",
+        "把两个关系按相同属性连接",
         "保留指定属性列",
-        "给所有值加一"
+        "对元组按某个键值排序"
       ],
       "answer": [
         "C"
@@ -75,9 +75,9 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "由列的显示颜色决定",
-        "总是自动消除",
-        "只有表名短才消除",
+        "消除重复，因为关系代数使用集合语义",
+        "仅当结果包含字符串列时消除重复",
+        "只要原表有主键，任意投影结果都会自动去重",
         "通常不消除，需要 DISTINCT"
       ],
       "answer": [
@@ -96,10 +96,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "每个表都只能有一列",
+        "关系逻辑含义需要由行的物理存放次序决定",
         "属性有相应取值域",
         "元组表示一条记录",
-        "行的物理存放顺序是关系逻辑含义的必要部分"
+        "一个属性的取值域就是当前表中已出现的值集合"
       ],
       "answer": [
         "B",
@@ -118,9 +118,9 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "关系投影总会增加属性列数",
+        "按主键建表后任意SELECT都按主键升序返回",
         "没有 ORDER BY 时不应依赖返回顺序",
-        "任意 SELECT 永远按主键升序",
+        "关系投影会保留原表全部属性，只改变行数",
         "DISTINCT 可用于结果去重"
       ],
       "answer": [
@@ -147,17 +147,18 @@
       "ref": "dm-rel-08",
       "category": "dm-rel",
       "type": "FILL",
-      "stem": "在空数据库中按顺序执行以下 SQL，写出最后一个 SELECT 返回的唯一数值：____。（H2 的 MySQL 兼容模式已验证。）\n\n```sql\nCREATE TABLE r(a INT,b INT);\nINSERT INTO r VALUES(1,10),(1,20),(2,20);\nSELECT COUNT(DISTINCT a) FROM r;\n```",
-      "analysis": "投影到 a 后唯一取值为 1、2，COUNT(DISTINCT a) 得 2；不能把原始 3 行直接作为去重计数。",
-      "difficulty": 3,
+      "stem": "在空数据库中（初始自动提交开启）依次执行以下 SQL，写出最后 SELECT 返回的唯一数值：____。\n\n```sql\nCREATE TABLE r(a INT,b INT);\nINSERT INTO r VALUES(1,10),(1,10),(1,20),(2,20),(NULL,20);\nSELECT COUNT(*) FROM (SELECT DISTINCT a,b FROM r WHERE b=20) x;\n```",
+      "analysis": "WHERE保留(1,20)、(2,20)、(NULL,20)三行；DISTINCT对整行去重，三组均不同。外层COUNT(*)统计包括含NULL的行，因此为3；COUNT(a)才会忽略a为NULL的那行。",
+      "difficulty": 4,
       "tags": [
         "关系、元组与关系运算",
-        "看语句写结果"
+        "看语句写结果",
+        "计算与推演"
       ],
       "source": "原创（qzd 产品题库）",
       "answer": [
         [
-          "2"
+          "3"
         ]
       ],
       "fillOptions": {
@@ -178,9 +179,9 @@
       "source": "原创（qzd 产品题库）",
       "options": [
         "唯一且不允许 NULL",
-        "必须总共 100 位",
-        "可任意重复",
-        "只能是字符串"
+        "唯一，但允许用NULL标识多条未知主键记录",
+        "非NULL，但允许多条记录共享同一主键",
+        "只能由单列构成，不能使用联合主键"
       ],
       "answer": [
         "A"
@@ -191,17 +192,17 @@
       "category": "dm-keys",
       "type": "SINGLE",
       "stem": "外键主要表达什么？",
-      "analysis": "外键维护参照完整性，不是展示或压缩规则。",
+      "analysis": "外键要求非空引用值在被引用键中存在，维护参照完整性。子表同一外键值可重复，父表也可暂时没有子记录；它不规定显示顺序。",
       "difficulty": 2,
       "tags": [
         "主键、外键与约束"
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "查询必须返回多少行",
-        "文件压缩方式",
+        "要求引用列在当前表内也必须唯一",
+        "要求两表同名列具有相同显示顺序",
         "引用另一表或本表被引用键的关系",
-        "所有列的显示顺序"
+        "要求每个父表记录至少有一个子表记录"
       ],
       "answer": [
         "C"
@@ -219,10 +220,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "数值必须最小",
-        "只能有一个属性",
+        "键的数值在整张表中最小",
+        "构成键的字段字符串总长度最短",
         "去掉任何组成属性后不再能唯一标识",
-        "字符数量绝对最少"
+        "键只能包含一个属性"
       ],
       "answer": [
         "C"
@@ -240,9 +241,9 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "只 student_id 相同而 course_id 不同",
-        "任意两行共享同一班级名称",
-        "只 course_id 相同而 student_id 不同",
+        "只student_id相同而course_id不同",
+        "只course_id相同而student_id不同",
+        "两个组合不同，但两列相加的数值相同",
         "两列的组合完全相同"
       ],
       "answer": [
@@ -261,8 +262,8 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "只在文档写“不要输错”",
-        "把按钮改成蓝色",
+        "仅设置前端输入框placeholder提示必填",
+        "只在报表中隐藏违反约束的记录",
         "NOT NULL",
         "FOREIGN KEY"
       ],
@@ -283,10 +284,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "主键允许相同值标识不同两行",
+        "任意非空列无需检查唯一性就可作为候选键",
         "一个关系可有多个候选键",
         "主键是选定的候选键之一",
-        "任何非空列自动都是候选键"
+        "主键相同的两行可依靠物理位置继续区分"
       ],
       "answer": [
         "B",
@@ -312,17 +313,18 @@
       "ref": "dm-keys-08",
       "category": "dm-keys",
       "type": "FILL",
-      "stem": "在空数据库中按顺序执行以下 SQL，写出最后一个 SELECT 返回的唯一数值：____。（H2 的 MySQL 兼容模式已验证。）\n\n```sql\nCREATE TABLE enrollment(student_id INT, course_id INT, PRIMARY KEY(student_id,course_id));\nINSERT INTO enrollment VALUES(1,10),(1,20),(2,10);\nSELECT COUNT(*) FROM enrollment WHERE student_id=1;\n```",
-      "analysis": "联合主键允许同一学生选不同课程；student_id 为 1 的两行组合不同，因此计数 2。",
-      "difficulty": 3,
+      "stem": "在空数据库中（初始自动提交开启）依次执行以下 SQL，写出最后 SELECT 返回的唯一数值：____。\n\n```sql\nCREATE TABLE e(s INT,c INT,score INT,PRIMARY KEY(s,c));\nINSERT INTO e VALUES(1,10,80),(1,20,NULL),(2,10,80),(2,20,90);\nSELECT COUNT(DISTINCT score)+COUNT(score) FROM e;\n```",
+      "analysis": "非NULL分数有80、80、90共3项，COUNT(score)=3；不同非NULL值为80和90，COUNT(DISTINCT score)=2。相加5；NULL不贡献任一COUNT表达式。",
+      "difficulty": 4,
       "tags": [
         "主键、外键与约束",
-        "看语句写结果"
+        "看语句写结果",
+        "计算与推演"
       ],
       "source": "原创（qzd 产品题库）",
       "answer": [
         [
-          "2"
+          "5"
         ]
       ],
       "fillOptions": {
@@ -334,84 +336,88 @@
       "ref": "dm-normal-01",
       "category": "dm-normal",
       "type": "SINGLE",
-      "stem": "函数依赖 X→Y 表示什么？",
-      "analysis": "依赖方向从 X 决定 Y，不能自动反向推出 Y 决定 X。",
-      "difficulty": 2,
+      "stem": "关系R(A,B,C,D,E)，依赖A→B、B→C、CD→E、E→A。属性集AD的闭包为？",
+      "analysis": "从AD出发：A→B得到ABD；B→C得到ABCD；此时CD齐备，由CD→E得到ABCDE；E→A不再增加属性。ABCD漏掉了联合决定项CD满足后的下一步。",
+      "difficulty": 4,
       "tags": [
-        "函数依赖与规范化"
+        "函数依赖与规范化",
+        "计算与推演"
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "相同 X 值的元组必须有相同 Y 值",
-        "每个 Y 值只能对应一个 X 值",
-        "X 和 Y 必须为整数",
-        "两列长度相等"
+        "ACDE",
+        "ABCD",
+        "ABDE",
+        "ABCDE"
       ],
       "answer": [
-        "A"
+        "D"
       ]
     },
     {
       "ref": "dm-normal-02",
       "category": "dm-normal",
       "type": "SINGLE",
-      "stem": "把部门名称重复存进每条员工记录，部门改名要改很多行，体现什么风险？",
-      "analysis": "同一事实多处存储容易改漏造成不一致，规范化可减少该冗余。",
-      "difficulty": 2,
+      "stem": "R(A,B,C,D)，函数依赖A→B、B→A、C→D。全部候选键为哪组？",
+      "analysis": "C未出现在任何非平凡依赖右侧，故每个键必须含C；还必须有A或B之一，以取得A/B。AC和BC均闭包为ABCD且删任何属性都不全；AD/BD无法推出C，AB无法推出C/D。",
+      "difficulty": 5,
       "tags": [
-        "函数依赖与规范化"
+        "函数依赖与规范化",
+        "计算与推演"
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "更新异常",
-        "线程泄漏必然发生",
-        "网络路由环",
-        "主键自动增大"
+        "AB、CD",
+        "AD、BD",
+        "AC、AD",
+        "AC、BC"
       ],
       "answer": [
-        "A"
+        "D"
       ]
     },
     {
       "ref": "dm-normal-03",
       "category": "dm-normal",
       "type": "SINGLE",
-      "stem": "表 R(A,B,C) 的候选键是 AB，且 A→C，非主属性 C 对键存在什么？",
-      "analysis": "C 只依赖联合键的一部分 A，属于部分依赖，是二范式关注的问题。",
-      "difficulty": 3,
+      "stem": "R(A,B,C,D)各属性原子，唯一候选键AB，依赖A→C、B→D。它满足的最高范式为？",
+      "analysis": "原子属性满足1NF。C/D为非主属性，C依赖键的真子集A、D依赖真子集B，存在部分依赖，违反2NF；因此最高仅1NF。不能因没有明显传递依赖就判3NF。",
+      "difficulty": 4,
       "tags": [
-        "函数依赖与规范化"
+        "函数依赖与规范化",
+        "计算与推演"
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "一定是多值无关",
-        "部分函数依赖",
-        "完全不依赖",
-        "仅有循环等待"
+        "3NF",
+        "2NF",
+        "BCNF",
+        "1NF"
       ],
       "answer": [
-        "B"
+        "D"
       ]
     },
     {
       "ref": "dm-normal-04",
       "category": "dm-normal",
       "type": "SINGLE",
-      "stem": "已知唯一候选键为 A，且 A→B、B→C，B 不是超键、C 是非主属性，主要有什么问题？",
-      "analysis": "A 经 B 决定 C，B 不是超键，典型传递依赖需拆分评估。",
-      "difficulty": 4,
+      "stem": "R(A,B,C)，依赖AB→C、C→B。已知候选键为AB和AC，各属性原子。它的最高范式是？",
+      "analysis": "两候选键的并集为ABC，全部属性是主属性。AB→C左部是超键；C→B左部C不是超键（闭包BC），但右部B是主属性，因此满足3NF。BCNF要求每个非平凡依赖左部都是超键，故被C→B违反。",
+      "difficulty": 5,
       "tags": [
-        "函数依赖与规范化"
+        "函数依赖与规范化",
+        "计算与推演"
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "只能用增加重复行解决",
-        "必然已经满足 BCNF",
-        "存在非主属性对键的传递依赖",
-        "所有属性都独立无依赖"
+        "3NF，非BCNF",
+        "BCNF",
+        "1NF，非2NF",
+        "2NF，非3NF"
       ],
       "answer": [
-        "C"
+        "A"
       ]
     },
     {
@@ -428,8 +434,8 @@
       "options": [
         "减少重复事实存储",
         "减少插入删除更新异常",
-        "保证任何查询永远最快",
-        "消除所有连接查询需求"
+        "保证连接操作数量减少到零",
+        "使每个读取查询都获得最小执行时间"
       ],
       "answer": [
         "A",
@@ -449,8 +455,8 @@
       "source": "原创（qzd 产品题库）",
       "options": [
         "是否保持需要的依赖约束",
-        "拆得越多必然越好",
-        "表名字是否同样长",
+        "分解后表数是否尽可能多",
+        "每张子表是否只保留一个非键属性即可证明无损",
         "是否无损连接"
       ],
       "answer": [
@@ -477,12 +483,13 @@
       "ref": "dm-normal-08",
       "category": "dm-normal",
       "type": "FILL",
-      "stem": "在空数据库中按顺序执行以下 SQL，写出最后一个 SELECT 返回的唯一数值：____。（H2 的 MySQL 兼容模式已验证。）\n\n```sql\nCREATE TABLE dept(id INT PRIMARY KEY, name VARCHAR(20));\nCREATE TABLE emp(id INT PRIMARY KEY, dept_id INT REFERENCES dept(id));\nINSERT INTO dept VALUES(1,'研发'),(2,'运营');\nINSERT INTO emp VALUES(10,1),(11,1),(12,2);\nSELECT COUNT(*) FROM emp e JOIN dept d ON e.dept_id=d.id WHERE d.name='研发';\n```",
-      "analysis": "部门名称集中存储，连接恢复员工所属部门；研发对应员工 10、11，共 2 行，不重复保存部门名称也能查询。",
-      "difficulty": 3,
+      "stem": "在空数据库中（初始自动提交开启）依次执行以下 SQL，写出最后 SELECT 返回的唯一数值：____。\n\n```sql\nCREATE TABLE d(id INT PRIMARY KEY);\nCREATE TABLE e(id INT PRIMARY KEY,dept INT REFERENCES d(id),salary INT);\nINSERT INTO d VALUES(1),(2),(3);\nINSERT INTO e VALUES(10,1,5),(11,1,7),(12,2,4);\nSELECT COUNT(*) FROM (SELECT d.id FROM d LEFT JOIN e ON d.id=e.dept GROUP BY d.id HAVING COALESCE(SUM(e.salary),0)<6) x;\n```",
+      "analysis": "部门1工资合计12不满足；部门2为4满足；部门3左连接补NULL，SUM为NULL，经COALESCE变0也满足。保留部门2/3，共2；内连接会漏掉空部门。",
+      "difficulty": 4,
       "tags": [
         "函数依赖与规范化",
-        "看语句写结果"
+        "看语句写结果",
+        "计算与推演"
       ],
       "source": "原创（qzd 产品题库）",
       "answer": [
@@ -508,8 +515,8 @@
       "source": "原创（qzd 产品题库）",
       "options": [
         "= NULL",
-        "等于字符串 'NULL'",
-        "== NULL",
+        "IS NOT NULL",
+        "= 'NULL'",
         "IS NULL"
       ],
       "answer": [
@@ -521,17 +528,17 @@
       "category": "dq-select",
       "type": "SINGLE",
       "stem": "WHERE 条件计算为 UNKNOWN 的行是否保留？",
-      "analysis": "过滤保留真值，UNKNOWN 和 FALSE 都被排除；查询不会因此删除存储行。",
+      "analysis": "WHERE只保留条件为TRUE的行；FALSE和UNKNOWN都被排除，索引是否存在不改变逻辑语义。排除查询结果行不等于删除原表记录。",
       "difficulty": 2,
       "tags": [
         "筛选、NULL 与排序"
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "保留所有 UNKNOWN",
+        "按TRUE保留",
         "不保留，只保留 TRUE",
-        "自动变为 TRUE",
-        "直接删除原表该行"
+        "仅当该列有索引时保留",
+        "把UNKNOWN对应行作为查询副作用从表中删除"
       ],
       "answer": [
         "B"
@@ -550,9 +557,9 @@
       "source": "原创（qzd 产品题库）",
       "options": [
         "ORDER BY score ASC, id DESC",
-        "只写 GROUP BY score",
+        "ORDER BY id ASC, score DESC",
         "ORDER BY score DESC, id ASC",
-        "不写 ORDER BY 即可保证"
+        "ORDER BY score DESC, id DESC"
       ],
       "answer": [
         "C"
@@ -593,8 +600,8 @@
       "options": [
         "可用 AND 连接条件",
         "参数化查询有助于防 SQL 注入",
-        "拼接未经处理的用户输入总是安全",
-        "WHERE 一定在逻辑上聚合之后过滤"
+        "把用户输入拼接到SQL字符串中与绑定参数具有相同的安全边界",
+        "WHERE逻辑上先完成聚合再过滤各组"
       ],
       "answer": [
         "A",
@@ -613,8 +620,8 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "NULL = NULL 总是 TRUE",
-        "任何算式包含 NULL 都一定是数值 0",
+        "NULL=NULL在条件表达式中得到TRUE",
+        "列为NULL时与常数相加按0加该常数计算",
         "IS NOT NULL 可筛出非空值",
         "NULL 不等于空字符串"
       ],
@@ -642,17 +649,18 @@
       "ref": "dq-select-08",
       "category": "dq-select",
       "type": "FILL",
-      "stem": "在空数据库中按顺序执行以下 SQL，写出最后一个 SELECT 返回的唯一数值：____。（H2 的 MySQL 兼容模式已验证。）\n\n```sql\nCREATE TABLE t(v INT);\nINSERT INTO t VALUES(1),(2),(NULL);\nSELECT COUNT(*) FROM t WHERE v<>2;\n```",
-      "analysis": "值 1 满足条件，2 不满足，NULL 与 2 比较为 UNKNOWN 也不保留，所以只剩一行。",
-      "difficulty": 3,
+      "stem": "在空数据库中（初始自动提交开启）依次执行以下 SQL，写出最后 SELECT 返回的唯一数值：____。\n\n```sql\nCREATE TABLE t(v INT);\nINSERT INTO t VALUES(1),(2),(3),(NULL);\nSELECT COUNT(*) FROM t WHERE v NOT IN (2,NULL);\n```",
+      "analysis": "对2，v IN为TRUE所以NOT为FALSE；对1/3，与2不同但与NULL比较UNKNOWN，IN整体UNKNOWN，NOT仍UNKNOWN；NULL也UNKNOWN。WHERE只保留TRUE，因此0。NOT IN含NULL不同于单纯v<>2。",
+      "difficulty": 4,
       "tags": [
         "筛选、NULL 与排序",
-        "看语句写结果"
+        "看语句写结果",
+        "计算与推演"
       ],
       "source": "原创（qzd 产品题库）",
       "answer": [
         [
-          "1"
+          "0"
         ]
       ],
       "fillOptions": {
@@ -672,10 +680,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "前者只数非 NULL",
-        "后者返回 col 的总和",
+        "COUNT(*)只计每列均非NULL的行",
+        "COUNT(col)返回该列数值之和",
         "后者不计 col 为 NULL 的行",
-        "两者永远相等"
+        "COUNT(col)把重复非NULL值只计一次"
       ],
       "answer": [
         "C"
@@ -693,10 +701,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "仅 FROM",
+        "WHERE",
         "HAVING",
-        "仅 INSERT",
-        "仅 PRIMARY KEY"
+        "ORDER BY",
+        "DISTINCT"
       ],
       "answer": [
         "B"
@@ -714,10 +722,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "删除该行全部数据",
+        "按0计入求和及行数分母",
         "不计入该列平均值分母",
-        "把整个结果变成字符串",
-        "按零强制计入"
+        "不加到总和，但仍计入平均值分母",
+        "只要存在NULL，该组平均值就直接为NULL"
       ],
       "answer": [
         "B"
@@ -728,17 +736,17 @@
       "category": "dq-group",
       "type": "SINGLE",
       "stem": "相关子查询与外层查询的关系是什么？",
-      "analysis": "相关性由引用外层值决定，逻辑结果依赖当前外层行。",
+      "analysis": "相关子查询引用外层行字段，逻辑结果依赖当前外层值；仅使用相同数据库名称或返回相同行数不构成相关性。",
       "difficulty": 4,
       "tags": [
         "聚合、分组与子查询"
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "只有数据库名字相同才相关",
-        "子查询必须返回全部数据库",
+        "子查询只引用自己的表，且可与外层完全独立求值",
+        "子查询与外层只需使用相同数据库名称",
         "子查询引用了外层行的字段",
-        "子查询一定与外层毫无关系"
+        "子查询结果必须与外层行数一一对应才称为相关"
       ],
       "answer": [
         "C"
@@ -756,9 +764,9 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "HAVING 只能比较字符串长度",
+        "HAVING作用于分组前原始行，WHERE作用于分组结果",
         "GROUP BY 可形成多个组",
-        "所有聚合都必须返回每条原始行",
+        "聚合函数不改变结果行数，每条输入行仍返回一行",
         "COUNT(*) 在空输入上可返回 0"
       ],
       "answer": [
@@ -780,8 +788,8 @@
       "options": [
         "IN 可测试值是否在子查询结果集合中",
         "EXISTS 判断是否存在至少一行",
-        "标量子查询可无条件返回任意多行而不报错",
-        "EXISTS 必须返回所有列的文本给用户"
+        "标量子查询返回多行时取第一行即可，无需约束",
+        "EXISTS必须把子查询的所有列值传回应用再判断"
       ],
       "answer": [
         "A",
@@ -807,17 +815,18 @@
       "ref": "dq-group-08",
       "category": "dq-group",
       "type": "FILL",
-      "stem": "在空数据库中按顺序执行以下 SQL，写出最后一个 SELECT 返回的唯一数值：____。（H2 的 MySQL 兼容模式已验证。）\n\n```sql\nCREATE TABLE sales(team VARCHAR(8), amount INT);\nINSERT INTO sales VALUES('A',3),('A',4),('B',2),('C',8);\nSELECT COUNT(*) FROM (SELECT team FROM sales GROUP BY team HAVING SUM(amount)>5) x;\n```",
-      "analysis": "分组总额为 A=7、B=2、C=8，只有 A、C 超过 5，外层计数得到 2。",
-      "difficulty": 3,
+      "stem": "在空数据库中（初始自动提交开启）依次执行以下 SQL，写出最后 SELECT 返回的唯一数值：____。\n\n```sql\nCREATE TABLE s(team VARCHAR(8),v INT);\nINSERT INTO s VALUES('A',4),('A',6),('B',10),('B',NULL),('C',3),('C',3);\nSELECT COUNT(*) FROM (SELECT team FROM s GROUP BY team HAVING AVG(v)>5 AND COUNT(*)=2) x;\n```",
+      "analysis": "各组原始行数都2。AVG忽略NULL，A=(4+6)/2=5不大于5；B=10/1=10满足；C=3不满足。只剩B一组。把B的NULL按0计入分母会误算平均5。",
+      "difficulty": 4,
       "tags": [
         "聚合、分组与子查询",
-        "看语句写结果"
+        "看语句写结果",
+        "计算与推演"
       ],
       "source": "原创（qzd 产品题库）",
       "answer": [
         [
-          "2"
+          "1"
         ]
       ],
       "fillOptions": {
@@ -838,9 +847,9 @@
       "source": "原创（qzd 产品题库）",
       "options": [
         "满足连接条件的匹配行组合",
-        "只保留不匹配行",
-        "无条件保留右表所有行",
-        "无条件保留左表所有行"
+        "左表全部行，未匹配右侧补NULL",
+        "右表全部行，未匹配左侧补NULL",
+        "只保留连接条件不成立的组合"
       ],
       "answer": [
         "A"
@@ -859,9 +868,9 @@
       "source": "原创（qzd 产品题库）",
       "options": [
         "保留左行，右侧列补 NULL",
-        "直接全部删除",
-        "强制报错",
-        "右侧自动补零且当真实行"
+        "丢弃该左行，保持与INNER JOIN相同结果",
+        "保留左行，右侧数值列补0、文本列补空串",
+        "复制右表最后一行填充缺失值"
       ],
       "answer": [
         "A"
@@ -879,10 +888,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "自动创建新表",
-        "只更新第一行",
+        "只更新按主键排序的首行",
+        "只更新当前会话最近SELECT的行",
         "更新所有行",
-        "永远无法执行"
+        "因缺少WHERE在语法阶段被统一拒绝"
       ],
       "answer": [
         "C"
@@ -900,10 +909,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "两者只改列名",
+        "UNION保留重复，UNION ALL去重",
         "UNION 去重而 UNION ALL 保留重复",
-        "UNION 只取左边结果",
-        "UNION ALL 永远去重"
+        "UNION按共同列名做横向连接",
+        "UNION只返回两个结果的交集，ALL返回并集"
       ],
       "answer": [
         "B"
@@ -921,8 +930,8 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "外连接右侧过滤位置对结果绝无影响",
-        "JOIN 永远不改变左表行数",
+        "INNER JOIN返回行数由左表行数固定决定",
+        "外连接右表筛选条件放ON或WHERE不会影响补NULL行",
         "连接条件缺失可能产生笛卡尔积",
         "一对多匹配可能让结果行数增加"
       ],
@@ -944,9 +953,9 @@
       "source": "原创（qzd 产品题库）",
       "options": [
         "先确认 WHERE 范围再执行批量更新",
-        "认为 DELETE 无条件只删一行",
+        "DELETE省略WHERE时只影响第一条匹配记录",
         "重要批量修改结合事务与核对",
-        "把拼接用户输入当作唯一安全方案"
+        "先查询一次条数后即可忽略执行期间的并发变化"
       ],
       "answer": [
         "A",
@@ -972,17 +981,18 @@
       "ref": "dq-join-08",
       "category": "dq-join",
       "type": "FILL",
-      "stem": "在空数据库中按顺序执行以下 SQL，写出最后一个 SELECT 返回的唯一数值：____。（H2 的 MySQL 兼容模式已验证。）\n\n```sql\nCREATE TABLE team(id INT PRIMARY KEY);\nCREATE TABLE member(id INT PRIMARY KEY, team_id INT);\nINSERT INTO team VALUES(1),(2);\nINSERT INTO member VALUES(10,1),(11,1),(12,1);\nSELECT COUNT(*) FROM team t LEFT JOIN member m ON t.id=m.team_id;\n```",
-      "analysis": "队 1 匹配三行，队 2 没成员但左连接保留一行，COUNT(*) 共 4；COUNT(m.id) 才会是 3。",
-      "difficulty": 3,
+      "stem": "在空数据库中（初始自动提交开启）依次执行以下 SQL，写出最后 SELECT 返回的唯一数值：____。\n\n```sql\nCREATE TABLE a(id INT PRIMARY KEY);\nCREATE TABLE b(id INT PRIMARY KEY,a_id INT,v INT);\nINSERT INTO a VALUES(1),(2),(3);\nINSERT INTO b VALUES(10,1,4),(11,1,7),(12,2,2);\nSELECT COUNT(*) FROM a LEFT JOIN b ON a.id=b.a_id AND b.v>5 WHERE b.id IS NULL;\n```",
+      "analysis": "ON先限制v>5，只有a=1匹配b=11，因b.id非空被WHERE排除。a=2虽有原始子行但不满足ON，补NULL；a=3也补NULL。最终两行。不能把ON过滤等同最后WHERE b.v>5。",
+      "difficulty": 4,
       "tags": [
         "连接、更新与结果集",
-        "看语句写结果"
+        "看语句写结果",
+        "计算与推演"
       ],
       "source": "原创（qzd 产品题库）",
       "answer": [
         [
-          "4"
+          "2"
         ]
       ],
       "fillOptions": {
@@ -1003,9 +1013,9 @@
       "source": "原创（qzd 产品题库）",
       "options": [
         "事务中的操作作为整体成功或回滚",
-        "每条 SQL 都不允许失败",
-        "所有事务必须只含一条语句",
-        "所有操作都在同一纳秒完成"
+        "事务内全部语句都只读同一快照",
+        "事务内操作在物理时间上同时发生",
+        "事务中的每条SQL都是独立提交单元"
       ],
       "answer": [
         "A"
@@ -1023,10 +1033,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "关闭数据库安装程序",
+        "撤销本事务尚未提交的修改",
         "确认事务修改",
-        "撤销本事务修改",
-        "删除所有表"
+        "设置一个以后可回滚到的中间保存点",
+        "只释放连接而不决定事务修改是否生效"
       ],
       "answer": [
         "B"
@@ -1044,10 +1054,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "给查询结果排序",
+        "撤销任意指定的历史已提交事务",
         "撤销尚未提交事务的修改",
-        "复制数据库源码",
-        "撤销任意历史所有已提交事务"
+        "对当前结果集按主键重新排序",
+        "把当前未提交数据先保存为持久结果再退出"
       ],
       "answer": [
         "B"
@@ -1065,9 +1075,9 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "保证任何网络请求都不重试",
-        "为了让两账号必须同名",
-        "让余额不需要校验",
+        "让重试的转账请求自动合并成同一业务操作",
+        "省略对账户余额是否足够的业务检查",
+        "保证在任意隔离级别下并发读写都与串行完全相同",
         "避免只扣未加等部分完成状态"
       ],
       "answer": [
@@ -1079,7 +1089,7 @@
       "category": "dt-acid",
       "type": "MULTIPLE",
       "stem": "ACID 包含哪些属性？",
-      "analysis": "ACID 还包括一致性与隔离性；界面和命名不是事务四属性。",
+      "analysis": "ACID分别是原子性、一致性、隔离性、持久性；最终一致性是分布式一致性语境的概念，幂等表示重复操作的效果，二者都不是这四个字母中的属性名称。",
       "difficulty": 3,
       "tags": [
         "事务、提交与回滚"
@@ -1087,9 +1097,9 @@
       "source": "原创（qzd 产品题库）",
       "options": [
         "原子性",
-        "文件名唯一性",
+        "最终一致性",
         "持久性",
-        "页面美观性"
+        "查询幂等性"
       ],
       "answer": [
         "A",
@@ -1109,9 +1119,9 @@
       "source": "原创（qzd 产品题库）",
       "options": [
         "失败时回滚未完成修改",
-        "遇到错误继续提交任意半成品",
+        "捕获异常后仍统一返回成功以便客户端继续",
         "把真实成功或失败反馈给调用者",
-        "忽略异常后永远提示成功"
+        "失败后只提交已完成的前半段，无需检查业务整体约束"
       ],
       "answer": [
         "A",
@@ -1137,17 +1147,18 @@
       "ref": "dt-acid-08",
       "category": "dt-acid",
       "type": "FILL",
-      "stem": "在空数据库中按顺序执行以下 SQL，写出最后一个 SELECT 返回的唯一数值：____。（H2 的 MySQL 兼容模式已验证。）\n\n```sql\nCREATE TABLE wallet(id INT PRIMARY KEY, balance INT);\nINSERT INTO wallet VALUES(1,30);\nSET AUTOCOMMIT FALSE;\nUPDATE wallet SET balance=balance-7 WHERE id=1;\nROLLBACK;\nSELECT balance FROM wallet WHERE id=1;\n```",
-      "analysis": "初始插入在自动提交模式完成，事务中的减 7 被回滚，余额回到 30；ROLLBACK 不撤销此前已提交插入。",
-      "difficulty": 3,
+      "stem": "在空数据库中（初始自动提交开启）依次执行以下 SQL，写出最后 SELECT 返回的唯一数值：____。\n\n```sql\nCREATE TABLE w(id INT PRIMARY KEY,v INT);\nINSERT INTO w VALUES(1,30);\nSET AUTOCOMMIT FALSE;\nUPDATE w SET v=v+5 WHERE id=1;\nSAVEPOINT s;\nUPDATE w SET v=v*2 WHERE id=1;\nROLLBACK TO SAVEPOINT s;\nCOMMIT;\nSELECT v FROM w WHERE id=1;\n```",
+      "analysis": "事务先把30加5得35，并设置保存点；再乘2成70；回滚到保存点只撤销后续乘法，恢复35；COMMIT提交35。回滚到保存点不撤销保存点之前的加5。",
+      "difficulty": 4,
       "tags": [
         "事务、提交与回滚",
-        "看语句写结果"
+        "看语句写结果",
+        "计算与推演"
       ],
       "source": "原创（qzd 产品题库）",
       "answer": [
         [
-          "30"
+          "35"
         ]
       ],
       "fillOptions": {
@@ -1167,10 +1178,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "读到排序后的数据",
+        "同一事务再次读取时看见另一个事务已经提交的改值",
         "读到另一个事务尚未提交的修改",
-        "读到文件中有空格",
-        "读到自己刚提交的值"
+        "同一范围查询因为别人提交插入而出现更多行",
+        "读取自己在当前事务中刚写入的值"
       ],
       "answer": [
         "B"
@@ -1189,9 +1200,9 @@
       "source": "原创（qzd 产品题库）",
       "options": [
         "同一事务两次读取同一行值不同",
-        "每次查询必须返回重复行",
-        "查询语法不能复用",
-        "数据库禁止第二次查询"
+        "查询范围内新增了符合条件的记录",
+        "读到了其他事务随后回滚的未提交值",
+        "同一查询结果里出现相同投影值的两行"
       ],
       "answer": [
         "A"
@@ -1209,10 +1220,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "显示器闪烁",
+        "已存在同一行的某字段值变化",
         "相同范围条件下符合条件的行集合变化",
-        "文件名中有隐藏字符",
-        "列名自动改变大小写"
+        "读取到未提交且随后被回滚的修改",
+        "不同物理执行计划导致结果顺序变化"
       ],
       "answer": [
         "B"
@@ -1231,9 +1242,9 @@
       "source": "原创（qzd 产品题库）",
       "options": [
         "避免读取其他事务未提交的数据",
-        "保证所有重复读取完全相同",
-        "保证全部事务串行运行",
-        "保证从不出现任何并发等待"
+        "保证同一事务两次读取同一行值相同",
+        "保证所有事务都按某一串行顺序执行",
+        "保证同一范围查询的行集合不变"
       ],
       "answer": [
         "A"
@@ -1251,8 +1262,8 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "隔离级别能替代所有业务唯一约束",
-        "最高隔离一定在所有业务下最快",
+        "选最高隔离级别后无需再测试吞吐和等待",
+        "提高隔离即可替代重复业务键的唯一约束",
         "隔离级别需结合业务正确性需求选择",
         "更强隔离可能限制并发"
       ],
@@ -1273,8 +1284,8 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "一定把所有表完全复制到客户端",
-        "必然阻止所有其他事务写入",
+        "快照读应把整个数据库复制到客户端内存再查询",
+        "读取一个版本时必须阻止其他事务对该行写入新版本",
         "可能读取某个一致性视图中的版本",
         "不等于读取任意未提交数据"
       ],
@@ -1302,17 +1313,18 @@
       "ref": "dt-isolation-08",
       "category": "dt-isolation",
       "type": "FILL",
-      "stem": "在空数据库中按顺序执行以下 SQL，写出最后一个 SELECT 返回的唯一数值：____。（H2 的 MySQL 兼容模式已验证。）\n\n```sql\nCREATE TABLE counter(id INT PRIMARY KEY, v INT);\nINSERT INTO counter VALUES(1,4);\nSET AUTOCOMMIT FALSE;\nUPDATE counter SET v=v+2 WHERE id=1;\nSELECT v FROM counter WHERE id=1;\n```",
-      "analysis": "当前事务能读取自己的更新，因此得到 6；读取自身未提交写入不属于读到其他事务脏数据。",
+      "stem": "在空数据库中（初始自动提交开启）依次执行以下 SQL，写出最后 SELECT 返回的唯一数值：____。\n\n```sql\nCREATE TABLE t(id INT PRIMARY KEY,v INT);\nINSERT INTO t VALUES(1,3),(2,6),(3,NULL);\nSET AUTOCOMMIT FALSE;\nUPDATE t SET v=v+2 WHERE v<5;\nSELECT SUM(v) FROM t;\n```",
+      "analysis": "条件v<5只有3满足，变5；6不改，NULL比较为UNKNOWN也不改。当前事务能看见自己的5，SUM忽略NULL，结果5+6=11。读自身修改不是读其他事务的未提交数据。",
       "difficulty": 3,
       "tags": [
         "隔离级别与读取现象",
-        "看语句写结果"
+        "看语句写结果",
+        "计算与推演"
       ],
       "source": "原创（qzd 产品题库）",
       "answer": [
         [
-          "6"
+          "11"
         ]
       ],
       "fillOptions": {
@@ -1324,63 +1336,66 @@
       "ref": "dt-lock-01",
       "category": "dt-lock",
       "type": "SINGLE",
-      "stem": "多个事务以相反顺序锁住两行并互等，可能发生什么？",
-      "analysis": "循环持锁等待形成死锁，需检测中止或调整锁顺序。",
-      "difficulty": 2,
+      "stem": "调度按 r1(X)、r2(Y)、w1(Y)、w2(X) 执行（数字是事务号）。优先图与冲突可串行化结论是？",
+      "analysis": "X上r1先于w2，产生T1→T2；Y上r2先于w1，产生T2→T1。两边构成环，无法等价某个串行顺序。只看写写冲突会漏掉读写冲突。",
+      "difficulty": 5,
       "tags": [
-        "锁、死锁与并发更新"
+        "锁、死锁与并发更新",
+        "计算与推演"
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "表名自动改变",
-        "唯一索引消失",
-        "自动有序完成且无等待",
-        "死锁"
+        "无环，等价T2→T1",
+        "无环，等价T1→T2",
+        "有环，不可冲突串行化",
+        "无冲突，两种串行顺序均可"
       ],
       "answer": [
-        "D"
+        "C"
       ]
     },
     {
       "ref": "dt-lock-02",
       "category": "dt-lock",
       "type": "SINGLE",
-      "stem": "统一按账号编号顺序锁定转账双方，主要降低什么风险？",
-      "analysis": "一致加锁顺序减少依赖环，不是对所有故障的万能保护。",
-      "difficulty": 2,
+      "stem": "调度w1(X)、r2(X)、w2(Y)、r3(Y)、w1(Z)，未列出的操作不存在。与其冲突等价的串行次序是？",
+      "analysis": "X产生1→2，Y产生2→3；Z仅由1访问，无额外边。唯一拓扑次序1、2、3。最后出现的w1(Z)并不要求事务1排在最后。",
+      "difficulty": 4,
       "tags": [
-        "锁、死锁与并发更新"
+        "锁、死锁与并发更新",
+        "计算与推演"
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "循环等待导致的死锁",
-        "网络物理丢包",
-        "所有数据损坏风险归零",
-        "错误密码登录"
+        "T3→T2→T1",
+        "T2→T1→T3",
+        "T1→T2→T3",
+        "T1→T3→T2"
       ],
       "answer": [
-        "A"
+        "C"
       ]
     },
     {
       "ref": "dt-lock-03",
       "category": "dt-lock",
       "type": "SINGLE",
-      "stem": "乐观锁常用 version 字段的做法是什么？",
-      "analysis": "条件更新检测并发修改，受影响行数为零表示版本已过期或目标不匹配。",
-      "difficulty": 2,
+      "stem": "某行初值(balance=20,version=4)。甲乙都读到version4；甲执行“balance=balance-3, version=version+1 WHERE version=4”成功；乙随后用相同WHERE减5。乙影响行数及最终balance为？",
+      "analysis": "甲匹配版本4，将余额20-3=17，版本改5。乙仍要求版本4，匹配0行，不能再减5。最终余额17、乙影响0行；不能把乐观校验当成自动重试成功。",
+      "difficulty": 3,
       "tags": [
-        "锁、死锁与并发更新"
+        "锁、死锁与并发更新",
+        "计算与推演"
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "每次写入都重建数据库",
-        "仅在界面展示版本字符串",
-        "更新时同时匹配旧版本并递增版本",
-        "每次更新忽略版本条件"
+        "1,15",
+        "0,20",
+        "1,12",
+        "0,17"
       ],
       "answer": [
-        "C"
+        "D"
       ]
     },
     {
@@ -1395,9 +1410,9 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "永久删除对方用户",
-        "无条件宣称原事务已经成功",
-        "只执行随机一半操作",
+        "只忽略死锁异常，把本次操作当作已提交成功",
+        "只补做最后一条SQL，前面的事务效果默认保留",
+        "立即无限循环重试而不考虑副作用和重试次数",
         "根据业务安全性重新执行整个事务或明确报错"
       ],
       "answer": [
@@ -1416,10 +1431,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "删除事务边界",
-        "先 SELECT 后永远忽略并发",
+        "把先前读到的余额作为常量直接覆盖回去",
+        "把余额存成字符串后继续按读改写覆盖",
         "UPDATE account SET balance=balance-1 WHERE id=?",
-        "把余额改成字符串"
+        "只在客户端延迟一秒再写回旧余额减一"
       ],
       "answer": [
         "C"
@@ -1437,9 +1452,9 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "不论条件都扫描并锁住所有表",
+        "打开事务后等待用户确认全部界面操作",
         "只锁定真正需要修改的范围",
-        "把事务打开后等待用户数小时",
+        "把不相关记录也一起锁住以简化查询条件",
         "事务内避免无关网络等待"
       ],
       "answer": [
@@ -1481,21 +1496,22 @@
       "ref": "di-tree-01",
       "category": "di-tree",
       "type": "SINGLE",
-      "stem": "数据库常用 B+ 树索引而不是极高二叉树的重要原因之一是什么？",
-      "analysis": "B+ 树单页容纳多个键，扇出高、树较矮，适合页式存储。",
-      "difficulty": 2,
+      "stem": "B+树每个叶页最多80条记录、每个内部结点最多100个孩子。存100万条记录，按最大容量紧凑存放，根和叶都算一层，至少需要几层？",
+      "analysis": "叶页ceil(1000000/80)=12500；上一层ceil(12500/100)=125结点；再上一层ceil(125/100)=2；根1个可指向这2个。共叶/125/2/根四层。3层最多100×100×80=800000条，不够。",
+      "difficulty": 5,
       "tags": [
-        "B+ 树与索引结构"
+        "B+ 树与索引结构",
+        "计算与推演"
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "能自动修复所有 SQL 错误",
-        "能让任何查询都不读数据",
-        "每个结点只存一个位",
-        "较高扇出降低磁盘页访问层数"
+        "4",
+        "3",
+        "5",
+        "12500"
       ],
       "answer": [
-        "D"
+        "A"
       ]
     },
     {
@@ -1511,9 +1527,9 @@
       "source": "原创（qzd 产品题库）",
       "options": [
         "范围扫描",
-        "随机删除全部表",
-        "密码校验",
-        "把 SQL 变成视频"
+        "按非索引列等值查询时直接跳到目标行",
+        "仅凭叶子连接就保证任意JOIN无需比较条件",
+        "让查询按插入时间而非键值顺序返回"
       ],
       "answer": [
         "A"
@@ -1523,21 +1539,22 @@
       "ref": "di-tree-03",
       "category": "di-tree",
       "type": "SINGLE",
-      "stem": "在写多读少的表上添加大量索引，常见代价是什么？",
-      "analysis": "索引占空间且插入/更新/删除要维护，读收益需与写成本权衡。",
-      "difficulty": 2,
+      "stem": "某索引叶页物理最多128条记录，设计要求每页使用不超过容量的80%，每页有效上限向下取整。存5000条记录至少需要几个叶页？",
+      "analysis": "每页上限floor(128×0.8)=102条；5000/102≈49.02，需要向上取整为50页。49页只有4998条容量，40是按物理满页128条算而忽略目标填充率。",
+      "difficulty": 3,
       "tags": [
-        "B+ 树与索引结构"
+        "B+ 树与索引结构",
+        "计算与推演"
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "所有写入必然更快",
-        "不占任何额外空间",
-        "事务日志自动消失",
-        "写入需维护更多索引"
+        "49",
+        "50",
+        "40",
+        "51"
       ],
       "answer": [
-        "D"
+        "B"
       ]
     },
     {
@@ -1552,9 +1569,9 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "只按 b 且任何引擎都保证最优",
-        "只按 c 且保证等同完整前缀效果",
-        "任意列顺序与索引次序毫无关系",
+        "仅约束c即可等同于完整前缀的有序定位",
+        "仅约束b即可忽略a对索引排序的影响",
+        "按c,b,a的顺序使用与a,b,c具有同样前缀性质",
         "先约束 a，再约束 b"
       ],
       "answer": [
@@ -1566,7 +1583,7 @@
       "category": "di-tree",
       "type": "SINGLE",
       "stem": "覆盖索引通常指什么？",
-      "analysis": "覆盖关注查询列是否都在索引内，可减少额外取行；不是“索引很多”。",
+      "analysis": "覆盖索引要求本次查询需要的列都可从该访问路径的索引记录得到，从而可能免去取完整行；仅使用索引、索引含全表键或多个独立单列索引都不足以推出覆盖。",
       "difficulty": 2,
       "tags": [
         "B+ 树与索引结构"
@@ -1574,9 +1591,9 @@
       "source": "原创（qzd 产品题库）",
       "options": [
         "查询所需列可从索引直接取得",
-        "索引会自动加密所有列",
-        "每个表必须有 100 个索引",
-        "索引覆盖了显示器窗口"
+        "索引包含表中全部行，所以任意查询都是覆盖查询",
+        "任意查询只要使用了索引就不再需要读取所选列",
+        "为查询中每个列单独建索引即可保证一次索引扫描取得全部列"
       ],
       "answer": [
         "A"
@@ -1594,9 +1611,9 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "任何查询加任意索引都必定更快",
+        "给任意条件列建索引都能降低该查询的总成本",
         "需要存储与维护成本",
-        "索引代替全部数据完整性约束",
+        "普通非唯一索引可替代主键、外键等完整性约束",
         "可能加快合适的过滤与排序"
       ],
       "answer": [
@@ -1646,10 +1663,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "自动提交所有事务",
-        "直接证明业务数据永远正确",
+        "直接给出该SQL在所有数据规模下的精确耗时",
+        "执行并提交查询涉及的全部写入事务",
         "查看查询的执行计划信息",
-        "删除没用表"
+        "自动删除未被该条查询使用的索引"
       ],
       "answer": [
         "C"
@@ -1667,10 +1684,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "自动关闭事务",
+        "使查询结果行数自动减少到一行",
         "减少不必要的列读取与传输",
-        "保证查询永远只返回一行",
-        "让 WHERE 可以省略"
+        "让数据库跳过WHERE条件判断",
+        "自动避免所有表扫描，即使没有可用索引"
       ],
       "answer": [
         "B"
@@ -1681,17 +1698,17 @@
       "category": "di-plan",
       "type": "SINGLE",
       "stem": "对可索引时间列用函数包装后筛选，常见风险是什么？",
-      "analysis": "表达式可能不匹配原列索引，常可改成时间范围；具体仍应看计划。",
+      "analysis": "在列上包函数可能令条件不再对应原索引键的有序范围，普通索引不会因此自动变成表达式索引。应比较等价范围写法并核对执行计划，而非推断必然更快。",
       "difficulty": 3,
       "tags": [
         "执行计划与查询诊断"
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "把列变成主键",
-        "保证任何数据库必定更快",
+        "使结果按该列自动去重",
+        "把普通索引自动转换为表达式索引",
         "可能使普通索引难以直接用于范围定位",
-        "使所有结果自动去重"
+        "保证优化器按原列顺序直接定位所有满足函数条件的值"
       ],
       "answer": [
         "C"
@@ -1701,21 +1718,22 @@
       "ref": "di-plan-04",
       "category": "di-plan",
       "type": "SINGLE",
-      "stem": "深分页 OFFSET 很大时可能较慢，原因之一是什么？",
-      "analysis": "丢弃前面大量结果产生开销，可结合稳定排序评估基于上次键值翻页。",
+      "stem": "按score DESC,id ASC翻页，已有(score,id)为(95,2),(90,10),(90,20),(85,7)。上页最后一项是(90,15)，按键值继续取2项，应返回的id序列为？",
+      "analysis": "继续条件是score<90，或score=90且id>15；候选为(90,20)、(85,7)，按原排序得到20、7。不能对两个字段都用大于号，也不能仅按id排序。",
       "difficulty": 4,
       "tags": [
-        "执行计划与查询诊断"
+        "执行计划与查询诊断",
+        "计算与推演"
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "数据库只按页码字符数计费",
-        "LIMIT 会自动锁全网",
-        "仍需扫描或跳过大量前置记录",
-        "后面的记录一定损坏"
+        "10,20",
+        "2,10",
+        "7,20",
+        "20,7"
       ],
       "answer": [
-        "C"
+        "D"
       ]
     },
     {
@@ -1730,10 +1748,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "只看开发者喜欢的命名",
-        "只凭 SQL 字符串变短",
+        "只比较SQL文本是否更短",
+        "只比较计划中是否出现任意索引名称",
         "相同条件下的实际耗时和执行计划",
-        "只看返回 JSON 的缩进"
+        "只看一次热缓存的最快结果而忽略其他条件"
       ],
       "answer": [
         "C"
@@ -1744,7 +1762,7 @@
       "category": "di-plan",
       "type": "MULTIPLE",
       "stem": "慢查询诊断可关注哪些信息？",
-      "analysis": "扫描、排序和临时结果可能反映额外工作；UI 风格与查询成本无直接关系。",
+      "analysis": "扫描远多于返回的行可能反映过滤效率低；排序和临时结果可能增加CPU、内存及IO成本。关键字大小写或别名长度通常不能据此判断计划代价。",
       "difficulty": 3,
       "tags": [
         "执行计划与查询诊断"
@@ -1752,8 +1770,8 @@
       "source": "原创（qzd 产品题库）",
       "options": [
         "是否有不必要排序或临时结果",
-        "表名是否押韵",
-        "页面按钮颜色",
+        "SQL关键字的大小写风格",
+        "表别名的字符长度是否一致",
         "扫描行数与返回行数的差距"
       ],
       "answer": [
@@ -1803,9 +1821,9 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "没有任何区分度",
-        "必然是 NULL",
-        "只能用于布尔值",
+        "较低区分度",
+        "取值只适合用布尔类型表达",
+        "相同值在表内重复出现的频率较高",
         "较高区分度"
       ],
       "answer": [
@@ -1824,10 +1842,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "必然只读取一行",
-        "自动消除重复记录",
+        "索引等值查找只返回一个键就等于只读取一行",
+        "索引会在创建时删除该列的重复记录",
         "收益有限，优化器可能选全表扫描",
-        "保证零 IO"
+        "只要出现索引条件就无须访问匹配数据页"
       ],
       "answer": [
         "C"
@@ -1838,17 +1856,17 @@
       "category": "di-design",
       "type": "SINGLE",
       "stem": "唯一索引的特殊用途是什么？",
-      "analysis": "唯一索引针对键唯一性，NULL 行为依数据库而定，不能泛化为全业务校验。",
+      "analysis": "唯一索引约束被索引键的重复，NULL行为按数据库规则处理。它不禁止多个子行引用同一父键，也不承担其他列的所有业务校验，更不把表变为只读。",
       "difficulty": 2,
       "tags": [
         "索引设计与性能权衡"
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "把所有表改为只读",
-        "自动校验所有字段业务含义",
+        "禁止多个外键引用同一条父记录",
+        "检查每列的全部业务取值规则",
         "限制被索引键的重复值，按数据库 NULL 语义处理",
-        "让密码不需要哈希"
+        "把表的全部修改操作限制为只读查询"
       ],
       "answer": [
         "C"
@@ -1866,9 +1884,9 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "开发者姓名",
-        "创建表的星期几",
-        "列名长短",
+        "只按列的存储字节数从短到长排列",
+        "仅按建表时的列声明顺序排列",
+        "只给查询文本中最后出现的列建索引",
         "实际过滤和排序模式"
       ],
       "answer": [
@@ -1887,10 +1905,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "所有字段的正确率",
+        "每页可容纳的索引条目数",
         "索引体积与写维护成本",
-        "网络光速",
-        "CPU 的物理核心数"
+        "同等资源下的插入吞吐上限",
+        "叶子页的可用空闲比例"
       ],
       "answer": [
         "B"
@@ -1908,10 +1926,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "看到一次没用就直接删生产索引",
-        "删除所有主键作为比较",
+        "只根据一次查询未使用它就直接删除",
+        "把索引改名后当作已经移除维护成本",
         "核对完整业务周期、约束用途和相关查询",
-        "只改索引名字就当删除"
+        "忽略约束用途，只比较索引文件大小"
       ],
       "answer": [
         "C"
@@ -1930,9 +1948,9 @@
       "source": "原创（qzd 产品题库）",
       "options": [
         "用可复现实测验证收益",
-        "以牺牲业务正确性作为默认方案",
+        "为减少耗时默认去掉影响结果正确性的约束",
         "先定位瓶颈再改动",
-        "所有环境无条件使用同一索引集合"
+        "把同一索引集合原样用于所有不同数据分布和负载"
       ],
       "answer": [
         "A",

@@ -5,17 +5,17 @@
       "category": "jb-types",
       "type": "SINGLE",
       "stem": "Java 中保存 true/false 的基本类型是什么？",
-      "analysis": "boolean 是布尔基本类型；Boolean 是包装类，数组和字符串不是该基本类型。",
+      "analysis": "boolean是布尔基本类型；Boolean是对应包装类，byte和char分别用于整数或UTF-16代码单元，不能直接作为Java布尔条件。",
       "difficulty": 2,
       "tags": [
         "类型、运算与转换"
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "Boolean[]",
-        "byte[]",
+        "Boolean",
+        "byte",
         "boolean",
-        "String"
+        "char"
       ],
       "answer": [
         "C"
@@ -34,9 +34,9 @@
       "source": "原创（qzd 产品题库）",
       "options": [
         "3",
-        "4",
         "3.5",
-        "编译失败"
+        "4",
+        "编译失败，因为除数不能整除被除数"
       ],
       "answer": [
         "A"
@@ -54,10 +54,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "必须启动线程",
+        "普通int变量可像范围内的整数字面量一样直接赋给byte",
         "显式窄化转换并承担截断风险",
-        "任何运行时 int 都自动无损变为 byte",
-        "先转成文件"
+        "把int装箱为Integer后即可不经窄化转换赋给byte",
+        "只需给目标变量加final就能省略窄化转换"
       ],
       "answer": [
         "B"
@@ -97,10 +97,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "所有除零都在编译时被禁止",
+        "右操作数为方法调用时，&&不再具有短路效果",
         "短路与 && 可跳过右操作数",
         "整数除以零会抛出异常",
-        "字符串与数字相加永远得到数值和"
+        "表达式\"1\"+2+3会先把两个整数相加再拼接"
       ],
       "answer": [
         "B",
@@ -126,17 +126,18 @@
       "ref": "jb-types-07",
       "category": "jb-types",
       "type": "FILL",
-      "stem": "阅读下面完整程序，写出标准输出（不写末尾换行）：____。\n\n```java\nclass Main {\n    \n    public static void main(String[] args) throws Exception {\n        int a = 7; System.out.println(a / 2 + \":\" + a / 2.0);\n    }\n}\n```",
-      "analysis": "左侧整数除法为 3，右侧提升为 double 后为 3.5；字符串拼接保留冒号。",
-      "difficulty": 3,
+      "stem": "执行以下完整程序，写出标准输出（不写末尾换行）：____。\n\n```java\nclass Main {\n    \n    public static void main(String[] args) throws Exception {\n        int a=9; int b=4; System.out.println((a/b)+\":\"+(double)(a/b)+\":\"+((double)a/b));\n    }\n}\n```",
+      "analysis": "第一个9/4是整数除法得2；第二个先整数除法再转double，得2.0；第三个先把9转double再除4，得2.25。转换位置改变运算类型。",
+      "difficulty": 4,
       "tags": [
         "类型、运算与转换",
-        "看代码写输出"
+        "看代码写输出",
+        "计算与推演"
       ],
       "source": "原创（qzd 产品题库）",
       "answer": [
         [
-          "3:3.5"
+          "2:2.0:2.25"
         ]
       ],
       "fillOptions": {
@@ -179,9 +180,9 @@
       "source": "原创（qzd 产品题库）",
       "options": [
         "结束本轮剩余语句并进入下一轮流程",
-        "返回当前方法的返回值",
-        "退出整个程序",
-        "退出所有外层循环"
+        "退出当前循环，执行循环后第一条语句",
+        "直接结束当前方法并返回调用者",
+        "跳过循环的更新表达式和下一次条件检查"
       ],
       "answer": [
         "A"
@@ -192,16 +193,16 @@
       "category": "jb-control",
       "type": "SINGLE",
       "stem": "一个 int 返回值的方法，返回哪个表达式合法？",
-      "analysis": "3+4 的类型是 int，其余表达式不能直接作为 int 返回值。",
+      "analysis": "3+4的类型为int，可以返回；7L为long、7.0为double，返回int时需显式窄化，字符串\"7\"也不会自动解析成int。",
       "difficulty": 2,
       "tags": [
         "条件、循环与方法"
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "new Object()",
+        "7L",
         "\"7\"",
-        "true",
+        "7.0",
         "3 + 4"
       ],
       "answer": [
@@ -221,9 +222,9 @@
       "source": "原创（qzd 产品题库）",
       "options": [
         "按值传递",
-        "只能传基本类型",
-        "所有参数按变量地址传递",
-        "基本类型按值而引用类型按引用变量本身传递"
+        "对象形参直接绑定调用者引用变量，重赋形参会重绑调用者",
+        "对象实参在传入方法时会被深拷贝",
+        "基本类型按值、数组变量按调用者变量地址传递"
       ],
       "answer": [
         "A"
@@ -241,9 +242,9 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "参数名不同就构成重载",
+        "仅改变返回类型就构成新的方法签名",
         "同名方法可以有不同参数个数",
-        "仅返回类型不同就一定能重载",
+        "仅改变形参名称就构成重载",
         "同名方法可以有不同参数类型"
       ],
       "answer": [
@@ -263,8 +264,8 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "while 的循环体一定至少执行一次",
-        "if 的条件可以直接是任意 int",
+        "if可以直接把非零int当作true",
+        "while与do-while都保证循环体至少执行一次",
         "return 可结束当前方法",
         "break 可退出当前循环"
       ],
@@ -292,17 +293,18 @@
       "ref": "jb-control-07",
       "category": "jb-control",
       "type": "FILL",
-      "stem": "阅读下面完整程序，写出标准输出（不写末尾换行）：____。\n\n```java\nclass Main {\n    \n    public static void main(String[] args) throws Exception {\n        int s = 0; for (int i=1;i<=5;i++) { if (i==3) continue; s+=i; } System.out.println(s);\n    }\n}\n```",
-      "analysis": "只跳过 i=3 这一轮，1+2+4+5=12；continue 不退出整个循环。",
-      "difficulty": 3,
+      "stem": "执行以下完整程序，写出标准输出（不写末尾换行）：____。\n\n```java\nclass Main {\n    \n    public static void main(String[] args) throws Exception {\n        int s=0; outer: for(int i=1;i<=3;i++){ for(int j=1;j<=3;j++){ if(i==j) continue outer; s+=10*i+j; } } System.out.println(s);\n    }\n}\n```",
+      "analysis": "i=1,j=1直接跳下一外层；i=2时先加21，j=2跳外层；i=3依次加31、32，j=3跳外层。总21+31+32=84。continue outer跳过整轮外层，不是只跳当前内层。",
+      "difficulty": 4,
       "tags": [
         "条件、循环与方法",
-        "看代码写输出"
+        "看代码写输出",
+        "计算与推演"
       ],
       "source": "原创（qzd 产品题库）",
       "answer": [
         [
-          "12"
+          "84"
         ]
       ],
       "fillOptions": {
@@ -314,17 +316,18 @@
       "ref": "jb-control-08",
       "category": "jb-control",
       "type": "FILL",
-      "stem": "阅读下面完整程序，写出标准输出（不写末尾换行）：____。\n\n```java\nclass Main {\n    \n    public static void main(String[] args) throws Exception {\n        int s=0; for(int i=0;i<3;i++) for(int j=0;j<i;j++) s++; System.out.println(s);\n    }\n}\n```",
-      "analysis": "内层次数依次为 0、1、2，总计 3；不是 3×3，因为上界随 i 变化。",
-      "difficulty": 3,
+      "stem": "执行以下完整程序，写出标准输出（不写末尾换行）：____。\n\n```java\nclass Main {\n    static void change(int[] a,int n){a[0]+=n; a=new int[]{99}; n=8;}\n    public static void main(String[] args) throws Exception {\n        int[] a={2}; int n=3; change(a,n); System.out.println(a[0]+\":\"+n);\n    }\n}\n```",
+      "analysis": "形参a收到同一数组引用的副本，a[0]+=3把原数组改成5；随后给形参a重新赋新数组不改调用者引用。n是基本值副本，形参改8也不影响调用者3。",
+      "difficulty": 4,
       "tags": [
         "条件、循环与方法",
-        "看代码写输出"
+        "看代码写输出",
+        "计算与推演"
       ],
       "source": "原创（qzd 产品题库）",
       "answer": [
         [
-          "3"
+          "5:3"
         ]
       ],
       "fillOptions": {
@@ -345,9 +348,9 @@
       "source": "原创（qzd 产品题库）",
       "options": [
         "equals",
-        "只用 ==",
-        "hashCode 相等就足够",
-        "compareTo 后忽略结果"
+        "==",
+        "仅比较length()结果",
+        "仅比较hashCode()结果"
       ],
       "answer": [
         "A"
@@ -365,9 +368,9 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "每次赋值都自动增长",
-        "可直接写 length++ 扩容",
-        "等于所有元素之和",
+        "等于当前已赋非默认值元素的数量",
+        "可通过修改length字段扩展容量",
+        "当下标超出范围时按需增长",
         "固定不变"
       ],
       "answer": [
@@ -379,17 +382,17 @@
       "category": "jb-strings",
       "type": "SINGLE",
       "stem": "StringBuilder 的主要用途是什么？",
-      "analysis": "StringBuilder 支持原地修改，适合多次拼接；它本身不负责并发保护或解析所有内容。",
+      "analysis": "StringBuilder是可变字符序列，可就地追加、插入、删除以组织拼接；它不改变原String对象内容，不提供内建线程安全，也不自动把文本按数字相加。",
       "difficulty": 2,
       "tags": [
         "字符串与数组"
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "把任何字符串转成合法数字",
+        "保证多线程并发拼接无需额外同步",
         "可变字符序列的逐步拼接",
-        "替代所有并发锁",
-        "自动运行 SQL"
+        "把字符串池中的原始String对象直接改写",
+        "把任意字符序列按数值规则自动相加"
       ],
       "answer": [
         "B"
@@ -407,9 +410,9 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "长度为 3 的数组合法下标含 3",
+        "长度为3的数组合法下标为1到3",
         "下标从 0 开始",
-        "数组只允许保存基本类型",
+        "对象数组会在创建时自动new每个元素对象",
         "越界访问会抛出异常"
       ],
       "answer": [
@@ -429,8 +432,8 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "调用 replace 一定原地改变原对象",
-        "任何文本比较都只能用 ==",
+        "replace会原地修改String持有的字符内容",
+        "new String复制内容后与原String用==比较会得到true",
         "substring 会返回截取结果而非修改原字符串",
         "String 对象不可变"
       ],
@@ -458,17 +461,18 @@
       "ref": "jb-strings-07",
       "category": "jb-strings",
       "type": "FILL",
-      "stem": "阅读下面完整程序，写出标准输出（不写末尾换行）：____。\n\n```java\nclass Main {\n    \n    public static void main(String[] args) throws Exception {\n        String s=\"cat\"; s.toUpperCase(); System.out.println(s);\n    }\n}\n```",
-      "analysis": "String 不可变，toUpperCase 返回新字符串但未接收，s 仍指向 cat。",
-      "difficulty": 3,
+      "stem": "执行以下完整程序，写出标准输出（不写末尾换行）：____。\n\n```java\nclass Main {\n    \n    public static void main(String[] args) throws Exception {\n        String a=\"ab\"; String b=new String(\"ab\"); String c=b.intern(); System.out.println((a==b)+\":\"+(a==c)+\":\"+a.equals(b));\n    }\n}\n```",
+      "analysis": "a引用池中字面量，b是新对象，因此a==b为false；intern取得同内容规范池引用，a==c为true；equals比较文本ab，结果true。",
+      "difficulty": 4,
       "tags": [
         "字符串与数组",
-        "看代码写输出"
+        "看代码写输出",
+        "计算与推演"
       ],
       "source": "原创（qzd 产品题库）",
       "answer": [
         [
-          "cat"
+          "false:true:true"
         ]
       ],
       "fillOptions": {
@@ -480,17 +484,18 @@
       "ref": "jb-strings-08",
       "category": "jb-strings",
       "type": "FILL",
-      "stem": "阅读下面完整程序，写出标准输出（不写末尾换行）：____。\n\n```java\nclass Main {\n    \n    public static void main(String[] args) throws Exception {\n        String s=\"abcdef\"; System.out.println(s.substring(1,4));\n    }\n}\n```",
-      "analysis": "substring 起点包含、终点不包含，下标 1、2、3 对应 bcd。",
-      "difficulty": 3,
+      "stem": "执行以下完整程序，写出标准输出（不写末尾换行）：____。\n\n```java\nclass Main {\n    \n    public static void main(String[] args) throws Exception {\n        String s=\"abcd\"; StringBuilder b=new StringBuilder(s); b.delete(1,3).insert(1,\"XY\"); s.concat(\"!\"); System.out.println(s+\":\"+b);\n    }\n}\n```",
+      "analysis": "delete(1,3)删b、c得到ad；insert(1,\"XY\")得aXYd。s是不可变字符串，concat返回值被丢弃，原s仍abcd。",
+      "difficulty": 4,
       "tags": [
         "字符串与数组",
-        "看代码写输出"
+        "看代码写输出",
+        "计算与推演"
       ],
       "source": "原创（qzd 产品题库）",
       "answer": [
         [
-          "bcd"
+          "abcd:aXYd"
         ]
       ],
       "fillOptions": {
@@ -510,10 +515,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "保证字段值永不改变",
-        "让字段成为网络公开资源",
+        "使字段在构造完成后不再允许赋值",
+        "使字段对各线程各有一份独立存储",
         "限制外部直接访问以维护封装",
-        "使每个线程都有独立副本"
+        "使字段的读改写获得原子性"
       ],
       "answer": [
         "C"
@@ -524,16 +529,16 @@
       "category": "jo-class",
       "type": "SINGLE",
       "stem": "构造方法的典型任务是什么？",
-      "analysis": "构造方法与类同名且没有返回类型，用于初始化实例。",
+      "analysis": "构造方法在new创建实例时初始化实例状态，没有声明的返回类型，不能像普通方法重新调用来创建同一实例。static字段属于类，也不会为每个实例重新声明。",
       "difficulty": 2,
       "tags": [
         "封装、构造与对象"
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "必须与类名完全不同",
-        "只能是 static",
-        "返回任意 int 作为构造方法结果",
+        "以声明的返回类型决定new表达式的类型",
+        "在创建每个对象时重新声明一套类级static字段",
+        "像普通方法一样可被显式调用来重新创建当前对象",
         "初始化新对象状态"
       ],
       "answer": [
@@ -552,9 +557,9 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "static 字段每创建对象都必定复制一份",
-        "实例字段必须全程序唯一",
-        "二者只在命名风格上不同",
+        "static字段为每个实例分别保留一份值",
+        "实例字段在同一类全部实例之间共享一份存储",
+        "static字段等同常量，初始化后不能再赋值",
         "static 字段属于类层面的共享状态"
       ],
       "answer": [
@@ -574,9 +579,9 @@
       "source": "原创（qzd 产品题库）",
       "options": [
         "避免把内部可变集合直接暴露给外部",
-        "完全不允许任何方法访问内部状态",
+        "把可变内部列表直接返回，由调用者自觉不修改",
         "通过方法校验修改参数",
-        "把所有字段都改成 public 可变"
+        "把校验仅放在界面，公开setter不校验"
       ],
       "answer": [
         "A",
@@ -597,8 +602,8 @@
       "options": [
         "引用可以为 null",
         "多个变量可指向同一对象",
-        "把一份引用置 null 就删除所有其他引用",
-        "引用赋值总会深拷贝对象"
+        "引用赋值会递归复制对象的所有字段和引用对象",
+        "把一个引用置null会同步把同对象的其他引用也置null"
       ],
       "answer": [
         "A",
@@ -624,17 +629,18 @@
       "ref": "jo-class-07",
       "category": "jo-class",
       "type": "FILL",
-      "stem": "阅读下面完整程序，写出标准输出（不写末尾换行）：____。\n\n```java\nclass Main {\n    \n    public static void main(String[] args) throws Exception {\n        int[] a={2,4}; int[] b=a; b[0]=9; System.out.println(a[0]+\":\"+b[1]);\n    }\n}\n```",
-      "analysis": "a 和 b 引用同一数组，修改 b[0] 也通过 a 可见；第二项仍为 4。",
-      "difficulty": 3,
+      "stem": "执行以下完整程序，写出标准输出（不写末尾换行）：____。\n\n```java\nclass Main {\n    static String log=\"\"; static class A {static {log+=\"S\";} {log+=\"a\";} A(){log+=\"A\";} } static class B extends A {static {log+=\"T\";} {log+=\"b\";} B(){log+=\"B\";} }\n    public static void main(String[] args) throws Exception {\n        new B(); new B(); System.out.println(log);\n    }\n}\n```",
+      "analysis": "首次new B先初始化父类静态S再子类静态T；每个实例先父实例块a、父构造A，再子实例块b、子构造B。第二次不再执行静态块，所以ST+aAbB+aAbB。",
+      "difficulty": 5,
       "tags": [
         "封装、构造与对象",
-        "看代码写输出"
+        "看代码写输出",
+        "计算与推演"
       ],
       "source": "原创（qzd 产品题库）",
       "answer": [
         [
-          "9:4"
+          "STaAbBaAbB"
         ]
       ],
       "fillOptions": {
@@ -646,17 +652,18 @@
       "ref": "jo-class-08",
       "category": "jo-class",
       "type": "FILL",
-      "stem": "阅读下面完整程序，写出标准输出（不写末尾换行）：____。\n\n```java\nclass Main {\n    static class Box { int x=1; static int count=0; Box(){count++;} }\n    public static void main(String[] args) throws Exception {\n        Box a=new Box(); Box b=new Box(); a.x=5; System.out.println(a.x+\":\"+b.x+\":\"+Box.count);\n    }\n}\n```",
-      "analysis": "两个实例各有 x，只有 a.x 改为 5；构造两次使共享 count 为 2。",
-      "difficulty": 3,
+      "stem": "执行以下完整程序，写出标准输出（不写末尾换行）：____。\n\n```java\nclass Main {\n    static class Box { static int count=1; int v=count++; Box(){v+=count;} }\n    public static void main(String[] args) throws Exception {\n        Box a=new Box(); Box b=new Box(); a.v+=Box.count; System.out.println(a.v+\":\"+b.v+\":\"+Box.count);\n    }\n}\n```",
+      "analysis": "类count初值1；a字段v先取1并使count=2，构造再加2得3；b取2使count=3，再加3得5；之后a.v加当前count3得6。因此输出6:5:3。",
+      "difficulty": 4,
       "tags": [
         "封装、构造与对象",
-        "看代码写输出"
+        "看代码写输出",
+        "计算与推演"
       ],
       "source": "原创（qzd 产品题库）",
       "answer": [
         [
-          "5:1:2"
+          "6:5:3"
         ]
       ],
       "fillOptions": {
@@ -669,17 +676,17 @@
       "category": "jo-inherit",
       "type": "SINGLE",
       "stem": "运行时多态通常针对哪种成员？",
-      "analysis": "实例方法调用可根据对象实际类型分派；变量名和注释不参与。",
+      "analysis": "被重写实例方法可按对象实际类型动态分派；同名字段按引用编译期类型解析，static方法是隐藏关系，重载签名先在编译期选定。",
       "difficulty": 2,
       "tags": [
         "继承、多态与重写"
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "注释内容",
+        "被子类隐藏的static方法",
         "被重写的实例方法",
-        "局部变量名",
-        "构造方法的返回类型"
+        "父子类中同名的实例字段",
+        "编译期选择的方法重载签名"
       ],
       "answer": [
         "B"
@@ -697,10 +704,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "只要改参数名就可以",
+        "可以，因为子类可独立决定重写方法的可见性",
         "不能降低访问权限",
-        "可以随意降低",
-        "只有返回 void 才可以"
+        "可以，只要返回类型保持相同",
+        "可以，只要添加@Override注解"
       ],
       "answer": [
         "B"
@@ -718,10 +725,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "只能返回常量",
-        "不能调用其他方法",
+        "不能对对象实例字段进行修改",
+        "只能返回编译期常量",
         "不能被子类重写",
-        "只能在构造方法里调用"
+        "只能在所属类的构造方法中调用"
       ],
       "answer": [
         "C"
@@ -739,8 +746,8 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "所有 private 父类字段都可由子类代码直接访问",
-        "构造方法会作为普通实例方法被继承",
+        "子类可以像访问自身字段一样直接访问父类private字段",
+        "构造方法随普通实例方法一起被继承",
         "类只能直接 extends 一个类",
         "子类可使用 super 调用可访问的父类实现"
       ],
@@ -761,10 +768,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "static 方法隐藏等同实例方法动态重写",
+        "static方法隐藏也按对象的运行时类型动态派发",
         "重写的实例方法可按运行时类型选择",
         "重载的选择主要由编译期参数类型决定",
-        "仅换参数名就能重载"
+        "改变同一参数列表中的参数名即可构成重载"
       ],
       "answer": [
         "B",
@@ -790,17 +797,18 @@
       "ref": "jo-inherit-07",
       "category": "jo-inherit",
       "type": "FILL",
-      "stem": "阅读下面完整程序，写出标准输出（不写末尾换行）：____。\n\n```java\nclass Main {\n    static class Base { int x=1; String name(){return \"base\";} } static class Child extends Base { int x=2; String name(){return \"child\";} }\n    public static void main(String[] args) throws Exception {\n        Base b=new Child(); System.out.println(b.name()+\":\"+b.x);\n    }\n}\n```",
-      "analysis": "name 是实例方法，动态调用 Child；字段 x 按引用类型 Base 解析，得到 1。",
-      "difficulty": 3,
+      "stem": "执行以下完整程序，写出标准输出（不写末尾换行）：____。\n\n```java\nclass Main {\n    static class A {int x=1; String f(){return \"A\";} String g(){return f()+x;} } static class B extends A {int x=2; String f(){return \"B\";} }\n    public static void main(String[] args) throws Exception {\n        A a=new B(); System.out.println(a.x+\":\"+a.f()+\":\"+a.g());\n    }\n}\n```",
+      "analysis": "字段a.x按编译期A取1；f动态派发B。g继承自A，其内部f()仍动态派发B，而表达式中的x绑定A字段1，所以g为B1。",
+      "difficulty": 4,
       "tags": [
         "继承、多态与重写",
-        "看代码写输出"
+        "看代码写输出",
+        "计算与推演"
       ],
       "source": "原创（qzd 产品题库）",
       "answer": [
         [
-          "child:1"
+          "1:B:B1"
         ]
       ],
       "fillOptions": {
@@ -812,17 +820,18 @@
       "ref": "jo-inherit-08",
       "category": "jo-inherit",
       "type": "FILL",
-      "stem": "阅读下面完整程序，写出标准输出（不写末尾换行）：____。\n\n```java\nclass Main {\n    static String pick(Object x){return \"object\";} static String pick(String x){return \"string\";}\n    public static void main(String[] args) throws Exception {\n        Object x=\"abc\"; System.out.println(pick(x));\n    }\n}\n```",
-      "analysis": "重载按变量编译期类型 Object 选择 pick(Object)，不按运行时字符串改选。",
-      "difficulty": 3,
+      "stem": "执行以下完整程序，写出标准输出（不写末尾换行）：____。\n\n```java\nclass Main {\n    static class A {String f(Object o){return \"AO\";} String f(String s){return \"AS\";} } static class B extends A {String f(Object o){return \"BO\";} }\n    public static void main(String[] args) throws Exception {\n        A a=new B(); Object o=\"x\"; System.out.println(a.f(o)+\":\"+a.f(\"x\"));\n    }\n}\n```",
+      "analysis": "a.f(o)编译选择Object签名，再动态调用B重写得到BO；a.f(\"x\")编译选择String签名，B未重写，调用A实现得到AS。两步不能混为按运行时参数类型重载。",
+      "difficulty": 5,
       "tags": [
         "继承、多态与重写",
-        "看代码写输出"
+        "看代码写输出",
+        "计算与推演"
       ],
       "source": "原创（qzd 产品题库）",
       "answer": [
         [
-          "object"
+          "BO:AS"
         ]
       ],
       "fillOptions": {
@@ -843,9 +852,9 @@
       "source": "原创（qzd 产品题库）",
       "options": [
         "不能直接实例化",
-        "任何抽象类都能直接 new",
-        "只要没有字段就可以",
-        "只要名字短就可以"
+        "当抽象方法数为0时就可以直接new该抽象类",
+        "只要构造方法为public就可以直接实例化抽象类",
+        "只要把引用声明为父类型就可以直接new抽象类"
       ],
       "answer": [
         "A"
@@ -863,10 +872,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "绝不可以",
+        "只能实现一个接口，与extends类的限制相同",
         "可以",
-        "必须同时继承多个类",
-        "只有没有构造方法才可以"
+        "只能在类没有父类时实现多个接口",
+        "必须先声明为抽象类才能实现多个接口"
       ],
       "answer": [
         "B"
@@ -884,10 +893,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "循环继承",
-        "数值强制转换",
+        "汽车对引擎的类型继承",
+        "汽车重写引擎所有方法的多态",
         "组合",
-        "汽车必须继承引擎"
+        "引擎是汽车父类的is-a关系"
       ],
       "answer": [
         "C"
@@ -905,9 +914,9 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "禁止所有实现类重写",
-        "自动把实现类变成抽象类",
-        "让接口能保存任意实例字段",
+        "让接口可声明每个实现对象独有的可变实例字段",
+        "使实现类自动继承接口的构造方法",
+        "让接口方法优先于父类已实现的同名实例方法",
         "提供可继承的默认实现"
       ],
       "answer": [
@@ -928,8 +937,8 @@
       "options": [
         "便于注入测试替身",
         "便于替换符合契约的实现",
-        "自动保证所有实现没有 bug",
-        "完全不需要定义行为契约"
+        "不必再约定返回值、异常和副作用语义",
+        "只要实现接口就不再需要验证具体实现行为"
       ],
       "answer": [
         "A",
@@ -970,17 +979,18 @@
       "ref": "jo-interface-08",
       "category": "jo-interface",
       "type": "FILL",
-      "stem": "阅读下面完整程序，写出标准输出（不写末尾换行）：____。\n\n```java\nclass Main {\n    interface Greeting { default String word(){return \"hello\";} } static class Person implements Greeting {}\n    public static void main(String[] args) throws Exception {\n        Greeting g=new Person(); System.out.println(g.word());\n    }\n}\n```",
-      "analysis": "Person 继承接口 default 的 word 实现，没有重写，所以返回 hello。",
-      "difficulty": 3,
+      "stem": "执行以下完整程序，写出标准输出（不写末尾换行）：____。\n\n```java\nclass Main {\n    interface I {default String f(){return \"I\";}} static class A {public String f(){return \"A\";}} static class C extends A implements I {}\n    public static void main(String[] args) throws Exception {\n        I x=new C(); System.out.println(x.f());\n    }\n}\n```",
+      "analysis": "C同时继承类A的具体f和接口I的default f，类方法优先，最终调用A。接口默认方法不会覆盖已有具体父类方法。",
+      "difficulty": 4,
       "tags": [
         "接口、抽象与组合",
-        "看代码写输出"
+        "看代码写输出",
+        "计算与推演"
       ],
       "source": "原创（qzd 产品题库）",
       "answer": [
         [
-          "hello"
+          "A"
         ]
       ],
       "fillOptions": {
@@ -1001,9 +1011,9 @@
       "source": "原创（qzd 产品题库）",
       "options": [
         "Set",
-        "Comparator",
+        "Map",
         "List",
-        "仅 Map 的键集合"
+        "Queue（不提供按下标访问契约）"
       ],
       "answer": [
         "C"
@@ -1021,10 +1031,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "O(2ⁿ)",
-        "O(n) 必然",
+        "O(log n)",
+        "O(n)",
         "O(1)",
-        "O(n²)"
+        "O(n log n)"
       ],
       "answer": [
         "C"
@@ -1035,17 +1045,17 @@
       "category": "jc-list",
       "type": "SINGLE",
       "stem": "ArrayList 在头部插入通常为什么比尾部追加更贵？",
-      "analysis": "头插要将后续元素后移；尾追加通常无需移动所有已有元素。",
+      "analysis": "ArrayList头插要把原元素整体后移，尾追加通常无需移动已有元素；二者都可能检查容量。ArrayList不靠前驱链表存储，也无需在头插前排序。",
       "difficulty": 2,
       "tags": [
         "List 与迭代"
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "必须写数据库",
+        "头插之前必须按元素值排序已有列表",
         "需要移动原有元素",
-        "必须新建线程",
-        "必须排序全部字符串"
+        "头插需要为每个元素建立链表前驱结点",
+        "尾插不需要做容量检查，而头插才检查"
       ],
       "answer": [
         "B"
@@ -1064,9 +1074,9 @@
       "source": "原创（qzd 产品题库）",
       "options": [
         "使用支持删除的 Iterator.remove",
-        "直接改 size 字段",
-        "一边增强 for 一边随意 list.remove",
-        "把元素变量置 null 等于从集合删除"
+        "在增强for内部直接调用list.remove当前值",
+        "把增强for的局部元素变量赋null",
+        "修改集合的size计数但不调整存储和迭代器"
       ],
       "answer": [
         "A"
@@ -1084,10 +1094,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "所有实现的任意操作都是 O(1)",
+        "List接口本身已经要求所有实现线程安全",
         "元素顺序可由插入和位置操作决定",
         "可保存重复值",
-        "所有实现都保证线程安全"
+        "按下标读取和在头部插入在所有实现中都为O(1)"
       ],
       "answer": [
         "B",
@@ -1128,17 +1138,18 @@
       "ref": "jc-list-08",
       "category": "jc-list",
       "type": "FILL",
-      "stem": "阅读下面完整程序，写出标准输出（不写末尾换行）：____。\n\n```java\nclass Main {\n    \n    public static void main(String[] args) throws Exception {\n        java.util.List<Integer> a=new java.util.ArrayList<>(java.util.List.of(1,2,1)); a.remove(Integer.valueOf(1)); a.remove(1); System.out.println(a);\n    }\n}\n```",
-      "analysis": "第一次按值删除首个 1 得 [2,1]；第二次 int 参数按下标删去位置 1，剩 [2]。",
-      "difficulty": 3,
+      "stem": "执行以下完整程序，写出标准输出（不写末尾换行）：____。\n\n```java\nclass Main {\n    \n    public static void main(String[] args) throws Exception {\n        java.util.List<Integer> a=new java.util.ArrayList<>(java.util.List.of(1,2,3,4)); java.util.List<Integer> b=a.subList(1,3); b.set(0,9); b.remove(1); System.out.println(a+\":\"+b);\n    }\n}\n```",
+      "analysis": "subList是父列表区间[1,3)的视图，初始[2,3]；set把父下标1改9；remove(1)删视图第二项3，同时父表变[1,9,4]，视图剩[9]。不是独立拷贝。",
+      "difficulty": 4,
       "tags": [
         "List 与迭代",
-        "看代码写输出"
+        "看代码写输出",
+        "计算与推演"
       ],
       "source": "原创（qzd 产品题库）",
       "answer": [
         [
-          "[2]"
+          "[1, 9, 4]:[9]"
         ]
       ],
       "fillOptions": {
@@ -1158,10 +1169,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "按键值拼成字符串",
-        "自动变成两个相同键条目",
+        "追加一个相同键的新条目而保留原映射",
+        "因键已存在而按接口契约拒绝本次调用",
         "替换该键对应的旧值",
-        "必然抛异常"
+        "把新值与旧值作为两个元素自动组成List"
       ],
       "answer": [
         "C"
@@ -1179,10 +1190,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "ArrayList 不做任何处理",
+        "HashSet",
         "TreeSet",
-        "StringBuilder",
-        "HashMap 的 value 列表"
+        "LinkedHashSet",
+        "ArrayList"
       ],
       "answer": [
         "B"
@@ -1200,9 +1211,9 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "只要元素少于十个就保证",
-        "只要键是字符串就保证",
-        "永远保证",
+        "保证，底层桶的顺序就是插入顺序",
+        "保证，只要不触发扩容就等于插入顺序",
+        "保证，键使用String就有插入顺序契约",
         "不保证"
       ],
       "answer": [
@@ -1214,17 +1225,17 @@
       "category": "jc-set",
       "type": "SINGLE",
       "stem": "可变对象作为 HashMap 键后修改参与 hashCode 的字段，主要风险是什么？",
-      "analysis": "条目原来所在桶与新哈希不一致，破坏检索前提；应保持键相关状态稳定。",
+      "analysis": "哈希表不会监控键对象字段的后续变化。参与哈希/相等判定的字段改变后，新查询可能去新桶，而原条目仍在旧桶；应保持作为键的相关状态稳定。",
       "difficulty": 3,
       "tags": [
         "Set、Map 与散列约定"
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "一定编译失败",
+        "散列表会自动监控键字段并立即重新分桶",
         "原条目可能无法按新键状态正常查到",
-        "所有值自动深拷贝",
-        "Map 自动改成 TreeMap"
+        "修改键字段时会自动复制一份旧键保存",
+        "只有value会受影响，键的定位不受hashCode变化影响"
       ],
       "answer": [
         "B"
@@ -1244,8 +1255,8 @@
       "options": [
         "hashCode 相同不一定 equals 相等",
         "equals 相等的对象必须有相同 hashCode",
-        "hashCode 相同就永远是同一对象",
-        "equals 相等的对象可以任意使用不同哈希"
+        "hashCode相同可以直接推出两个对象是同一引用",
+        "equals相等的对象可以使用不同hashCode而不影响散列查找"
       ],
       "answer": [
         "A",
@@ -1286,17 +1297,18 @@
       "ref": "jc-set-08",
       "category": "jc-set",
       "type": "FILL",
-      "stem": "阅读下面完整程序，写出标准输出（不写末尾换行）：____。\n\n```java\nclass Main {\n    \n    public static void main(String[] args) throws Exception {\n        java.util.Set<Integer> s=new java.util.TreeSet<>(); s.add(3); s.add(1); s.add(3); System.out.println(s);\n    }\n}\n```",
-      "analysis": "TreeSet 去重且自然升序排列，所以重复的 3 只保留一项。",
-      "difficulty": 3,
+      "stem": "执行以下完整程序，写出标准输出（不写末尾换行）：____。\n\n```java\nclass Main {\n    \n    public static void main(String[] args) throws Exception {\n        java.util.Map<String,Integer> m=new java.util.LinkedHashMap<>(16,.75f,true); m.put(\"a\",1);m.put(\"b\",2);m.put(\"c\",3);m.get(\"a\");m.put(\"b\",20);System.out.println(m.keySet());\n    }\n}\n```",
+      "analysis": "accessOrder=true，初始a,b,c；get(a)把a移尾，变b,c,a；put已有键b也记一次访问，变c,a,b。默认插入顺序模式不会这样变化。",
+      "difficulty": 4,
       "tags": [
         "Set、Map 与散列约定",
-        "看代码写输出"
+        "看代码写输出",
+        "计算与推演"
       ],
       "source": "原创（qzd 产品题库）",
       "answer": [
         [
-          "[1, 3]"
+          "[c, a, b]"
         ]
       ],
       "fillOptions": {
@@ -1309,17 +1321,17 @@
       "category": "jc-generic",
       "type": "SINGLE",
       "stem": "泛型的主要价值之一是什么？",
-      "analysis": "泛型减少类型误用和手工转换，不承诺非空或事务行为。",
+      "analysis": "泛型主要在编译期约束类型，减少误放元素与强转；不意味着运行时每个类型参数都生成独立类，也不产生泛型协变或禁止null的保证。",
       "difficulty": 2,
       "tags": [
         "泛型与比较规则"
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "保证数据库事务提交",
+        "保证运行时为每种实参生成完全独立的新类",
         "在编译期约束元素类型",
-        "保证集合永远不为空",
-        "让所有计算都变为运行时代码生成"
+        "让List<Integer>自动成为List<Number>的子类型",
+        "保证所有泛型集合在运行时都拒绝null"
       ],
       "answer": [
         "B"
@@ -1338,9 +1350,9 @@
       "source": "原创（qzd 产品题库）",
       "options": [
         "不能，泛型类型不是这样协变的",
-        "可以，因为 Integer 是 Number 子类",
-        "只有元素为正数才可以",
-        "只有列表非空才可以"
+        "可以，Integer继承Number就能推出两个List也继承",
+        "可以，只要该列表当前为空",
+        "可以，只要目标变量被声明为final"
       ],
       "answer": [
         "A"
@@ -1358,9 +1370,9 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "a 与 b 必须同一对象",
-        "b 不存在",
-        "a 必须为负数",
+        "a等于b",
+        "a排在b后",
+        "a本身的数值必须为负",
         "a 排在 b 前"
       ],
       "answer": [
@@ -1380,9 +1392,9 @@
       "source": "原创（qzd 产品题库）",
       "options": [
         "List<? extends Number>",
-        "List<Object> 必然接受所有子类泛型列表",
-        "List<? super String>",
-        "List<String>"
+        "List<Number>，因为它能直接接收List<Integer>",
+        "List<Object>，因为所有泛型List都继承它",
+        "List<? super Number>，因为读出的元素可直接作为Number"
       ],
       "answer": [
         "A"
@@ -1401,9 +1413,9 @@
       "source": "原创（qzd 产品题库）",
       "options": [
         "原始类型可能丢失类型安全检查",
-        "所有泛型实参都必须是 String",
+        "List<int>可以直接使用基本类型实参",
         "泛型可用于自定义类和方法",
-        "List<int> 是合法 Java 泛型声明"
+        "使用原始类型List与List<String>具有相同的编译期元素约束"
       ],
       "answer": [
         "A",
@@ -1444,17 +1456,18 @@
       "ref": "jc-generic-08",
       "category": "jc-generic",
       "type": "FILL",
-      "stem": "阅读下面完整程序，写出标准输出（不写末尾换行）：____。\n\n```java\nclass Main {\n    \n    public static void main(String[] args) throws Exception {\n        java.util.List<String> a=new java.util.ArrayList<>(java.util.List.of(\"bbb\",\"a\",\"cc\")); a.sort(java.util.Comparator.comparingInt(String::length)); System.out.println(a);\n    }\n}\n```",
-      "analysis": "比较器按长度升序，三项长度互异，不依赖同长项的处理。",
-      "difficulty": 3,
+      "stem": "执行以下完整程序，写出标准输出（不写末尾换行）：____。\n\n```java\nclass Main {\n    \n    public static void main(String[] args) throws Exception {\n        java.util.Set<String> s=new java.util.TreeSet<>(java.util.Comparator.comparingInt(String::length)); s.add(\"ab\");s.add(\"cd\");s.add(\"x\");System.out.println(s+\":\"+s.size());\n    }\n}\n```",
+      "analysis": "比较器只比较长度，ab与cd比较为0，TreeSet将后者视为等价而不插入；x长度1在前，集合[x,ab]共2。字符串equals不同不能保证在该比较器下都保留。",
+      "difficulty": 4,
       "tags": [
         "泛型与比较规则",
-        "看代码写输出"
+        "看代码写输出",
+        "计算与推演"
       ],
       "source": "原创（qzd 产品题库）",
       "answer": [
         [
-          "[a, cc, bbb]"
+          "[x, ab]:2"
         ]
       ],
       "fillOptions": {
@@ -1474,10 +1487,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "必须无条件忽略",
-        "都在程序结束后自动修复",
+        "只需在注释中记录可能失败的情况",
+        "由垃圾回收器在方法返回时自动处理",
         "捕获或在方法声明中继续抛出",
-        "只能写在注释里"
+        "转换成RuntimeException后仍保持原受检异常的编译期检查"
       ],
       "answer": [
         "C"
@@ -1488,17 +1501,17 @@
       "category": "ji-exception",
       "type": "SINGLE",
       "stem": "try-with-resources 最适合处理什么？",
-      "analysis": "它负责按规则关闭资源，事务提交和业务异常仍需明确处理。",
+      "analysis": "try-with-resources针对AutoCloseable资源，退出时按约定调用close；不替开发者决定提交还是回滚，也不把失败自动变成成功。",
       "difficulty": 2,
       "tags": [
         "异常处理与资源关闭"
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "保证任何代码没有异常",
+        "自动决定数据库事务应该commit还是rollback",
         "实现 AutoCloseable 的资源生命周期",
-        "自动提交所有数据库事务",
-        "让所有对象永久驻留内存"
+        "让catch捕获并抑制该代码块的全部异常",
+        "让未实现AutoCloseable的对象也获得自动close调用"
       ],
       "answer": [
         "B"
@@ -1516,10 +1529,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "一定先执行 try 中异常点后的全部语句",
-        "一定等程序所有线程结束",
+        "先完成try内异常点之后的剩余普通语句再进入catch",
+        "等当前方法正常return后再执行catch",
         "控制流转入匹配处理器时",
-        "只在编译时"
+        "只有主动调用异常对象的方法才进入catch"
       ],
       "answer": [
         "C"
@@ -1537,9 +1550,9 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "按文件大小排序",
-        "按类名字母倒序",
-        "最宽的 Exception 永远放首位",
+        "更宽泛的父异常类型",
+        "按异常类名的字典序",
+        "按异常对象创建的时间先后",
         "更具体的异常类型"
       ],
       "answer": [
@@ -1559,8 +1572,8 @@
       "source": "原创（qzd 产品题库）",
       "options": [
         "finally 内 return 可能覆盖先前结果",
-        "finally 能保证断电时也执行完",
-        "finally 总会消除原有异常且无需代码",
+        "执行了finally就表示try中的异常已被处理成功",
+        "finally中的return不会影响先前已准备返回的结果",
         "通常用于执行清理逻辑"
       ],
       "answer": [
@@ -1602,17 +1615,18 @@
       "ref": "ji-exception-08",
       "category": "ji-exception",
       "type": "FILL",
-      "stem": "阅读下面完整程序，写出标准输出（不写末尾换行）：____。\n\n```java\nclass Main {\n    static int value(){int x=8; try{return x;} finally{x=9;}}\n    public static void main(String[] args) throws Exception {\n        System.out.println(value());\n    }\n}\n```",
-      "analysis": "try 已计算返回值 8，finally 将局部变量改为 9 不改变已保存的返回值；finally 没有 return。",
-      "difficulty": 3,
+      "stem": "执行以下完整程序，写出标准输出（不写末尾换行）：____。\n\n```java\nclass Main {\n    static int f(){try{return 3;}finally{return 7;}}\n    public static void main(String[] args) throws Exception {\n        System.out.println(f());\n    }\n}\n```",
+      "analysis": "try先准备返回3，但finally又执行return7，覆盖待返回结果，最终7。实际编码应避免finally返回，因为还可能掩盖异常。",
+      "difficulty": 4,
       "tags": [
         "异常处理与资源关闭",
-        "看代码写输出"
+        "看代码写输出",
+        "计算与推演"
       ],
       "source": "原创（qzd 产品题库）",
       "answer": [
         [
-          "8"
+          "7"
         ]
       ],
       "fillOptions": {
@@ -1633,9 +1647,9 @@
       "source": "原创（qzd 产品题库）",
       "options": [
         "流结束",
-        "读到字节值 255",
-        "读取成功且得到零",
-        "自动重试指令"
+        "读到了字节值255",
+        "暂时没有可用字节，但后续数据会自动到来",
+        "本次读取的字节数为0"
       ],
       "answer": [
         "A"
@@ -1653,9 +1667,9 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "只读第一行",
-        "只读文件名",
-        "先把全部字节当平台默认文字解码",
+        "按默认字符集用Reader/Writer解码再编码复制",
+        "先readLine再按系统换行符写回每行",
+        "用String缓存二进制内容并依赖平台默认编码写出",
         "字节流"
       ],
       "answer": [
@@ -1667,17 +1681,17 @@
       "category": "ji-stream",
       "type": "SINGLE",
       "stem": "BufferedInputStream 的主要作用是什么？",
-      "analysis": "缓冲批量读取，不改变数据业务含义，也不提供权限校验。",
+      "analysis": "BufferedInputStream用内部缓冲批量取得底层字节，减少调用；字节内容和次序仍保持原样，不负责解码成字符、压缩或排序。",
       "difficulty": 2,
       "tags": [
         "字节流与缓冲"
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "自动把输入排序",
-        "自动压缩所有输入",
+        "按字符编码把字节转换为字符",
+        "在缓冲时对原始字节流做压缩与解压缩",
         "缓冲读取以减少底层调用",
-        "自动验证用户角色"
+        "在读取后自动将内容按字节值排序"
       ],
       "answer": [
         "C"
@@ -1696,9 +1710,9 @@
       "source": "原创（qzd 产品题库）",
       "options": [
         "本次实际读到的 n 个",
-        "每次都写数组完整长度",
-        "把 n 当作字节内容写入",
-        "永远只写一个字节"
+        "缓冲数组的完整长度",
+        "输出一个值为n的字节",
+        "仅写到本次缓冲区遇到的第一个0字节"
       ],
       "answer": [
         "A"
@@ -1718,8 +1732,8 @@
       "options": [
         "复制时处理读取结束条件",
         "用完及时关闭文件流",
-        "忽略所有 read 返回值",
-        "每轮无条件写满缓冲数组"
+        "按缓冲数组长度写出而不检查本次读取字节数",
+        "read返回-1后继续把缓冲区内容写入输出"
       ],
       "answer": [
         "A",
@@ -1790,9 +1804,9 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "按每个字节直接强转 char 就够",
-        "总是假定所有平台默认编码完全相同",
-        "先删除非 ASCII 字符",
+        "不声明编码，依赖各机器默认字符集一致",
+        "把每个UTF-8字节逐个强转char后拼接",
+        "只要使用Reader就无需指定它使用的字符集",
         "显式指定 UTF-8"
       ],
       "answer": [
@@ -1811,9 +1825,9 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "二者都自动理解所有业务格式",
-        "Reader 只读整数",
-        "InputStream 只能读文本",
+        "Reader按字节工作，InputStream按字符工作",
+        "二者都按字符工作，只是缓冲策略不同",
+        "InputStream读取时已自动把字节按UTF-8解码",
         "Reader 面向字符，InputStream 面向字节"
       ],
       "answer": [
@@ -1832,10 +1846,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "总包含两个换行符",
+        "行内容连同行终止符原样返回",
         "该行内容但不含行终止符",
-        "文件的全部行一次返回",
-        "只有行号"
+        "文件剩余全部内容作为一次结果返回",
+        "只返回当前行终止符之前的首个单词"
       ],
       "answer": [
         "B"
@@ -1853,10 +1867,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "只要非空就相等",
-        "永远相等",
+        "相等，因为String.length统计的就是编码后的字节",
+        "相等，只要显式指定UTF-8",
         "不一定",
-        "每次运行随机相等"
+        "相等，因为一个Unicode码点在两种表示中都只占一个单位"
       ],
       "answer": [
         "C"
@@ -1874,10 +1888,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "换行在所有平台只有完全同一种字节表示",
+        "UTF-8中每个字符都只占一个字节",
         "错误编码可能产生乱码",
         "解码要使用与原字节相符的编码",
-        "所有字符在 UTF-8 中都恰占一字节"
+        "不同平台输出的换行字节序列没有差别"
       ],
       "answer": [
         "B",
@@ -1896,8 +1910,8 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "依赖每台机器默认编码且从不测试",
-        "把乱码一律当作原始文件不存在",
+        "让读取端按自己的默认编码猜测来源字符集",
+        "发现乱码就改文件扩展名，不检查编码过程",
         "对预期的换行差异制定处理规则",
         "明确字符集"
       ],
@@ -1925,17 +1939,18 @@
       "ref": "ji-text-08",
       "category": "ji-text",
       "type": "FILL",
-      "stem": "阅读下面完整程序，写出标准输出（不写末尾换行）：____。\n\n```java\nclass Main {\n    \n    public static void main(String[] args) throws Exception {\n        String s=\"中A\"; System.out.println(s.length()+\":\"+s.getBytes(java.nio.charset.StandardCharsets.UTF_8).length);\n    }\n}\n```",
-      "analysis": "中和 A 各占一个 UTF-16 代码单元，length 为 2；UTF-8 分别占 3、1 字节，总 4。",
-      "difficulty": 3,
+      "stem": "执行以下完整程序，写出标准输出（不写末尾换行）：____。\n\n```java\nclass Main {\n    \n    public static void main(String[] args) throws Exception {\n        String s=\"A\\uD83D\\uDE00中\"; System.out.println(s.length()+\":\"+s.codePointCount(0,s.length())+\":\"+s.getBytes(java.nio.charset.StandardCharsets.UTF_8).length);\n    }\n}\n```",
+      "analysis": "A占1个UTF-16单元，表情U+1F600用代理对占2，中占1，length=4；Unicode码点共3；UTF-8分别1、4、3字节，共8。代码单元、码点、字节不能混算。",
+      "difficulty": 5,
       "tags": [
         "字符编码与文本文件",
-        "看代码写输出"
+        "看代码写输出",
+        "计算与推演"
       ],
       "source": "原创（qzd 产品题库）",
       "answer": [
         [
-          "2:4"
+          "4:3:8"
         ]
       ],
       "fillOptions": {
@@ -1955,9 +1970,9 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "两者始终完全等价",
-        "start 必须直接返回线程结果",
-        "run 永远不会执行",
+        "直接run也会隐式新建执行线程",
+        "start会在调用线程同步执行run直到结束",
+        "run负责新线程启动，start只调用普通方法",
         "start 启动新线程执行，直接 run 是当前线程的普通方法调用"
       ],
       "answer": [
@@ -1977,9 +1992,9 @@
       "source": "原创（qzd 产品题库）",
       "options": [
         "等待目标线程结束",
-        "把两个线程拼成字符串",
-        "终止所有线程",
-        "释放当前线程持有的所有锁"
+        "请求目标线程中断当前操作",
+        "把当前线程永久合并进目标线程",
+        "释放当前线程持有的所有监视器锁"
       ],
       "answer": [
         "A"
@@ -1997,10 +2012,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "创建完全独立的第二实例",
-        "自动重新从头执行无任何限制",
+        "复用原Thread对象重新运行run",
+        "在原线程之外再创建一个同名线程",
         "抛 IllegalThreadStateException",
-        "悄悄变成线程池"
+        "等待原线程结束后自动再次启动"
       ],
       "answer": [
         "C"
@@ -2018,9 +2033,9 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "必然释放所有锁且返回正常结果",
-        "等同系统断电",
-        "立即强制杀死所有 Java 进程",
+        "不经过业务代码响应就立即终止目标线程",
+        "清空线程调用栈并正常返回全部方法",
+        "自动释放该线程持有的全部锁并提交已有修改",
         "协作式取消信号，代码需要响应"
       ],
       "answer": [
@@ -2040,9 +2055,9 @@
       "source": "原创（qzd 产品题库）",
       "options": [
         "主线程可 join 工作线程后再读完成结果",
-        "线程越多就必定越快",
+        "增加线程数量就能按相同比例提高CPU密集任务吞吐",
         "线程调度顺序通常不能由源代码书写顺序保证",
-        "每个线程天然拥有完全独立的堆"
+        "同一进程的各线程有互不共享的独立堆"
       ],
       "answer": [
         "A",
@@ -2054,15 +2069,15 @@
       "category": "jt-life",
       "type": "MULTIPLE",
       "stem": "合理的线程协作方法包括哪些？",
-      "analysis": "协作依赖明确的内存和同步语义，命名和偶然延迟不是保证。",
+      "analysis": "join以目标线程完成作为等待条件；明确同步机制规定共享状态的可见性。固定sleep不等于完成，普通变量忙等也不能替代volatile等可见性语义。",
       "difficulty": 3,
       "tags": [
         "线程生命周期与协作"
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "靠把变量名改成 done 就获得可见性",
-        "靠空循环猜测另一个线程一定完成",
+        "用固定sleep时间替代完成条件来保证任务已结束",
+        "对普通共享标志做空循环可获得与volatile相同的可见性保证",
         "通过明确同步机制共享状态",
         "通过 join 等待结束"
       ],
@@ -2090,17 +2105,18 @@
       "ref": "jt-life-08",
       "category": "jt-life",
       "type": "FILL",
-      "stem": "阅读下面完整程序，写出标准输出（不写末尾换行）：____。\n\n```java\nclass Main {\n    \n    public static void main(String[] args) throws Exception {\n        int[] a={0}; Thread t=new Thread(()->a[0]=7); t.start(); t.join(); System.out.println(a[0]);\n    }\n}\n```",
-      "analysis": "join 等到 t 完成并建立结果可见性，因此读取 7；不是靠 sleep 猜时序。",
-      "difficulty": 3,
+      "stem": "执行以下完整程序，写出标准输出（不写末尾换行）：____。\n\n```java\nclass Main {\n    \n    public static void main(String[] args) throws Exception {\n        java.util.concurrent.CountDownLatch ready=new java.util.concurrent.CountDownLatch(1); Thread t=new Thread(()->{ready.countDown(); try{new java.util.concurrent.CountDownLatch(1).await();}catch(InterruptedException e){System.out.println(Thread.currentThread().isInterrupted());}});t.start();ready.await();t.interrupt();t.join();System.out.println(\"done\");\n    }\n}\n```",
+      "analysis": "工作线程通知ready后在未释放的锁存器上等待；中断导致await抛InterruptedException并清除中断标志，所以catch内false。join等工作线程打印完，主线程才打印done。中断先于await也会在await时检查并清除，结果不依赖该竞态。",
+      "difficulty": 5,
       "tags": [
         "线程生命周期与协作",
-        "看代码写输出"
+        "看代码写输出",
+        "计算与推演"
       ],
       "source": "原创（qzd 产品题库）",
       "answer": [
         [
-          "7"
+          "false\ndone"
         ]
       ],
       "fillOptions": {
@@ -2113,7 +2129,7 @@
       "category": "jt-sync",
       "type": "SINGLE",
       "stem": "synchronized 实例方法默认锁住哪个对象？",
-      "analysis": "实例同步以 this 为监视器，不同实例的锁不同。",
+      "analysis": "实例同步方法以当前this作为监视器；静态同步方法才通常锁Class对象。调用线程和每次临时new的锁都不是实例同步的默认锁身份。",
       "difficulty": 2,
       "tags": [
         "锁、可见性与原子性"
@@ -2121,9 +2137,9 @@
       "source": "原创（qzd 产品题库）",
       "options": [
         "当前实例 this",
-        "整个互联网",
-        "任意新建的无关对象",
-        "所有 JVM 中全部类"
+        "当前类对应的Class对象",
+        "调用该方法的线程对象",
+        "每次调用临时创建的新监视器对象"
       ],
       "answer": [
         "A"
@@ -2141,9 +2157,9 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "对任意复合表达式自动原子化",
-        "自动持久化到数据库",
-        "永远不允许赋值",
+        "把i++等读改写复合操作作为一个原子步骤",
+        "让多个volatile字段的联合更新自动构成事务",
+        "自动阻止两个线程同时写入该字段",
         "可见性及相应有序性"
       ],
       "answer": [
@@ -2155,17 +2171,17 @@
       "category": "jt-sync",
       "type": "SINGLE",
       "stem": "AtomicInteger.incrementAndGet() 的典型用途是什么？",
-      "analysis": "原子类为该操作提供原子语义，不修改普通 int 的并发规则。",
+      "analysis": "incrementAndGet原子完成加一并返回更新后的值；getAndIncrement返回旧值。它不等同普通int的非原子读改写，也不会新建线程。",
       "difficulty": 2,
       "tags": [
         "锁、可见性与原子性"
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "改变所有 int 类型的语言规则",
-        "把文件内容加密",
+        "返回旧值后再原子自增",
+        "只保证读到最新值，不保证自增不丢失",
         "原子自增并返回新值",
-        "启动一个新线程"
+        "等同于对普通int执行一次非同步i++"
       ],
       "answer": [
         "C"
@@ -2183,9 +2199,9 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "任何网络错误",
-        "线程数量不足",
-        "所有可能的程序死锁",
+        "保证不同锁之间不会形成循环等待",
+        "保证等待线程严格按FIFO顺序获得锁",
+        "让所有未使用该锁的写入也自动加入该临界区",
         "这段临界区更新的相互覆盖"
       ],
       "answer": [
@@ -2205,9 +2221,9 @@
       "source": "原创（qzd 产品题库）",
       "options": [
         "不同锁对象通常不能互相排斥",
-        "持锁越久永远越高效",
+        "每次进入都new一个不同锁也能保护同一共享对象",
         "加锁后应确保异常路径也能释放",
-        "每次进临界区都 new 一把锁也必定能保护共享数据"
+        "把阻塞IO放入临界区不会改变其他线程等待时间"
       ],
       "answer": [
         "A",
@@ -2226,9 +2242,9 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "普通字段的跨线程修改总能立刻被所有线程看见",
+        "普通字段写入后的跨线程可见性与volatile写入相同",
         "共享可变状态需要明确访问协议",
-        "数据竞争只会影响性能绝不会影响结果",
+        "数据竞争只能拖慢执行，不会使读取结果变化",
         "同步机制可建立线程间可见性关系"
       ],
       "answer": [
@@ -2255,17 +2271,18 @@
       "ref": "jt-sync-08",
       "category": "jt-sync",
       "type": "FILL",
-      "stem": "阅读下面完整程序，写出标准输出（不写末尾换行）：____。\n\n```java\nclass Main {\n    \n    public static void main(String[] args) throws Exception {\n        java.util.concurrent.atomic.AtomicInteger n=new java.util.concurrent.atomic.AtomicInteger(); Thread a=new Thread(()->{for(int i=0;i<100;i++) n.incrementAndGet();}); Thread b=new Thread(()->{for(int i=0;i<100;i++) n.incrementAndGet();}); a.start(); b.start(); a.join(); b.join(); System.out.println(n.get());\n    }\n}\n```",
-      "analysis": "两线程各原子自增 100 次，join 后已完成，总数稳定为 200，不会丢失更新。",
-      "difficulty": 3,
+      "stem": "执行以下完整程序，写出标准输出（不写末尾换行）：____。\n\n```java\nclass Main {\n    \n    public static void main(String[] args) throws Exception {\n        java.util.concurrent.atomic.AtomicInteger n=new java.util.concurrent.atomic.AtomicInteger(3); int old=n.getAndAdd(4);boolean ok=n.compareAndSet(3,9);int last=n.incrementAndGet();System.out.println(old+\":\"+ok+\":\"+last);\n    }\n}\n```",
+      "analysis": "getAndAdd返回旧值3并把n改7；CAS期待3但实际7，失败且不改值；incrementAndGet把7增为8并返回8。getAndAdd与addAndGet返回时机不同。",
+      "difficulty": 4,
       "tags": [
         "锁、可见性与原子性",
-        "看代码写输出"
+        "看代码写输出",
+        "计算与推演"
       ],
       "source": "原创（qzd 产品题库）",
       "answer": [
         [
-          "200"
+          "3:false:8"
         ]
       ],
       "fillOptions": {
@@ -2285,10 +2302,10 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "让所有任务都变成同步常量",
+        "为每个任务保留一个永不复用的新线程",
         "复用线程并管理任务执行",
-        "让异常永久消失",
-        "每个任务都必须创建无限线程"
+        "把所有任务的执行结果自动持久化",
+        "把已提交任务的异常转化为成功返回值"
       ],
       "answer": [
         "B"
@@ -2306,9 +2323,9 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "只能不返回值",
-        "必须继承 Thread",
-        "不能放入执行器",
+        "call只能返回void，与Runnable相同",
+        "必须继承Thread才能提交给执行器",
+        "不允许通过Future获取其返回值",
         "可以返回结果并声明受检异常"
       ],
       "answer": [
@@ -2327,9 +2344,9 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "直接保证返回最终值且绝不等待",
-        "只返回线程名字",
-        "自动销毁任务输入",
+        "立即返回null，由调用者稍后自行读取任务字段",
+        "取消该任务再返回默认值",
+        "只返回提交时已存在的结果，不等待未完成任务",
         "等待结果或遇中断/超时等条件"
       ],
       "answer": [
@@ -2349,9 +2366,9 @@
       "source": "原创（qzd 产品题库）",
       "options": [
         "按需求 shutdown 并等待结束",
-        "强制删除 Java 安装目录",
-        "把变量名改成 closed",
-        "永久不关闭且认为没有影响"
+        "仅把执行器变量置null，等待引用释放即可保证线程结束",
+        "仅清空业务任务列表而不通知执行器",
+        "调用shutdown后继续按正常流程接收新的任务"
       ],
       "answer": [
         "A"
@@ -2371,8 +2388,8 @@
       "options": [
         "任务提交可能被拒绝",
         "任务队列可能成为内存压力来源",
-        "线程池总能接受无限任务而无代价",
-        "创建线程池后永不需要关闭"
+        "任务数增长时无需考虑队列占用，因为线程数固定",
+        "线程池对象创建后其工作线程无需显式生命周期管理"
       ],
       "answer": [
         "A",
@@ -2391,9 +2408,9 @@
       ],
       "source": "原创（qzd 产品题库）",
       "options": [
-        "有 Future 就保证任务不失败",
+        "取得Future句柄就表示任务已成功完成",
         "可表示异步计算结果",
-        "get 永远不会等待",
+        "调用get时尚未完成的任务会被跳过，立即返回最终结果",
         "get 可把任务失败传递给调用者"
       ],
       "answer": [
@@ -2420,17 +2437,18 @@
       "ref": "jt-pool-08",
       "category": "jt-pool",
       "type": "FILL",
-      "stem": "阅读下面完整程序，写出标准输出（不写末尾换行）：____。\n\n```java\nclass Main {\n    \n    public static void main(String[] args) throws Exception {\n        java.util.concurrent.ExecutorService e=java.util.concurrent.Executors.newSingleThreadExecutor(); try { java.util.concurrent.Future<Integer> f=e.submit(()->6*7); System.out.println(f.get()); } finally { e.shutdown(); }\n    }\n}\n```",
-      "analysis": "任务计算 6×7，get 等待并返回 42；finally 关闭执行器，不留下常驻线程。",
-      "difficulty": 3,
+      "stem": "执行以下完整程序，写出标准输出（不写末尾换行）：____。\n\n```java\nclass Main {\n    \n    public static void main(String[] args) throws Exception {\n        java.util.concurrent.ExecutorService e=java.util.concurrent.Executors.newSingleThreadExecutor();java.util.concurrent.atomic.AtomicInteger n=new java.util.concurrent.atomic.AtomicInteger();try{var a=e.submit(()->n.addAndGet(2));var b=e.submit(()->n.addAndGet(4));System.out.println(a.get()+\":\"+b.get()+\":\"+n.get());}finally{e.shutdown();}\n    }\n}\n```",
+      "analysis": "单线程执行器按提交顺序执行：第一任务n从0到2并保存结果2，第二从2到6保存6；两次get等待完成后n为6。Future保存各任务返回值，第一次结果不会随n后来变化成6。",
+      "difficulty": 4,
       "tags": [
         "执行器、Future 与任务",
-        "看代码写输出"
+        "看代码写输出",
+        "计算与推演"
       ],
       "source": "原创（qzd 产品题库）",
       "answer": [
         [
-          "42"
+          "2:6:6"
         ]
       ],
       "fillOptions": {
