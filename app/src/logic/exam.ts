@@ -92,7 +92,7 @@ export type SaveOutcome =
   | 'synced'
   /** 服务器收下了，但发出后本地又改过，需要再传一次 */
   | 'resend'
-  /** 服务器已有同样或更新的版本：以服务器为准，需要取回服务器上的答案 */
+  /** 服务器已有比我们发的更新的版本：以服务器为准，需要取回服务器上的答案 */
   | 'server-newer'
 
 /** 处理一次保存接口的回包 */
@@ -112,8 +112,18 @@ export function applySaveResult(
       outcome: next.version > syncedVersion ? 'resend' : 'synced',
     }
   }
-  // 旧版本回包：服务器上的版本不比我们发的小。先把版本对齐到服务器，避免反复重发，再由调用方取回内容
-  const serverVersion = Math.max(result.version, sentVersion)
+  if (result.version <= sentVersion) {
+    // 服务器存的就是我们发的这个版本：通常是上一次请求已经到了服务器、只是回包丢了，这次是重发。
+    // 等于已经同步到 sentVersion；之后本地又改过的版本还要接着发，不能当成服务器更新而覆盖掉。
+    const syncedVersion = Math.max(entry.syncedVersion, sentVersion)
+    const next = { ...entry, syncedVersion }
+    return {
+      draft: { ...draft, entries: { ...draft.entries, [questionId]: next } },
+      outcome: next.version > syncedVersion ? 'resend' : 'synced',
+    }
+  }
+  // 服务器有更新的版本（比如另一台设备保存过）：以服务器为准。先把版本对齐到服务器，避免反复重发，再由调用方取回内容
+  const serverVersion = result.version
   const next = { ...entry, version: Math.max(entry.version, serverVersion), syncedVersion: Math.max(entry.version, serverVersion) }
   return { draft: { ...draft, entries: { ...draft.entries, [questionId]: next } }, outcome: 'server-newer' }
 }

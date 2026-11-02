@@ -51,10 +51,10 @@
       </view>
     </view>
 
-    <view v-if="current" class="card continue" @tap="continuePractice">
+    <view v-if="currentInExam" class="card continue" @tap="continuePractice">
       <view class="continue-main">
-        <text class="continue-title">继续上次的{{ MODE_LABEL[current.mode] || '练习' }}</text>
-        <text class="muted">已答 {{ current.answeredCount }} / {{ current.questionCount }} 题 · {{ formatDateTime(current.startedAt) }} 开始</text>
+        <text class="continue-title">继续上次的{{ MODE_LABEL[currentInExam.mode] || '练习' }}</text>
+        <text class="muted">已答 {{ currentInExam.answeredCount }} / {{ currentInExam.questionCount }} 题 · {{ formatDateTime(currentInExam.startedAt) }} 开始</text>
       </view>
       <uni-icons type="right" size="18" color="#98a0ad" />
     </view>
@@ -107,6 +107,7 @@ import { useTheme } from '@/composables/useTheme'
 import { useUserStore } from '@/stores/user'
 import { formatDateTime, formatRate } from '@/logic/format'
 import { describeError, toApiError } from '@/logic/http'
+import { collectCategoryIds, sessionInExam } from '@/logic/scoped'
 import { PAGES, ensureReady } from '@/utils/nav'
 import { MODE_LABEL } from '@/utils/labels'
 
@@ -123,6 +124,9 @@ const expanded = reactive<Record<number, boolean>>({})
 let loadedFor: number | null = null
 
 const subjects = computed(() => tree.value?.children ?? [])
+/** 「继续练习」接口不按考试过滤：只显示属于当前考试的那一次 */
+const examIds = computed(() => collectCategoryIds(tree.value))
+const currentInExam = computed(() => (sessionInExam(current.value, examIds.value) ? current.value : null))
 
 onShow(() => {
   if (!ensureReady()) return
@@ -235,8 +239,8 @@ async function continuePractice() {
   try {
     const latest = await practiceApi.current(false)
     current.value = latest
-    if (!latest) {
-      uni.showToast({ title: '没有未完成的练习', icon: 'none' })
+    if (!latest || !sessionInExam(latest, examIds.value)) {
+      uni.showToast({ title: `${user.targetCategoryName}没有未完成的练习`, icon: 'none' })
       return
     }
     uni.navigateTo({ url: `${PAGES.practiceAnswer}?id=${latest.id}` })
