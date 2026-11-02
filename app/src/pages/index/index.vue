@@ -109,6 +109,7 @@ import { formatDateTime, formatRate } from '@/logic/format'
 import { describeError, toApiError } from '@/logic/http'
 import { collectCategoryIds, sessionInExam } from '@/logic/scoped'
 import { PAGES, ensureReady } from '@/utils/nav'
+import { settleAll } from '@/utils/compat'
 import { MODE_LABEL } from '@/utils/labels'
 
 const { themeClass } = useTheme()
@@ -154,7 +155,7 @@ async function load() {
   const rootId = user.targetCategoryId
   if (!rootId) return
   if (!tree.value) treeState.value = 'loading'
-  const [treeRes, overviewRes, currentRes, groupsRes] = await Promise.allSettled([
+  const [treeRes, overviewRes, currentRes, groupsRes] = await settleAll([
     categoryApi.tree(rootId),
     statsApi.overview(),
     practiceApi.current(),
