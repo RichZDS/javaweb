@@ -117,7 +117,8 @@
 }
 ```
 
-- `mode`：`RANDOM` 随机、`SEQUENTIAL` 顺序、`WRONG` 错题、`FAVORITE` 收藏、`DAILY` 每日一练、`TAG` 按标签（另带 `tag`）。
+- `mode`：`RANDOM` 随机、`SEQUENTIAL` 顺序、`WRONG` 错题、`FAVORITE` 收藏、`DAILY` 每日一练、`TAG` 按标签（另带 `tag`）、`RETRY` 重做某次的错题。
+- `RETRY` 另带 `fromSessionId`（某次练习）或 `fromExamRecordId`（某次已结算的考试），二选一，都必须是本人的。题目 = 那一次里提交了但没全对的题，按原顺序；考试里未答的题不算。忽略 `categoryIds`、`count`、`types`、`scope`。没有错题时返回 409 `POOL_INSUFFICIENT`，`available` 为 0。这种练习里答对时，按错题练习的规则累加 `correctStreak`。
 - `categoryIds` 可以是任何层级，包含其所有子章节。`DAILY` 忽略它，用本人的目标考试。
 - `count`：10 / 20 / 50，`WRONG`、`FAVORITE` 可省略（默认全部，最多 100）。`SEQUENTIAL` 忽略 count，取整章。
 - `scope`：`ALL`、`UNDONE`（本人从没正式提交过的题，背题和浏览不算）、`WRONG_EVER`（本人提交过且没全对过的题，移出错题本后仍算）。
@@ -152,7 +153,7 @@
 | PUT | `/api/practice/sessions/{id}/progress` | `{currentIndex}`，保存看到第几题 |
 | POST | `/api/practice/sessions/{id}/finish` | 结束，返回 `{durationSec, answeredCount, correctCount, correctRate, wrongQuestionIds}`。全部题都提交后自动完成；每日一练只有全部提交才写 `completedAt` |
 
-提交答案时同步做：写作答记录；答错进错题本或累加错误次数；若这次练习是 `WRONG` 模式且答对，`correctStreak + 1`，达到 3 移出错题本；任何模式答错都把 `correctStreak` 清零，已移出的题重新放回错题本。
+提交答案时同步做：写作答记录；答错进错题本或累加错误次数；若这次练习是 `WRONG` 或 `RETRY` 模式且答对，`correctStreak + 1`，达到 3 移出错题本；任何模式答错都把 `correctStreak` 清零，已移出的题重新放回错题本。
 
 ## 5. 错题本和收藏
 
