@@ -83,8 +83,11 @@
 | PUT | `/api/me` | `{nickname?, avatarUrl?, targetCategoryId?}` | `User`；`targetCategoryId` 必须是一级分类 |
 | PUT | `/api/me/password` | `{oldPassword, newPassword}` | `null` |
 | POST | `/api/files` | multipart `file`，图片 ≤ 2 MB（jpg/png/webp/gif） | `{url}` |
+| PUT | `/api/me/settings` | `{wrongRemoveThreshold}`，1–10 的整数 | `User` |
 
-`User` = `{id, username, nickname, avatarUrl, role: "USER"|"ADMIN", status, targetCategoryId, targetCategoryName, createdAt}`。用户名 3–20 位字母数字下划线，密码 6–32 位。
+`User` = `{id, username, nickname, avatarUrl, role: "USER"|"ADMIN", status, targetCategoryId, targetCategoryName, wrongRemoveThreshold, createdAt}`。`wrongRemoveThreshold` 是错题连续答对几次自动移出，默认 3。用户名 3–20 位字母数字下划线，密码 6–32 位。
+
+上传返回的 `url` 是以 `/uploads/` 开头的站内路径。客户端把它拼在站点前缀后面使用：前缀 = 接口前缀去掉末尾的 `/api`。例如接口前缀是 `/quiz/api`，就显示 `/quiz/uploads/…`。部署时 `<前缀>/uploads/` 要转发到后端。
 
 ## 3. 题库分类与搜题
 
@@ -92,7 +95,7 @@
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
-| GET | `/api/categories?rootId=` | 分类树。不传 `rootId` 时返回全部一级分类（不带子节点，用于选目标考试）；传了返回该考试的整棵树。每个节点：`{id, parentId, name, level, sort, questionCount, doneCount, correctRate, children}`。`doneCount` 是本人做过的不同题数，`correctRate` 是本人在该节点下的正确率，没作答时为 `null` |
+| GET | `/api/categories?rootId=` | 分类树。不传 `rootId` 时 `data` 是数组，列出全部一级分类（`children` 为空数组，用于选目标考试）；传了时 `data` 是该考试的根节点对象，`children` 里是整棵树。每个节点：`{id, parentId, name, level, sort, questionCount, doneCount, correctRate, children}`。`doneCount` 是本人做过的不同题数，`correctRate` 是本人在该节点下的正确率，没作答时为 `null` |
 | GET | `/api/questions/search?keyword=&categoryId=&page=&size=` | 按题干关键词搜，返回 `{id, categoryId, categoryPath, type, stemPreview}`，`stemPreview` 是去掉格式的前 80 个字 |
 | GET | `/api/questions/{id}` | 题目 + 答案 + 解析。若本人有进行中的考试包含这道题，返回 403 `EXAM_IN_PROGRESS` |
 | POST | `/api/questions/{id}/feedback` | 纠错 `{type: "ANSWER_WRONG"|"STEM_WRONG"|"ANALYSIS_UNCLEAR"|"OTHER", content}`，content 1–500 字 |
@@ -153,7 +156,7 @@
 | PUT | `/api/practice/sessions/{id}/progress` | `{currentIndex}`，保存看到第几题 |
 | POST | `/api/practice/sessions/{id}/finish` | 结束，返回 `{durationSec, answeredCount, correctCount, correctRate, wrongQuestionIds}`。全部题都提交后自动完成；每日一练只有全部提交才写 `completedAt` |
 
-提交答案时同步做：写作答记录；答错进错题本或累加错误次数；若这次练习是 `WRONG` 或 `RETRY` 模式且答对，`correctStreak + 1`，达到 3 移出错题本；任何模式答错都把 `correctStreak` 清零，已移出的题重新放回错题本。
+提交答案时同步做：写作答记录；答错进错题本或累加错误次数；若这次练习是 `WRONG` 或 `RETRY` 模式且答对，`correctStreak + 1`，达到本人的 `wrongRemoveThreshold`（默认 3）移出错题本；任何模式答错都把 `correctStreak` 清零，已移出的题重新放回错题本。
 
 ## 5. 错题本和收藏
 
