@@ -33,6 +33,16 @@
 - 写操作的返回：新建成功 HTTP 201，`data` 是新建后的完整对象；修改成功 200，`data` 是修改后的完整对象；删除成功 200，`data` 为 `null`（题目删除例外，见第 9 节）。
 - 富文本：题干、选项、解析都按 Markdown 存储。接口同时返回原文和后端渲染好的 HTML（字段名加 `Html` 后缀）。代码块渲染成带内联样式的 `<pre><code>`，用等宽字体和简单关键字高亮（Java、C、Python、SQL）。HTML 只允许白名单标签，防 XSS。
 
+### 0.1 补充约定（后端 M1 定稿）
+
+- 注册成功返回 201；登录用户名或密码错误返回 401 `UNAUTHORIZED`（客户端在登录页不要因此跳转）；改密码时原密码错返回 400，`data.fields` 指向 `oldPassword`。
+- 纠错提交返回 201，data 为 `{id, questionId, type, content, status, reply, createdAt, handledAt}`。
+- `PUT /api/favorites/{questionId}` 新收藏和改笔记都返回 200，data 为收藏列表项；`note` 不传表示不改，传空串表示清空。
+- 分页 `size` 超过 100 按 100，`page` 小于 1 按 1，不报错。
+- 练习：`SEQUENTIAL` 必须且只能给一个分类；`RANDOM`、`TAG` 不给 `categoryIds` 时用目标考试；`DAILY` 题不足 10 道时按实际数量出（0 道 409）；`RETRY` 只取仍是已发布状态的题。
+- 分类树上的题量、已做数、正确率只算已发布的题；所有统计只算 `answered = true` 的作答。
+- 调小 `wrongRemoveThreshold` 不会立即批量移出，等这道题下一次在错题练习或重做中答对时再按新阈值判断。
+
 ## 1. 题目的表示
 
 题型 `type`：`SINGLE` 单选、`MULTIPLE` 多选、`JUDGE` 判断、`FILL` 填空。
