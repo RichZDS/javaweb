@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 
@@ -13,8 +14,8 @@ import com.richzds.quiz.entity.Category;
 import com.richzds.quiz.support.ApiTestBase;
 
 /**
- * 参数校验的回归测试：BUG-QA-001（搜题 keyword 缺失时 500）、BUG-QA-002（整数字段收到小数被截断），
- * 以及各接口不带可选参数时都不能 500。
+ * 参数校验的回归测试：BUG-QA-001（搜题 keyword 缺失时 500）、BUG-QA-002（整数字段收到小数被截断）、
+ * BUG-QA-003（请求体里字符串形式的数字 / 布尔被强转），以及各接口不带可选参数时都不能 500。
  */
 class RequestValidationApiTest extends ApiTestBase {
 
@@ -75,6 +76,38 @@ class RequestValidationApiTest extends ApiTestBase {
 
         assertFieldError(call(put("/api/practice/sessions/1/progress", u, Map.of("currentIndex", 0.5))),
                 "currentIndex");
+    }
+
+    // ---------------------------------------------------------------- BUG-QA-003
+
+    @Test
+    void stringScalarsInBodyAreRejectedButQueryParamsStillWork() throws Exception {
+        Login u = register("valid5");
+        Category[] t = tree("T");
+        singles(t[2], 10);
+
+        assertFieldError(call(put("/api/me/settings", u, Map.of("wrongRemoveThreshold", "2"))),
+                "wrongRemoveThreshold");
+        assertThat(data(call(get("/api/me", u))).get("wrongRemoveThreshold").asInt()).isEqualTo(3);
+
+        Map<String, Object> body = new HashMap<>(Map.of("mode", "RANDOM", "categoryIds", List.of(t[2].getId()),
+                "count", "10"));
+        assertFieldError(call(post("/api/practice/sessions", u, body)), "count");
+        body.put("count", 10);
+        body.put("reciteMode", "true");
+        assertFieldError(call(post("/api/practice/sessions", u, body)), "reciteMode");
+        body.put("reciteMode", true);
+        body.put("categoryIds", List.of(String.valueOf(t[2].getId())));
+        assertFieldError(call(post("/api/practice/sessions", u, body)), "categoryIds[0]");
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM practice_session", Long.class)).isZero();
+
+        // 查询参数本来就是字符串，照常转换
+        JsonNode page = data(call(get("/api/practice/sessions?page=2&size=1", u)));
+        assertThat(page.get("page").asLong()).isEqualTo(2);
+        assertThat(page.get("size").asLong()).isEqualTo(1);
+        assertThat(data(call(get("/api/stats/daily?days=7", u)))).hasSize(7);
+        assertThat(data(call(get("/api/categories?rootId=" + t[0].getId(), u))).get("id").asLong())
+                .isEqualTo(t[0].getId());
     }
 
     @Test
