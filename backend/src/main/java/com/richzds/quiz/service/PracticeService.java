@@ -44,6 +44,7 @@ import com.richzds.quiz.dto.PracticeDtos.SubmitResult;
 import com.richzds.quiz.dto.QuestionDtos.AnswerView;
 import com.richzds.quiz.dto.QuestionDtos.QuestionView;
 import com.richzds.quiz.entity.AnswerRecord;
+import com.richzds.quiz.entity.Category;
 import com.richzds.quiz.entity.ExamPaper;
 import com.richzds.quiz.entity.ExamRecord;
 import com.richzds.quiz.entity.Favorite;
@@ -402,12 +403,27 @@ public class PracticeService {
         return view(requireOwn(userId, sessionId), userId);
     }
 
-    /** 最近一次未完成的非每日练习；没有时返回 null。 */
-    public SessionView current(long userId) {
+    /**
+     * 首页“继续练习”：最近一次未完成的非每日练习，没有时返回 null。范围同统计（docs/api.md 第 4 节）：
+     * 传了 categoryId 就是这个一级分类，否则本人目标考试，都没有时不限。按练习开始时记下的考试
+     * （root_category_id）过滤，没记考试的练习（没有目标时开的错题 / 收藏练习）只在不限时出现。
+     */
+    public SessionView current(long userId, Long categoryId) {
+        Long root;
+        if (categoryId != null) {
+            Category c = categoryService.tree().get(categoryId);
+            if (c == null || c.getLevel() != CategoryTree.LEVEL_EXAM) {
+                throw BizException.invalid("categoryId", "必须是一级分类（考试）");
+            }
+            root = categoryId;
+        } else {
+            root = userService.requireUser(userId).getTargetCategoryId();
+        }
         PracticeSession s = sessionMapper.selectOne(new LambdaQueryWrapper<PracticeSession>()
                 .eq(PracticeSession::getUserId, userId)
                 .eq(PracticeSession::getStatus, STATUS_IN_PROGRESS)
                 .ne(PracticeSession::getMode, PracticeMode.DAILY.name())
+                .eq(root != null, PracticeSession::getRootCategoryId, root)
                 .orderByDesc(PracticeSession::getStartedAt)
                 .orderByDesc(PracticeSession::getId)
                 .last("LIMIT 1"));
