@@ -62,13 +62,16 @@ scenario('EX-08/11：真实断开本地传输后补发，新版本保留；不�
   assert.deepEqual(result.items[0].userAnswer, ['A']); assert.equal(result.items[0].score, 1);
 });
 
-scenario('EX-07/15/16/24 ST-02/03：加权成绩、未答排除、重复/并发交卷不重计', async () => {
+scenario('EX-07/15/16/24 ST-02/03：加权成绩、未答排除、重复/并发交卷不重计', async t => {
   const f = await m2Fixture(); const sheet = await startExam(f);
   for (const q of sheet.questions) {
     if (q.type === 'FILL') continue;
     await saveExam(f, sheet, q.questionId, q.type === 'MULTIPLE' ? ['A'] : correct(q));
   }
   const [a, b] = await Promise.all([submitExam(f, sheet), submitExam(f, sheet)]);
+  const persisted = await f.api.get(`/api/exam-records/${sheet.recordId}`);
+  t.diagnostic(`并发交卷 record=${sheet.recordId}，两次响应分数=${a.score}/${b.score}，随后GET=${persisted.score}`);
+  assert.deepEqual(a, persisted); assert.deepEqual(b, persisted);
   assert.deepEqual(a, b); assert.equal(a.score, 4); assert.equal(a.totalScore, 10);
   assert.equal(a.correctCount, 2); assert.equal(a.wrongCount, 1); assert.equal(a.unansweredCount, 1);
   assert.equal(a.passed, false); assert.equal(a.items.length, 4);

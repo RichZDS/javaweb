@@ -1,7 +1,12 @@
 import { test, expect } from '@playwright/test';
 import { m2Fixture, paperTitles } from '../lib/m2-fixtures.mjs';
-import { APP_URL } from '../lib/stack-urls.mjs';
+import { APP_URL, allowTestHost } from '../lib/stack-urls.mjs';
 import { step, tap, button, responseFor } from './support.mjs';
+
+let diagnosticEvidence;
+test.afterEach(async ({}, info) => {
+  if (diagnosticEvidence) await info.attach('考试网络诊断（无认证头或请求体）', { body: JSON.stringify(diagnosticEvidence, null, 2), contentType: 'application/json' });
+});
 
 test('QA-RUN-02 考试：断网拦截→恢复补传→关页重开→手动/到时交卷→统计对账', async ({ page: firstPage, context }, info) => {
   test.setTimeout(210000);
@@ -10,14 +15,20 @@ test('QA-RUN-02 考试：断网拦截→恢复补传→关页重开→手动/到
   let sheet;
   let minute;
   const evidence = { main: process.env.QA_MAIN_COMMIT || 'db63cdc', userId: f.user.id, submitRequests: [], pageErrors: [], stats: [] };
+  diagnosticEvidence = { main: evidence.main, userId: f.user.id, requests: [], pageErrors: evidence.pageErrors };
+  const requests = new WeakMap();
   const appUrl = APP_URL;
   context.on('page', p => p.on('pageerror', error => evidence.pageErrors.push(error.message)));
   page.on('pageerror', error => evidence.pageErrors.push(error.message));
   context.on('request', request => {
     const path = new URL(request.url()).pathname;
+    const entry = { method: request.method(), url: new URL(request.url()).origin + path, type: request.resourceType(), startedAt: Date.now() };
+    requests.set(request, entry); diagnosticEvidence.requests.push(entry);
     if (/\/api\/exam-records\/\d+\/submit$/.test(path) && request.method() === 'POST') evidence.submitRequests.push(path);
   });
-  await context.route('**/*', route => ['127.0.0.1', 'localhost', '[::1]'].includes(new URL(route.request().url()).hostname) ? route.continue() : route.abort());
+  context.on('response', response => { const entry = requests.get(response.request()); if (entry) { entry.status = response.status(); entry.responseMs = Date.now() - entry.startedAt; } });
+  context.on('requestfailed', request => { const entry = requests.get(request); if (entry) entry.failure = request.failure()?.errorText; });
+  await context.route('**/*', allowTestHost);
   const qwrap = index => page.locator('.qwrap').filter({ has: page.getByText(`第 ${index + 1} 题`, { exact: true }) });
   const selectKey = async (index, key, judge = false) => qwrap(index).locator('.qb-option').filter({ has: page.locator('.qb-key').filter({ hasText: new RegExp(`^${judge ? key === 'T' ? '对' : '错' : key}$`) }) }).click();
   const modal = () => page.locator('.uni-modal:visible');

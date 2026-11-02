@@ -203,3 +203,39 @@ M2 已验证：进行中同卷复用且不计已考次数、答案保密/查题�
 后台前两次退出1是测试定位校准：级联标签带题量后缀，复选框的原生input隐藏、可见外层才是点击目标。均保留原日志，未当作产品缺陷；校准后完整流程通过。
 
 **RULE-KILL-01 已落实**：QA随机端口和地址自动发现；服务PID/cwd/启动时间登记并逐个核验，cwd必须属于本工作树，发现错配保留状态拒绝停止；取消构建/测试同样只对已验证进程树逐个发正PID信号，不按名字/端口或负PID组杀。隔离自检包含另一模拟工作树的同名服务保护。后端cwd改为本工作树backend，数据/上传仍在独立临时目录。新用户名统一qa_前缀。最终清理证据追加在对应阶段日志，后续选项打乱使用新环境。
+
+## 2026-11-02 · 选项打乱本地补测
+
+产品基线 `a0dae28`（后端打乱 `e884c9f`，前端打乱已合入），独立新栈。
+
+| 检查 | 通过 | 失败 | rc | 证据（e2e/ 下） |
+| --- | ---: | ---: | ---: | --- |
+| `QA_SCOPE=shuffle sozai-lock light -- npm run test:api` | 4 | 0 | 0 | `artifacts/shuffle/api.log` |
+| `QA_SCOPE=shuffle QA_STAGE=shuffle QA_MAIN_COMMIT=a0dae28 sozai-lock light -- npm run test:ui` | 1 | 0 | 0 | `artifacts/shuffle/ui.log`、`walk-result.json` |
+
+API核对新标签与选项内容/原标签为一一映射，判断/填空不打乱；新标签判分正确、原正确字母在换位后判错，错题本保留原标签；练习改选项数量后回退原序，非法标签判错；考试保存、快照、结算和成绩单映射一致。实际差分样本为“原A正确，显示A对应原B，因此显示B才正确”。
+
+页面实际样本：练习映射 `{A:C,B:B,C:A}`，选显示C判对，旁注“原选项A/对应解析里的A”；考试12道单选按显示标签全部答对，12/12分，成绩单展开也能对照原选项。6图位于 `/data/crew/qzd-5b1e/shots/qa-shuffle/2026-11-02T12-49-55-697Z/app-iphone13/`，已查看练习解析和成绩单。未将随机恰好保持原位的题当作换位证明。本地栈已关闭，`artifacts/shuffle/cleanup.log`。
+
+## 2026-11-02 · STAGING-01 预发布首轮（QA-004待部署复测）
+
+目标为已授权的 [App H5](https://43.142.166.108/quiz/) 和 `/quiz/api`。工头 QA-004-ACK 确认本轮预发布版本为 **e884c9f**。curl使用 `--noproxy '*'`，Node清除代理变量，Chromium使用 `--no-proxy-server`；HTTPS正常验证通过，没有忽略证书。凭证只由测试进程读取，没有打印或写入报告；新测试账号均qa_前缀。仅用应用HTTP接口，没有服务器/数据库管理操作。
+
+通过管理API新增独立夹具根 `QA staging a6854f4ea6`（7分类/20题/3卷），没有改动已有题库。共享环境有人同时验收，线上不严格比较全站题数、今日作答和待处理纠错的前后增量；仍验证本测试章节、本账号、本试卷，且日志显式注明该限制。本地对应全站增量已有通过证据。
+
+| 命令（前缀均 `sozai-lock light -- node scripts/staging.mjs`） | 通过 | 失败 | rc | 证据（e2e/ 下） |
+| --- | ---: | ---: | ---: | --- |
+| `prepare` | — | — | 0 | `artifacts/staging/prepare.log` |
+| `api` | 47 | 1 | 1 | `artifacts/staging/api.log`；0 skip，约440.5秒 |
+| `shuffle-api` | 4 | 0 | 0 | `artifacts/staging/shuffle-api.log` |
+| `app` | 1 | 0 | 0 | `artifacts/staging/app.log`、`app-walk.json`；约44.7秒 |
+| `exam` 首次 | 0 | 1 | 1 | `artifacts/staging/exam.log`：重开时导航等待20秒超时 |
+| `exam` 保持原超时复跑 | 1 | 0 | 0 | `artifacts/staging/exam-retry.log`、`exam-walk.json`、`exam-network.json`；约152.9秒 |
+| `repro-submit` 三场独立复现 | 0 | 3 响应一致性检查 | 1 | `artifacts/staging/qa004-repro.log` |
+| `upload` | 1 | 0 | 0 | `artifacts/staging/upload.log`：201上传/200静态读取，608字节SHA一致 |
+
+**QA-004，一般 / 后端 / 待修复部署**：同一场考试保存单选正确、多选少选、判断正确、填空未答，预期4/10分；同时发送两个 `POST /api/exam-records/{id}/submit`，两份响应应与随后GET一致。首轮record12返回4分与0分不一致。为区分返回过期与重复结算，新注册一次性账号，在record23/24/25连续三场重现：一份 `FINISHED/4分/2正确`，另一份 `IN_PROGRESS/0分/submittedAt=null`；随后GET每次都是 `FINISHED/4分/2正确`。作答次数按3/6/9、考试次数按1/2/3增长，未观察到这些计数重复；证据支持“返回过期视图”。原record12的临时令牌未保存，**没有冒称直接GET过12**。工头已转后端，待新版本部署后复测；脚本后续也加入错题次数核对。
+
+线上App已实际完成注册→Java目标→随机十题→9对1错/90%→错题重练，及考试断网拦截→恢复补传→关页重开→手动10分→一分钟到时1分→统计4次/1场到5次/2场的对账。考试重跑无pageerror。首轮重开导航超时未复现，重跑诊断中主JS下载约13.1秒和15.5秒，说明公网冷加载较慢；不能据此确定首轮根因，也不将首轮失败删去。TLS、功能和加载耗时分别记录，不宣称没有任何波动。
+
+已查看关键截图：App17张 `/data/crew/qzd-5b1e/shots/qa-staging-app/2026-11-02T13-11-15-665Z/app-iphone13/`；考试成功轮15张 `/data/crew/qzd-5b1e/shots/qa-staging-exam/2026-11-02T13-24-35-256Z/app-iphone13/`。预发布此版本还未确认部署前端打乱，因此该项线上UI等待新版通知，本地已通过。没有留下本地产品服务；线上测试数据按工头正式发布前重置安排保留，未擅自删除共享数据。

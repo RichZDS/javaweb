@@ -76,6 +76,24 @@ QA_SCOPE=m3 QA_COLLECT_ONLY=1 sozai-lock light -- npm run test:api
 
 `QA_COLLECT_ONLY` 只支持 m2/m3，结果全部标记 skipped。M2 的截止和周期结算场景分别真实等待约 62 秒、95 秒；不修改系统时间。断网场景实际切断本地代理到 API 的请求，重连后由测试显式补发，验证服务器版本/截止规则，**不代替 App 离线缓存、杀进程或断网 UI 验收**。周期结算先从统计观察结果，再读取记录详情，避免用记录读取触发结算而误报后台已自动结算。下一轮还需确认统计读取没有代替定时任务结算；跨日/跨周与历史连续打卡需受控时间或历史数据，不能从当天用例推断通过。
 
+选项打乱：`QA_SCOPE=shuffle sozai-lock light -- npm run test:api`，页面使用同一 scope 的 `npm run test:ui`。新标签正确/旧字母错答必须从实际映射取得换位样本；随机没有换位时不能假装做过差分验证。
+
+已授权预发布的应用级入口是 `scripts/staging.mjs`。它清除代理变量，浏览器直接连接指定IP，TLS保持正常校验；凭证只在需要管理员的进程中读取权限0600的 `STAGING_CREDENTIAL_FILE`（默认班子 staging-admin.txt），不会回显、写入状态文件或报告。所有新账号以qa_开头。
+
+```bash
+sozai-lock light -- node scripts/staging.mjs prepare
+sozai-lock light -- node scripts/staging.mjs api
+sozai-lock light -- node scripts/staging.mjs shuffle-api
+sozai-lock light -- node scripts/staging.mjs app
+sozai-lock light -- node scripts/staging.mjs exam
+# 以下按已经部署的版本运行
+sozai-lock light -- node scripts/staging.mjs shuffle-ui
+sozai-lock light -- node scripts/staging.mjs repro-submit
+sozai-lock light -- node scripts/staging.mjs upload
+```
+
+prepare 新建独立20题/3卷夹具，并把非认证的根名称写入被忽略的 `.staging-state.json`。复测复用它；数据库重置后才重新准备。可用 `STAGING_COMMIT` 标记工头确认的部署版本。共享预发布会有其他验收写入，因此全站题量/作答/待处理增量不做严格前后相等，日志明确说明；自己章节、账号、试卷的断言保留。这些全站增量不能记成线上已验证。`repro-submit` 在同一账号连续3场并发交卷，随后立即GET，并对照作答/考试/错题计数，避免只看到不一致响应却无法判断持久化状态。
+
 收到工头合并通知后在 `feat/qa` 执行 `git merge main`，再运行：
 
 ```bash

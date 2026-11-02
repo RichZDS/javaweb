@@ -3,12 +3,12 @@ import { fileURLToPath } from 'node:url';
 import { available, serviceError } from '../lib/http.mjs';
 import { trackChild } from '../lib/process-owner.mjs';
 
-const suites = { m1: ['api/m1.test.mjs'], m2: ['api/m2.test.mjs'], 'm1+m2': ['api/m1.test.mjs', 'api/m2.test.mjs'], m3: ['api/m3.test.mjs'], all: ['api/m1.test.mjs', 'api/m2.test.mjs', 'api/m3.test.mjs'], full: ['api/contract.test.mjs'] };
+const suites = { m1: ['api/m1.test.mjs'], m2: ['api/m2.test.mjs'], 'm1+m2': ['api/m1.test.mjs', 'api/m2.test.mjs'], m3: ['api/m3.test.mjs'], shuffle: ['api/shuffle.test.mjs'], all: ['api/m1.test.mjs', 'api/m2.test.mjs', 'api/m3.test.mjs'], full: ['api/contract.test.mjs'] };
 const scope = process.env.QA_SCOPE || 'full';
 if (!suites[scope]) {
-  console.error('QA_SCOPE 只能是 m1 / m2 / m1+m2 / m3 / all / full');
+  console.error('QA_SCOPE 只能是 m1 / m2 / m1+m2 / m3 / shuffle / all / full');
   process.exitCode = 2;
-} else if (process.env.QA_COLLECT_ONLY === '1' && !['m2', 'm3'].includes(scope)) {
+} else if (process.env.QA_COLLECT_ONLY === '1' && !['m2', 'm3', 'shuffle'].includes(scope)) {
   console.error('QA_COLLECT_ONLY 仅支持 m2 / m3；本次未运行任何业务用例。');
   process.exitCode = 2;
 } else if (process.env.QA_COLLECT_ONLY !== '1' && !await available()) {

@@ -7,7 +7,7 @@ import { trackChild } from '../lib/process-owner.mjs';
 const endpoints = [
   ['后端', `${BASE_URL}/api/app/version?platform=android`],
   ['H5', APP_URL],
-  ...(['m1', 'm2', 'pm', 'settings'].includes(process.env.QA_SCOPE) ? [] : [['管理后台', ADMIN_URL]]),
+  ...(['m1', 'm2', 'pm', 'settings', 'shuffle'].includes(process.env.QA_SCOPE) ? [] : [['管理后台', ADMIN_URL]]),
 ];
 const missing = [];
 for (const [label, url] of endpoints) if (!url || !await available(url)) missing.push(`${label} ${url || '本测试栈未启动'}`);

@@ -11,3 +11,5 @@ if (state && state.repo !== ownerRoot) throw new Error('测试栈状态不属于
 export const BASE_URL = (process.env.BASE_URL || state?.urls?.api || 'http://localhost:8080').replace(/\/$/, '');
 export const APP_URL = process.env.APP_URL || state?.urls?.app || 'http://127.0.0.1:4173/quiz/';
 export const ADMIN_URL = process.env.ADMIN_URL || (state ? state.urls?.admin : 'http://127.0.0.1:4174');
+export const TEST_HOSTS = new Set([BASE_URL, APP_URL, ADMIN_URL].filter(Boolean).map(url => new URL(url).hostname));
+export function allowTestHost(route) { return TEST_HOSTS.has(new URL(route.request().url()).hostname) ? route.continue() : route.abort(); }
