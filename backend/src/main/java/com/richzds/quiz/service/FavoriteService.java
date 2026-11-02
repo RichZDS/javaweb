@@ -29,20 +29,24 @@ public class FavoriteService {
     private final QuestionService questionService;
     private final CategoryService categoryService;
     private final QuestionAssembler assembler;
+    private final WrongBookService wrongBookService;
     private final Clock clock;
 
     public FavoriteService(FavoriteMapper favoriteMapper, QuestionService questionService,
-                           CategoryService categoryService, QuestionAssembler assembler, Clock clock) {
+                           CategoryService categoryService, QuestionAssembler assembler,
+                           WrongBookService wrongBookService, Clock clock) {
         this.favoriteMapper = favoriteMapper;
         this.questionService = questionService;
         this.categoryService = categoryService;
         this.assembler = assembler;
+        this.wrongBookService = wrongBookService;
         this.clock = clock;
     }
 
+    /** 收藏列表；不传 categoryId 时只看目标考试下的题（没有目标考试时全部）。 */
     public PageResult<FavoriteItem> list(long userId, Long categoryId, PageQuery pageQuery) {
         CategoryTree tree = categoryService.tree();
-        Set<Long> chapters = categoryId == null ? null : tree.chapterIdsUnder(categoryId);
+        Set<Long> chapters = wrongBookService.scopeChapters(userId, categoryId, tree);
         Page<Favorite> page = pageQuery.toPage();
         if (chapters != null && chapters.isEmpty()) {
             return new PageResult<>(List.of(), 0, page.getCurrent(), page.getSize());

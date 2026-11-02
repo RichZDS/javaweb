@@ -117,13 +117,14 @@ public class WrongBookService {
                 .eq(WrongQuestion::getRemoved, false);
     }
 
+    /** 错题列表；不传 categoryId 时只看目标考试下的题（没有目标考试时全部）。 */
     public PageResult<WrongItem> list(long userId, Long categoryId, String sort, PageQuery pageQuery) {
         String order = sort == null || sort.isBlank() ? "RECENT" : sort.strip();
         if (!"RECENT".equals(order) && !"MOST".equals(order)) {
             throw BizException.invalid("sort", "只能是 RECENT 或 MOST");
         }
         CategoryTree tree = categoryService.tree();
-        Set<Long> chapters = categoryId == null ? null : tree.chapterIdsUnder(categoryId);
+        Set<Long> chapters = scopeChapters(userId, categoryId, tree);
         Page<WrongQuestion> page = pageQuery.toPage();
         if (chapters != null && chapters.isEmpty()) {
             return new PageResult<>(List.of(), 0, page.getCurrent(), page.getSize());
@@ -140,13 +141,27 @@ public class WrongBookService {
         return PageResult.of(page, items);
     }
 
-    /** 按章节分组计数，按分类树顺序排列。 */
+    /** 按章节分组计数，按分类树顺序排列；范围同列表的默认范围（目标考试，没有时全部）。 */
     public List<WrongGroup> groups(long userId) {
         CategoryTree tree = categoryService.tree();
+        Set<Long> chapters = scopeChapters(userId, null, tree);
         return wrongMapper.countActiveByChapter(userId).stream()
+                .filter(r -> chapters == null || chapters.contains(r.getGroupId()))
                 .sorted(Comparator.comparingInt(r -> tree.order(r.getGroupId())))
                 .map(r -> new WrongGroup(r.getGroupId(), tree.path(r.getGroupId()), r.total()))
                 .toList();
+    }
+
+    /**
+     * 错题本、收藏、错题 / 收藏练习共用的范围（docs/api.md 第 5 节）：传了分类就是该分类子树里的章节；
+     * 没传时是本人目标考试下的章节；没有目标考试返回 null，表示不限。
+     */
+    public Set<Long> scopeChapters(long userId, Long categoryId, CategoryTree tree) {
+        if (categoryId != null) {
+            return tree.chapterIdsUnder(categoryId);
+        }
+        Long target = userMapper.selectById(userId).getTargetCategoryId();
+        return target == null ? null : tree.chapterIdsUnder(target);
     }
 
     /** 手动移出：只改状态，保留错误次数等历史。 */

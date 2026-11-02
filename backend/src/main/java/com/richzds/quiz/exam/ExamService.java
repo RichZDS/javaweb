@@ -468,7 +468,8 @@ public class ExamService {
             categoryPaths.putIfAbsent(i.categoryId(), i.categoryPath());
             boolean fill = QuestionType.FILL.name().equals(i.type());
             items.add(new ResultItem(i.index(), i.questionId(), i.type(), assembler.html(i.stem()),
-                    assembler.optionViews(i.options()), given, fill ? null : i.correctAnswer(),
+                    assembler.optionViews(i.options()), i.blankCount(), i.imageUrl(), given,
+                    fill ? null : i.correctAnswer(),
                     fill ? i.acceptedAnswers() : null, correct, score, i.score(), assembler.html(i.analysis())));
         }
         List<TypeScore> types = byType.entrySet().stream().filter(e -> e.getValue() != null)

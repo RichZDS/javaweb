@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -110,6 +111,13 @@ public abstract class ApiTestBase {
 
     protected MockHttpServletRequestBuilder put(String path, Login user, Object body) throws Exception {
         return json(auth(MockMvcRequestBuilders.put(path), user), body);
+    }
+
+    /** multipart 上传一个名为 file 的文件。 */
+    protected MockHttpServletRequestBuilder upload(String path, Login user, String filename, String contentType,
+                                                   byte[] content) {
+        return auth(MockMvcRequestBuilders.multipart(path)
+                .file(new MockMultipartFile("file", filename, contentType, content)), user);
     }
 
     private MockHttpServletRequestBuilder json(MockHttpServletRequestBuilder b, Object body) throws Exception {

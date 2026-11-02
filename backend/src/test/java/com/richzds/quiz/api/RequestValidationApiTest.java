@@ -15,7 +15,7 @@ import com.richzds.quiz.support.ApiTestBase;
 
 /**
  * 参数校验的回归测试：BUG-QA-001（搜题 keyword 缺失时 500）、BUG-QA-002（整数字段收到小数被截断）、
- * BUG-QA-003（请求体里字符串形式的数字 / 布尔被强转），以及各接口不带可选参数时都不能 500。
+ * BUG-QA-003（请求体里字符串形式的数字 / 布尔被强转）、字符串字段只收 JSON 字符串，以及各接口不带可选参数时都不能 500。
  */
 class RequestValidationApiTest extends ApiTestBase {
 
@@ -100,6 +100,19 @@ class RequestValidationApiTest extends ApiTestBase {
         body.put("categoryIds", List.of(String.valueOf(t[2].getId())));
         assertFieldError(call(post("/api/practice/sessions", u, body)), "categoryIds[0]");
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM practice_session", Long.class)).isZero();
+
+        // 字符串字段只收 JSON 字符串（docs/api.md 0.1 节）
+        assertFieldError(call(put("/api/me", u, Map.of("nickname", 123))), "nickname");
+        assertFieldError(call(put("/api/me", u, Map.of("nickname", true))), "nickname");
+        assertThat(data(call(get("/api/me", u))).get("nickname").asText()).isEqualTo("valid5");
+        body.put("categoryIds", List.of(t[2].getId()));
+        long sid = data(call(post("/api/practice/sessions", u, body))).get("id").asLong();
+        long qid = data(call(get("/api/practice/sessions/" + sid, u))).get("questions").get(0).get("id").asLong();
+        assertFieldError(call(post("/api/practice/sessions/" + sid + "/answers", u,
+                Map.of("questionId", qid, "userAnswer", List.of(12)))), "userAnswer[0]");
+        assertFieldError(call(post("/api/questions/" + qid + "/feedback", u,
+                Map.of("type", "OTHER", "content", 1.5))), "content");
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM answer_record", Long.class)).isZero();
 
         // 查询参数本来就是字符串，照常转换
         JsonNode page = data(call(get("/api/practice/sessions?page=2&size=1", u)));
