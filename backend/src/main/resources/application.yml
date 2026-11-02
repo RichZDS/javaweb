@@ -17,6 +17,9 @@ spring:
     deserialization:
       # 整数字段收到小数时报 400，而不是悄悄截断（1.5 → 1）
       accept-float-as-int: false
+    mapper:
+      # 请求体里的数字、布尔、字符串字段只接受 JSON 原生类型："2"、"true" 之类返回 400（查询参数不受影响）
+      allow-coercion-of-scalars: false
 
 server:
   port: 8080
