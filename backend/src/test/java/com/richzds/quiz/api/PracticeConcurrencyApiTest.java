@@ -1,7 +1,12 @@
 package com.richzds.quiz.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -16,7 +21,10 @@ import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
+import javax.sql.DataSource;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.test.context.TestPropertySource;
 
 import com.richzds.quiz.entity.Category;
@@ -42,6 +50,8 @@ class PracticeConcurrencyApiTest extends ApiTestBase {
     PaperQuestionMapper paperQuestionMapper;
     @Autowired
     ExamSettlementJob settlementJob;
+    @Autowired
+    DataSource dataSource;
 
     static final int ROUNDS = 15;
     static final int QUESTIONS = 10;
@@ -289,5 +299,180 @@ class PracticeConcurrencyApiTest extends ApiTestBase {
             pool.shutdownNow();
         }
         assertThat(mismatched).as("和库里成绩不一致的返回数（共 %d 轮，每轮 3 个交卷 + 2 个查看）", ROUNDS).isZero();
+    }
+
+    // ------------------------------------------------------------------ 只在 MySQL 上跑：间隙锁死锁
+
+    private boolean isMysql() {
+        String db = jdbc.execute((ConnectionCallback<String>) c -> c.getMetaData().getDatabaseProductName());
+        return db != null && db.toLowerCase(java.util.Locale.ROOT).contains("mysql");
+    }
+
+    private void assumeMysql() {
+        assumeTrue(isMysql(), "只在 MySQL 上跑：H2 没有间隙锁，测不出这类死锁（CI 的 backend-mysql 会跑）");
+    }
+
+    private static Connection begin(DataSource ds) throws SQLException {
+        Connection c = ds.getConnection();
+        c.setAutoCommit(false);
+        c.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
+        return c;
+    }
+
+    private static int exec(Connection c, String sql, Object... args) throws SQLException {
+        try (PreparedStatement ps = c.prepareStatement(sql)) {
+            for (int i = 0; i < args.length; i++) {
+                ps.setObject(i + 1, args[i]);
+            }
+            return ps.executeUpdate();
+        }
+    }
+
+    private static final String SAVE_UPDATE = "UPDATE exam_answer SET user_answer = '[\"A\"]', version = 2 "
+            + "WHERE record_id = ? AND question_id = ? AND version < 2";
+    private static final String SAVE_INSERT = "INSERT INTO exam_answer (record_id, question_id, user_answer, version, "
+            + "marked, received_at) VALUES (?, ?, '[\"A\"]', 1, FALSE, ?)";
+
+    private void awaitLockWait() throws InterruptedException {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
+        while (jdbc.queryForObject("SELECT COUNT(*) FROM information_schema.INNODB_TRX WHERE trx_state = 'LOCK WAIT'",
+                Long.class) == 0) {
+            assertThat(System.nanoTime()).as("等第一个 INSERT 卡在锁上超时").isLessThan(deadline);
+            // INNODB_TRX 是缓存，0.1 秒内没人读过才刷新；轮询要比这慢，否则一直看到旧数据
+            Thread.sleep(200);
+        }
+    }
+
+    /**
+     * 对照（确定时序，直接用两个连接）：两场新开的考试各存第一题答案，键落在索引末尾同一个间隙里。
+     * 旧写法“先 UPDATE 没命中、再 INSERT”必然死锁（MySQL 1213），新写法“先 INSERT”两边都不用等。
+     * 这条证明 CI 的 InnoDB 上旧写法真的会死锁，下一条的并发测试才有意义。
+     */
+    @Test
+    void updateThenInsertDeadlocksOnMysqlButInsertFirstDoesNot() throws Exception {
+        assumeMysql();
+        long base = jdbc.queryForObject("SELECT COALESCE(MAX(record_id), 0) FROM exam_answer", Long.class) + 1_000_000;
+        Timestamp now = Timestamp.valueOf(LocalDateTime.ofInstant(clock.instant(), ZoneOffset.UTC));
+        ExecutorService pool = Executors.newSingleThreadExecutor();
+        try (Connection c1 = begin(dataSource); Connection c2 = begin(dataSource)) {
+            assertThat(exec(c1, SAVE_UPDATE, base + 1, 1L)).isZero();
+            assertThat(exec(c2, SAVE_UPDATE, base + 2, 1L)).isZero();
+            Future<Integer> first = pool.submit(() -> exec(c1, SAVE_INSERT, base + 1, 1L, now));
+            awaitLockWait();
+            int deadlocks = 0;
+            try {
+                exec(c2, SAVE_INSERT, base + 2, 1L, now);
+            } catch (SQLException e) {
+                assertThat(e.getErrorCode()).as("c2：" + e.getMessage()).isEqualTo(1213);
+                deadlocks++;
+                c2.rollback();
+            }
+            try {
+                first.get(30, TimeUnit.SECONDS);
+            } catch (java.util.concurrent.ExecutionException e) {
+                SQLException cause = (SQLException) e.getCause();
+                assertThat(cause.getErrorCode()).as("c1：" + cause.getMessage()).isEqualTo(1213);
+                deadlocks++;
+            }
+            assertThat(deadlocks).as("旧写法：两个第一次保存恰好有一个被判死锁").isEqualTo(1);
+            c1.rollback();
+            c2.rollback();
+        } finally {
+            pool.shutdownNow();
+        }
+
+        ExecutorService pool2 = Executors.newSingleThreadExecutor();
+        try (Connection c1 = begin(dataSource); Connection c2 = begin(dataSource)) {
+            assertThat(exec(c1, SAVE_INSERT, base + 3, 1L, now)).isEqualTo(1);
+            Future<Integer> second = pool2.submit(() -> exec(c2, SAVE_INSERT, base + 4, 1L, now));
+            assertThat(second.get(5, TimeUnit.SECONDS)).as("新写法：不用等对方").isEqualTo(1);
+            c1.rollback();
+            c2.rollback();
+        } finally {
+            pool2.shutdownNow();
+        }
+    }
+
+    /**
+     * 全班同时开考（BE-QA004-OK）：多个新用户各自开一场考试，同时第一次保存答案、同时交卷（交卷时第一次写错题本），
+     * 再同时在练习里第一次答错。每个请求都必须成功，不能有被判死锁的 500。
+     */
+    @Test
+    void manyStudentsFirstSavesAndFirstWrongAnswersAtOnceNeverDeadlock() throws Exception {
+        assumeMysql();
+        int students = 16;
+        Category[] t = tree("Class");
+        List<Question> examQs = singles(t[2], 5);
+        Category practiceChapter = category(t[1], "练习章节", 1);
+        List<Question> practiceQs = singles(practiceChapter, 10);
+        LocalDateTime now = LocalDateTime.ofInstant(clock.instant(), ZoneOffset.UTC);
+        ExamPaper p = new ExamPaper().setTitle("课堂模拟考")
+                .setCategoryId(t[0].getId()).setMode("FIXED").setDurationMin(30).setTotalScore(50).setPassScore(10)
+                .setStatus("ONLINE").setCreatedAt(now).setUpdatedAt(now);
+        paperMapper.insert(p);
+        for (int i = 0; i < examQs.size(); i++) {
+            paperQuestionMapper.insert(new PaperQuestion().setPaperId(p.getId())
+                    .setQuestionId(examQs.get(i).getId()).setScore(10).setSort(i));
+        }
+        ExecutorService pool = Executors.newFixedThreadPool(students);
+        List<String> failures = new ArrayList<>();
+        try {
+            for (int round = 0; round < 3; round++) {
+                List<Login> us = new ArrayList<>();
+                List<Long> records = new ArrayList<>();
+                List<Long> sessions = new ArrayList<>();
+                for (int i = 0; i < students; i++) {
+                    Login u = register("cls" + round + "_" + i);
+                    us.add(u);
+                    records.add(data(call(post("/api/exams/" + p.getId() + "/start", u, null))).get("recordId").asLong());
+                    sessions.add(data(call(post("/api/practice/sessions", u, Map.of("mode", "RANDOM",
+                            "categoryIds", List.of(practiceChapter.getId()), "count", 10)))).get("id").asLong());
+                }
+                failures.addAll(allAtOnce(pool, students, i -> {
+                    List<Resp> out = new ArrayList<>();
+                    for (Question q : examQs) {
+                        out.add(call(put("/api/exam-records/" + records.get(i) + "/answers/" + q.getId(), us.get(i),
+                                Map.of("userAnswer", List.of("B"), "version", 1))));
+                    }
+                    return out;
+                }, "第一次保存答案"));
+                failures.addAll(allAtOnce(pool, students, i -> List.of(
+                        call(post("/api/exam-records/" + records.get(i) + "/submit", us.get(i), null))), "交卷"));
+                failures.addAll(allAtOnce(pool, students, i -> List.of(
+                        call(post("/api/practice/sessions/" + sessions.get(i) + "/answers", us.get(i),
+                                Map.of("questionId", practiceQs.get(i % practiceQs.size()).getId(),
+                                        "userAnswer", List.of("B"))))), "练习第一次答错"));
+            }
+        } finally {
+            pool.shutdownNow();
+        }
+        assertThat(failures).as("失败的请求").isEmpty();
+    }
+
+    interface StudentCall {
+        List<Resp> run(int student) throws Exception;
+    }
+
+    /** 让 n 个学生同时发请求，返回不是 2xx 的那些（附状态和返回体）。 */
+    private List<String> allAtOnce(ExecutorService pool, int n, StudentCall call, String what) throws Exception {
+        CountDownLatch go = new CountDownLatch(1);
+        List<Future<List<Resp>>> results = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            int student = i;
+            results.add(pool.submit(() -> {
+                go.await();
+                return call.run(student);
+            }));
+        }
+        go.countDown();
+        List<String> failed = new ArrayList<>();
+        for (Future<List<Resp>> f : results) {
+            for (Resp r : f.get(60, TimeUnit.SECONDS)) {
+                if (r.status() / 100 != 2) {
+                    failed.add(what + "：" + r.status() + " " + r.body());
+                }
+            }
+        }
+        return failed;
     }
 }
