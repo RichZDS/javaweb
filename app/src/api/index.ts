@@ -67,7 +67,9 @@ export const practiceApi = {
   get: (id: number) => http.get<PracticeSession>(`/practice/sessions/${id}`),
   /** 首页加载时静默；用户点「继续练习」时传 false，失败要提示 */
   current: (silent = true) => http.get<PracticeSession | null>('/practice/sessions/current', undefined, { silent }),
-  list: (page = 1, size = 20) => http.get<Page<PracticeSummary>>('/practice/sessions', { page, size }),
+  /** 练习记录。不传 categoryId / all 时后端按目标考试过滤（api.md 0.4 节） */
+  list: (q: { categoryId?: number; all?: boolean; page?: number; size?: number }) =>
+    http.get<Page<PracticeSummary>>('/practice/sessions', q),
   submit: (id: number, body: SubmitAnswerBody) => http.post<SubmitAnswerResult>(`/practice/sessions/${id}/answers`, body),
   /** 进度保存失败不打扰用户 */
   progress: (id: number, currentIndex: number) =>
@@ -104,7 +106,9 @@ export const examApi = {
   saveAnswer: (recordId: number, questionId: number, body: { userAnswer: string[]; version: number; marked: boolean }) =>
     http.put<{ accepted: boolean; version: number }>(`/exam-records/${recordId}/answers/${questionId}`, body, { silent: true }),
   submit: (recordId: number) => http.post<ExamResult>(`/exam-records/${recordId}/submit`),
-  records: (q: { paperId?: number; page?: number; size?: number }) => http.get<Page<ExamRecordSummary>>('/exam-records', q),
+  /** 考试记录。传 paperId 只按试卷过滤；否则不传 categoryId / all 时按目标考试过滤（api.md 0.4 节） */
+  records: (q: { paperId?: number; categoryId?: number; all?: boolean; page?: number; size?: number }) =>
+    http.get<Page<ExamRecordSummary>>('/exam-records', q),
 }
 
 /** 进行中 / 已结算的区分以 status 为准 */

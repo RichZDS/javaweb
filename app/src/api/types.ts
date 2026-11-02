@@ -156,6 +156,9 @@ export interface PracticeSession {
 export interface PracticeSummary {
   id: number
   mode: PracticeMode
+  /** 归属考试（一级分类）；没选目标考试时开的练习为 null */
+  rootCategoryId: number | null
+  rootCategoryName: string | null
   questionCount: number
   answeredCount: number
   correctCount: number
@@ -347,6 +350,9 @@ export interface ExamRecordSummary {
   recordId: number
   paperId: number
   title: string
+  /** 试卷所属考试（一级分类） */
+  rootCategoryId: number | null
+  rootCategoryName: string | null
   status: string
   score: number | null
   totalScore: number
