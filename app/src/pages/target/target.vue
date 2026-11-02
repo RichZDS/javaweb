@@ -61,8 +61,7 @@ async function load() {
   loading.value = true
   loadFailed.value = false
   try {
-    // 不传 rootId：全部一级分类（考试）
-    exams.value = (await categoryApi.tree()).filter((c) => c.level === 1)
+    exams.value = await categoryApi.exams()
   } catch {
     loadFailed.value = true
   } finally {

@@ -145,9 +145,7 @@ async function load() {
     wrongApi.groups(),
   ])
   if (treeRes.status === 'fulfilled') {
-    // 传了 rootId 时返回该考试的整棵树；兼容返回数组或单个根节点
-    const data = treeRes.value as CategoryNode[] | CategoryNode
-    tree.value = Array.isArray(data) ? data.find((n) => n.id === rootId) ?? data[0] ?? null : data
+    tree.value = treeRes.value
     treeState.value = 'ready'
     loadedFor = rootId
     const first = subjects.value[0]
@@ -184,8 +182,26 @@ function goTarget() {
   uni.navigateTo({ url: PAGES.target })
 }
 
+/** 点章节：顺序练习（同章有未完成的就接着做）或随机刷题 */
 function openChapter(ch: CategoryNode) {
-  uni.navigateTo({ url: `${PAGES.practiceSetup}?categoryId=${ch.id}` })
+  uni.showActionSheet({
+    itemList: ['顺序练习（接着上次做）', '随机刷题'],
+    success: async (res) => {
+      if (res.tapIndex === 1) {
+        uni.navigateTo({ url: `${PAGES.practiceSetup}?categoryId=${ch.id}` })
+        return
+      }
+      uni.showLoading({ title: '准备题目' })
+      try {
+        const session = await practiceApi.start({ mode: 'SEQUENTIAL', categoryIds: [ch.id] }, ['POOL_INSUFFICIENT'])
+        uni.hideLoading()
+        uni.navigateTo({ url: `${PAGES.practiceAnswer}?id=${session.id}` })
+      } catch (e) {
+        uni.hideLoading()
+        if ((e as { code?: string }).code === 'POOL_INSUFFICIENT') uni.showToast({ title: '这一章还没有题', icon: 'none' })
+      }
+    },
+  })
 }
 
 async function startDaily() {
@@ -202,7 +218,7 @@ async function startDaily() {
 async function continuePractice() {
   // 以服务器为准再取一次，避免显示的是旧数据
   try {
-    const latest = await practiceApi.current()
+    const latest = await practiceApi.current(false)
     current.value = latest
     if (!latest) {
       uni.showToast({ title: '没有未完成的练习', icon: 'none' })

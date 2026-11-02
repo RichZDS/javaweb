@@ -42,6 +42,18 @@
 - 练习：`SEQUENTIAL` 必须且只能给一个分类；`RANDOM`、`TAG` 不给 `categoryIds` 时用目标考试；`DAILY` 题不足 10 道时按实际数量出（0 道 409）；`RETRY` 只取仍是已发布状态的题。
 - 分类树上的题量、已做数、正确率只算已发布的题；所有统计只算 `answered = true` 的作答。
 - 调小 `wrongRemoveThreshold` 不会立即批量移出，等这道题下一次在错题练习或重做中答对时再按新阈值判断。
+- 请求体类型严格：数字字段只收 JSON 数字（小数不会截断成整数）、布尔字段只收 `true` / `false`、字符串字段只收 JSON 字符串（包括 `userAnswer` 数组里的每一项）。类型不对返回 400 `VALIDATION_FAILED`，`fields` 指出字段路径。查询参数不受此限。
+
+### 0.2 补充约定（后端 M2 定稿）
+
+- `myAttempts` 只数已结算的场次；`myBestScore` 没考过为 `null`。没有目标考试也没传 `categoryId` 时，`GET /api/exams` 列出全部上架试卷。
+- 下架的试卷，须知和开考都返回 404；已经开考的那场仍可继续作答和交卷。
+- 截止后才交卷、或被定时任务结算的，一律记为超时（`TIMEOUT`），`submittedAt` 等于截止时间；截止前手动交卷记为 `MANUAL`。
+- 结算时每题都写作答记录，未答的 `answered = false`，不进统计、不进错题本。
+- 排行榜默认按目标考试，只算正常状态的用户，并列同名次（1、1、3）。
+- 连续打卡只看目标考试的每日一练，全部提交才算那天完成，日期取那一组的 `dailyDate`。
+- `days` 取 1–365、`limit` 取 1–50，超出返回 400；`period` 目前只支持 `WEEK`。
+- 章节统计按作答时题目所在的章节归属；薄弱点正确率相同时，样本多的排前面。
 
 ## 1. 题目的表示
 
@@ -187,7 +199,7 @@
 | GET | `/api/exams/{paperId}` | 考前须知：上面字段 + `description` + `scoringRules`（判分规则说明文字） |
 | POST | `/api/exams/{paperId}/start` | 开考。已有进行中的同卷考试则返回它（200），否则新建（201）。规则卷题不够返回 409 `POOL_INSUFFICIENT`，`data.gaps = [{categoryId, categoryPath, type, need, available}]` |
 | GET | `/api/exam-records/{id}` | 进行中返回 `ExamSheet`，已结算返回 `ExamResult` |
-| PUT | `/api/exam-records/{id}/answers/{questionId}` | `{userAnswer, version, marked}`。`version` 由客户端每题递增。服务器只接受比已存版本大的；旧版本返回 `{accepted:false, version:<已存版本>}`。截止后返回 409 `EXAM_EXPIRED`，不保存 |
+| PUT | `/api/exam-records/{id}/answers/{questionId}` | `{userAnswer, version, marked}`。`version` 由客户端每题递增。返回 `{accepted, version}`：版本更大时保存并返回 `{accepted:true, version:<本次版本>}`；不更大时不保存，返回 `{accepted:false, version:<已存版本>}`。截止后返回 409 `EXAM_EXPIRED`，不保存 |
 | POST | `/api/exam-records/{id}/submit` | 交卷并结算，可重复调用，只结算一次，返回 `ExamResult` |
 | GET | `/api/exam-records?paperId=&page=&size=` | 考试记录 `{recordId, paperId, title, status, score, totalScore, passed, startedAt, submittedAt}` |
 
@@ -213,7 +225,7 @@
   "correctCount": 30, "wrongCount": 8, "unansweredCount": 2,
   "byType": [ { "type": "SINGLE", "score": 40, "total": 50, "rate": 0.8 } ],
   "byCategory": [ { "categoryId": 12, "categoryPath": "…", "score": 10, "total": 14, "rate": 0.71 } ],
-  "items": [ { "index": 1, "questionId": 101, "type": "SINGLE", "stemHtml": "…", "options": [], "userAnswer": ["B"], "correctAnswer": ["A"], "acceptedAnswers": null, "correct": false, "score": 0, "maxScore": 2, "analysisHtml": "…" } ]
+  "items": [ { "index": 1, "questionId": 101, "type": "SINGLE", "stemHtml": "…", "options": [], "blankCount": 0, "imageUrl": null, "userAnswer": ["B"], "correctAnswer": ["A"], "acceptedAnswers": null, "correct": false, "score": 0, "maxScore": 2, "analysisHtml": "…" } ]
 }
 ```
 

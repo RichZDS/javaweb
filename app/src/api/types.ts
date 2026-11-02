@@ -33,6 +33,8 @@ export interface User {
   status: string
   targetCategoryId: number | null
   targetCategoryName: string | null
+  /** 错题练习连续答对几次自动移出，默认 3 */
+  wrongRemoveThreshold: number
   createdAt: string
 }
 
@@ -219,4 +221,166 @@ export interface StatsOverview {
   streakDays: number
   todayAnswerCount: number
   examCount: number
+}
+
+// ---------- 模拟考试 ----------
+
+export interface ExamPaper {
+  paperId: number
+  title: string
+  categoryId: number
+  mode: 'FIXED' | 'RULE'
+  questionCount: number
+  totalScore: number
+  passScore: number
+  durationMin: number
+  myAttempts: number
+  myBestScore: number | null
+  inProgressRecordId: number | null
+}
+
+export interface ExamNotice extends ExamPaper {
+  description: string | null
+  scoringRules: string | null
+}
+
+export interface PoolGap {
+  categoryId: number
+  categoryPath: string
+  type: QuestionType
+  need: number
+  available: number
+}
+
+/** 考试卷面上的题：不含任何答案和解析 */
+export interface ExamSheetQuestion {
+  index: number
+  questionId: number
+  type: QuestionType
+  stemHtml: string
+  options: QuestionOption[]
+  blankCount: number
+  imageUrl: string | null
+  score: number
+}
+
+export interface ExamSavedAnswer {
+  questionId: number
+  userAnswer: string[]
+  version: number
+  marked: boolean
+  savedAt?: string
+}
+
+/** 进行中的考试 */
+export interface ExamSheet {
+  recordId: number
+  paperId: number
+  title: string
+  status: 'IN_PROGRESS'
+  startedAt: string
+  deadlineAt: string
+  serverTime: string
+  durationMin: number
+  totalScore: number
+  passScore: number
+  questions: ExamSheetQuestion[]
+  answers: ExamSavedAnswer[]
+}
+
+export interface ScoreBreakdown {
+  score: number
+  total: number
+  rate: number | null
+}
+
+export interface ExamResultItem {
+  index: number
+  questionId: number
+  type: QuestionType
+  stemHtml: string
+  options: QuestionOption[]
+  blankCount?: number
+  imageUrl?: string | null
+  userAnswer: string[] | null
+  correctAnswer: string[] | null
+  acceptedAnswers: string[][] | null
+  correct: boolean
+  score: number
+  maxScore: number
+  analysisHtml: string | null
+}
+
+/** 已结算的考试（成绩单） */
+export interface ExamResult {
+  recordId: number
+  paperId: number
+  title: string
+  status: string
+  score: number
+  totalScore: number
+  passScore: number
+  passed: boolean
+  startedAt: string
+  submittedAt: string | null
+  durationSec: number
+  correctCount: number
+  wrongCount: number
+  unansweredCount: number
+  byType: (ScoreBreakdown & { type: QuestionType })[]
+  byCategory: (ScoreBreakdown & { categoryId: number; categoryPath: string })[]
+  items: ExamResultItem[]
+}
+
+export interface ExamRecordSummary {
+  recordId: number
+  paperId: number
+  title: string
+  status: string
+  score: number | null
+  totalScore: number
+  passed: boolean | null
+  startedAt: string
+  submittedAt: string | null
+}
+
+// ---------- 统计（第二批） ----------
+
+export interface DailyStat {
+  date: string
+  answerCount: number
+  correctCount: number
+  correctRate: number | null
+}
+
+export interface CategoryStat {
+  categoryId: number
+  categoryPath: string
+  questionCount: number
+  doneCount: number
+  answerCount: number
+  correctRate: number | null
+}
+
+export interface WeakPoint {
+  categoryId: number
+  categoryPath: string
+  sampleCount: number
+  correctRate: number | null
+}
+
+export interface ExamScoreStat {
+  recordId: number
+  paperId: number
+  title: string
+  score: number
+  totalScore: number
+  passScore: number
+  rate: number | null
+  submittedAt: string
+}
+
+export interface Leaderboard {
+  items: { rank: number; nickname: string; avatarUrl: string | null; answerCount: number }[]
+  me: { rank: number | null; answerCount: number }
 }
