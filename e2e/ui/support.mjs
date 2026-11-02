@@ -6,7 +6,7 @@ const stage = (process.env.QA_STAGE || 'm1').replace(/[^a-zA-Z0-9_-]/g, '_');
 const run = new Date().toISOString().replace(/[:.]/g, '-');
 export const shotRoot = process.env.SHOT_DIR || `/data/crew/qzd-5b1e/shots/qa-${stage}`;
 
-export async function step(page, info, name, action) {
+export async function step(page, info, name, action, screenshotOptions = {}) {
   return test.step(name, async () => {
     const dir = path.join(shotRoot, run, info.project.name);
     await mkdir(dir, { recursive: true });
@@ -20,7 +20,7 @@ export async function step(page, info, name, action) {
     finally {
       const file = path.join(dir, `${name.replace(/[^a-zA-Z0-9\u4e00-\u9fff_-]/g, '_')}.png`);
       try {
-        await page.screenshot({ path: file, fullPage: true, animations: 'disabled' });
+        await page.screenshot({ path: file, fullPage: true, animations: 'disabled', ...screenshotOptions });
         await info.attach(name, { path: file, contentType: 'image/png' });
       } catch (error) { if (!actionFailed) throw error; }
     }

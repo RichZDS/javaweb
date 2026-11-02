@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { register, items } from './http.mjs';
 
-export const rootName = 'QA M1 自动化验收';
+export const rootName = process.env.QA_FIXTURE_ROOT || 'QA M1 自动化验收';
 export const pools = { mixed: 12, four: 4, single: 1, sparse: 3, empty: 0 };
 export function m1Seed() {
   const questions = [];

@@ -6,7 +6,7 @@ import { BASE_URL } from './http.mjs';
 // it does not implement or claim to verify the App's offline storage/queue.
 export async function offlineProxy(t, token) {
   const target = new URL(BASE_URL);
-  assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(target.hostname), '断网代理仅连接本机');
+  assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(target.hostname) || process.env.QA_STAGING === '1' && target.hostname === '43.142.166.108', '断网代理仅连接本机或已授权预发布目标');
   let online = true;
   const server = http.createServer(async (req, res) => {
     if (!online) { req.socket.destroy(); return; }

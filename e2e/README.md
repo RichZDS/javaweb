@@ -1,6 +1,6 @@
 # 本地端到端测试
 
-独立 Node 22 工程，接口用 `node:test` + `fetch`，页面用 Playwright 1.59.1（匹配本机 chromium 1217）。只对本地隔离测试环境运行；会创建测试账号、分类、题目、试卷和作答记录。
+独立 Node 22 工程，接口用 `node:test` + `fetch`，页面用 Playwright 1.59.1（匹配本机 chromium 1217）。默认对本地隔离环境运行；预发布仅按明确授权使用下述专用入口；会创建测试账号、分类、题目、试卷和作答记录。
 
 ## 首次准备
 
@@ -76,6 +76,26 @@ QA_SCOPE=m3 QA_COLLECT_ONLY=1 sozai-lock light -- npm run test:api
 
 `QA_COLLECT_ONLY` 只支持 m2/m3，结果全部标记 skipped。M2 的截止和周期结算场景分别真实等待约 62 秒、95 秒；不修改系统时间。断网场景实际切断本地代理到 API 的请求，重连后由测试显式补发，验证服务器版本/截止规则，**不代替 App 离线缓存、杀进程或断网 UI 验收**。周期结算先从统计观察结果，再读取记录详情，避免用记录读取触发结算而误报后台已自动结算。下一轮还需确认统计读取没有代替定时任务结算；跨日/跨周与历史连续打卡需受控时间或历史数据，不能从当天用例推断通过。
 
+选项打乱：`QA_SCOPE=shuffle sozai-lock light -- npm run test:api`，页面使用同一 scope 的 `npm run test:ui`。新标签正确/旧字母错答必须从实际映射取得换位样本；随机没有换位时不能假装做过差分验证。
+
+已授权预发布的应用级入口是 `scripts/staging.mjs`。它清除代理变量，浏览器直接连接指定IP，TLS保持正常校验；凭证只在需要管理员的进程中读取权限0600的 `STAGING_CREDENTIAL_FILE`（默认班子 staging-admin.txt），不会回显、写入状态文件或报告。所有新账号以qa_开头。
+
+```bash
+sozai-lock light -- node scripts/staging.mjs prepare
+sozai-lock light -- node scripts/staging.mjs api
+sozai-lock light -- node scripts/staging.mjs shuffle-api
+sozai-lock light -- node scripts/staging.mjs app
+sozai-lock light -- node scripts/staging.mjs exam
+# 以下按已经部署的版本运行
+sozai-lock light -- node scripts/staging.mjs shuffle-ui
+sozai-lock light -- node scripts/staging.mjs repro-submit
+sozai-lock light -- node scripts/staging.mjs upload
+```
+
+prepare 新建独立20题/3卷夹具，并把非认证的根名称写入被忽略的 `.staging-state.json`。复测复用它；数据库重置后才重新准备。可用 `STAGING_COMMIT` 标记工头确认的部署版本。共享预发布会有其他验收写入，因此全站题量/作答/待处理增量不做严格前后相等，日志明确说明；自己章节、账号、试卷的断言保留。这些全站增量不能记成线上已验证。`QA_TEST_NAME` 可按Node正则只复跑命中的场景（例如 `QA_TEST_NAME=EX-01/02/03/19`）；复测日志和首轮日志分别保留。`concurrency-api` 单独跑3项练习并发场景，`admin-shuffle-ui` 跑后台到App的选项打乱流程（需管理员凭证）；单浏览器脚本使用light档。预发布导航等待90秒，仅为容纳跨境静态资源传输，不改变业务断言。设置 `QA_API_TIMINGS=/绝对路径/已有目录/api-timings.jsonl` 可追加API方法、无查询参数路径、HTTP状态和完整响应往返毫秒数，不记录请求体、令牌、响应体或静态资源。此时间包含网络，不能当作服务端处理耗时。
+
+`repro-submit` 在同一账号连续3场并发交卷，随后立即GET，并对照作答/考试/错题计数，避免只看到不一致响应却无法判断持久化状态。
+
 收到工头合并通知后在 `feat/qa` 执行 `git merge main`，再运行：
 
 ```bash
@@ -117,6 +137,8 @@ npm run stack:up
 - `api/contract.test.mjs`：账号、分类/搜索、练习、四题型判分和幂等、背题、顺序/每日、错题、RETRY、收藏、考试/版本/快照/截止、统计、权限、管理 CRUD、纠错、Excel 部分成功。Excel 文件由用例现场生成，无需手工附件。
 - `api/m1.test.mjs`：M1 独立用户 + 临时种子夹具；账号、分类/搜索、判分、练习/RETRY、错题、收藏、设置、权限、纠错，不依赖管理接口。
 - `api/m2.test.mjs`：13 个考试、断网补发、版本、截止、自动结算、统计、排行榜和参数边界场景。
+- `api/concurrency.test.mjs`：同练习同题、同题跨练习、同练习不同题的并发提交，每种3轮；核对响应、持久化结果、统计和错题次数。`QA_SCOPE=all` 包含这3个新增场景。
+- `ui/admin-shuffle.spec.mjs`：后台页面把自建卷从不打乱改为打乱并上架，再用同一个浏览器的手机上下文作答；11对1错，核对新标签、原选项和错题本。
 - `api/m3.test.mjs`：15 个管理权限/CRUD、试卷限制/缺口、快照、纠错、禁用、Excel、看板场景。
 - `ui/app-m1.spec.mjs`：M1 真实页面操作和逐步截图；答案通过题目详情校验，注册、选择、答题、提交、跳页全部经 UI 操作，不用 API 代替操作。
 - `ui/app-m2.spec.mjs`：考试断网拦截/恢复、关页重开、手动/自动交卷、统计六项和排行榜本人数据对账。

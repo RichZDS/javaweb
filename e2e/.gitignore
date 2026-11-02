@@ -5,3 +5,4 @@ test-results/
 .stack-state.json
 .stack-state.json.tmp
 .stack.lock
+.staging-state.json

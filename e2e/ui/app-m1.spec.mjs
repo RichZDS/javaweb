@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { Api, unique, password } from '../lib/http.mjs';
-import { APP_URL } from '../lib/stack-urls.mjs';
+import { APP_URL, allowTestHost } from '../lib/stack-urls.mjs';
 import { step, tap, button, responseFor } from './support.mjs';
 
 test('QA-RUN-01 App M1 真实页面：注册→目标→十题→结果→错题本→重练', async ({ page }, info) => {
@@ -17,10 +17,7 @@ test('QA-RUN-01 App M1 真实页面：注册→目标→十题→结果→错题
   let originalWrong;
   const target = 'Java 程序设计';
   const field = label => page.locator('.field').filter({ has: page.locator('.label').filter({ hasText: new RegExp(`^${label}$`) }) }).locator('input');
-  await page.route('**/*', route => {
-    const url = new URL(route.request().url());
-    return ['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname) ? route.continue() : route.abort();
-  });
+  await page.route('**/*', allowTestHost);
   await step(page, info, '01_AC-01_注册并登录', async () => {
     await page.goto(APP_URL, { waitUntil: 'domcontentloaded' });
     await tap(page, '去注册');
