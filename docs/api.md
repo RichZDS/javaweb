@@ -252,7 +252,7 @@
 | POST | `/api/admin/questions/import` | multipart `file`（xlsx，≤ 5 MB）→ `{total, success, failed: [{row, reason}]}`；整表先校验，部分行错时只导入正确的行 |
 | GET | `/api/admin/papers?categoryId=&status=&page=&size=` | 试卷列表 |
 | GET | `/api/admin/papers/{id}` | 详情：固定卷带 `questions: [{questionId, score, sort, stemPreview, type}]`，规则卷带 `rules: [{categoryId, type, count, score}]` |
-| POST | `/api/admin/papers` | `{title, categoryId, description, mode: "FIXED"|"RULE", durationMin, passScore, questions?, rules?}`，总分由题目或规则自动算出 |
+| POST | `/api/admin/papers` | `{title, categoryId, description, mode: "FIXED"|"RULE", durationMin, passScore, questions?, rules?}`，总分由题目或规则自动算出。`categoryId` 是一级分类（考试）。规则卷每条规则的 `categoryId` 可以是 1–3 级任意分类，但必须属于这份试卷的考试，抽题时包含它下面的全部章节；同一道题不会被两条规则重复抽到。固定卷的题也必须属于这份试卷的考试 |
 | PUT | `/api/admin/papers/{id}` | 修改；有人考过的试卷只能改标题、描述、上下架 |
 | PUT | `/api/admin/papers/{id}/status` | `{status: "ONLINE"|"OFFLINE"}`。上架时校验：固定卷至少 1 道题且 `passScore ≤ totalScore`；规则卷题量够，不够返回 409 带 `gaps` |
 | DELETE | `/api/admin/papers/{id}` | 没人考过才能删 |
