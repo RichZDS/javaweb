@@ -3,4 +3,5 @@ artifacts/
 playwright-report/
 test-results/
 .stack-state.json
+.stack-state.json.tmp
 .stack.lock

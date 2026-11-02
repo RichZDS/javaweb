@@ -247,7 +247,7 @@ scenario('AD-17：纠错 201 返回对象，空内容和超长内容拒绝', asy
   assert.ok(feedback.id); assert.equal(feedback.questionId, f.questions[0].id); assert.equal(feedback.status, 'PENDING');
 });
 
-const deferred = process.env.QA_SCOPE === 'm1+m2' ? ['管理 CRUD/禁用/Excel（M3）'] : ['考试接口及考试来源 RETRY（M2 另跑）', '统计接口（M2 另跑）', '管理 CRUD/禁用/Excel（M3）'];
+const deferred = process.env.QA_SCOPE === 'all' ? [] : process.env.QA_SCOPE === 'm1+m2' ? ['管理 CRUD/禁用/Excel（M3）'] : ['考试接口及考试来源 RETRY（M2 另跑）', '统计接口（M2 另跑）', '管理 CRUD/禁用/Excel（M3）'];
 for (const area of deferred) {
   test(`本分组不覆盖，非失败：${area}`, { skip: '阶段范围；未作为业务通过或失败' }, () => {});
 }

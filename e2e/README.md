@@ -24,7 +24,7 @@ heavy sozai-lock heavy -- npm run test:ui
 npm run stack:down
 ```
 
-M1 会把现有种子复制到临时目录，再追加 20 道原创验收题，供 API 场景共享只读题库；每个场景仍独立注册用户。通过现有 `app.seed.location` 导入，不依赖未实现的后台接口，不改业务源码。H5 走查使用原始 Java 示例题库与真实页面；入口 `http://127.0.0.1:4173/quiz/`。考试、统计、管理功能在 M1 API 报告中明确跳过，UI 只跑注册到错题重练。
+M1 会把现有种子复制到临时目录，再追加 20 道原创验收题，供 API 场景共享只读题库；每个场景仍独立注册用户。通过现有 `app.seed.location` 导入，不依赖未实现的后台接口，不改业务源码。H5 走查使用原始 Java 示例题库与真实页面；地址由栈随机分配并自动读取。考试、统计、管理功能在 M1 API 报告中标记为本分组未覆盖，UI 只跑注册到错题重练。
 
 M1 的两项缺陷和未知排序值可单独复测：`sozai-lock light -- node scripts/repro-m1-issues.mjs`，只输出接口状态与相关非认证字段，不记录密码或令牌。
 
@@ -51,6 +51,19 @@ npm run stack:down
 ```
 
 此处 UI 只有一个浏览器/一个脚本，按资源规则走 light；默认全套多用例/多浏览器仍用 heavy。`app-m2.spec.mjs` 使用 `context.setOffline` 真正断开浏览器网络，验证待同步时阻止交卷、恢复补传、关页新开恢复草稿、未答提醒取消、手动与到时交卷，并逐项核对统计页面。H5 关页重开不替代真机杀进程测试。结果附件可交给 `node scripts/check-result-fields.mjs <walk-result.json>` 核对成绩单新增字段；原生字符串类型可用 `node scripts/repro-native-strings.mjs` 单独复现。
+
+第三轮全部接口与已校准页面流程（按顺序执行，避免看板增量遇到并发写入）：
+
+```bash
+QA_SCOPE=all npm run stack:up
+QA_SCOPE=all sozai-lock light -- npm run test:api
+QA_SCOPE=m3 QA_STAGE=admin sozai-lock light -- npm run test:ui
+QA_SCOPE=pm QA_STAGE=pm sozai-lock light -- npm run test:ui
+QA_SCOPE=settings QA_STAGE=settings sozai-lock light -- npm run test:ui
+npm run stack:down
+```
+
+`all` 不再跳过 M3；后台走查含代码和图片题、正确/错误混合 Excel、规则缺口、禁用与看板对账。`pm` 覆盖 PM-M3-01/02/03；`settings` 覆盖 PM-M3-04/05 及 H5 可验证的设置。故障复测只拦截指定分类/薄弱点请求，其余调用真实后端。新注册的测试账号统一以 `qa_` 开头。
 
 M2 在临时种子中加入三份固定/规则验收卷，含一分钟卷，因此不依赖 M3 建卷接口。M3 各场景通过管理接口建立独立分类、题目和试卷。M3 看板增量用例应在隔离栈顺序执行，期间不要同时跑 UI 或其他写入者。
 
@@ -86,18 +99,18 @@ heavy sozai-lock heavy -- npm run test:ui
 
 每个 Maven/npm 构建命令在 `stack.mjs` 内检查 PATH：有 `heavy` 就经过班子闸门，有 `sozai-lock` 就同时经过本机 heavy 档，顺序固定为 `heavy → sozai-lock`。没有这些工具时直接执行，便于其他机器运行。`stack.sh` 不在外层重复加锁，直接调用 `node scripts/stack.mjs up` 也使用相同的构建闸门；服务运行期间不占构建锁。
 
-默认端口为后端 `8080`、App `4173`、后台 `4174`。启动前检查端口，冲突时报错，不停止别人服务。关闭时校验 PID 的 Linux 进程启动标识，只停止本栈进程，删除有本栈标记的临时目录。构建或启动失败会自动回收；日志保留在 `e2e/artifacts/stack/`。`bash scripts/stack.sh status` 可查看本栈状态。
+本机 QA 默认由系统随机分配三个空闲端口，地址和所属工作树写入 `.stack-state.json`；API、Playwright 和复现脚本自动读取同一份地址，不必手工复制端口。若显式指定端口，冲突只报错，不停止占用者。启动时记录准确 PID、cwd 和 Linux 启动时间；停止前逐个核验 cwd 必须仍在本工作树且与登记一致、启动时间相同，任何不匹配都会拒绝并保留状态与数据。后端 cwd 是本工作树的 backend，H2/上传仍指向绝对临时路径。
 
-端口覆盖示例（起栈和测试地址要一起设置）：
+构建取消和测试信号转发同样核验已登记根 PID；只从它的 `/proc/.../children` 获取子进程，逐个登记、核验，再发正 PID 信号，不使用名字/端口匹配或进程组停止。登记证据在 `artifacts/stack/processes/`、`artifacts/processes/`，关闭清单在 `artifacts/stack/stop-processes.json`。构建或启动失败会回收已确认属于本栈的进程；身份不明时保留状态，不能假报清理成功。`bash scripts/stack.sh status` 可查看本栈状态。
+
+有明确需要时可指定空闲端口，测试仍自动读取状态中的地址；默认不设置这些变量：
 
 ```bash
 export API_PORT=18080 APP_PORT=14173 ADMIN_PORT=14174
-export BASE_URL=http://127.0.0.1:18080
-export APP_URL=http://127.0.0.1:14173 ADMIN_URL=http://127.0.0.1:14174
 npm run stack:up
 ```
 
-后端 API 默认 `BASE_URL=http://localhost:8080`。本地 dev 管理员为任务单提供的 `admin` / `admin123`，可用 `ADMIN_USERNAME` / `ADMIN_PASSWORD` 覆盖；不要向日志或报告打印。每个 API 场景单独创建随机用户名、密码和分类树，不依赖前一个场景或示例题顺序。结束整个测试栈会销毁这些数据。
+显式 `BASE_URL` / `APP_URL` / `ADMIN_URL` 优先于本栈地址；没有状态文件时 API 才退回原来的 `http://localhost:8080`。本机走查使用脚本起栈并自动读地址。本地 dev 管理员为任务单提供的 `admin` / `admin123`，可用 `ADMIN_USERNAME` / `ADMIN_PASSWORD` 覆盖；不要向日志或报告打印。每个 API 场景单独创建随机用户名、密码和分类树，不依赖前一个场景或示例题顺序。结束整个测试栈会销毁这些数据。
 
 ## 用例与证据
 

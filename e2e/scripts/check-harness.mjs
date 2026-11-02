@@ -8,6 +8,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createServer } from 'node:net';
 import { setTimeout as delay } from 'node:timers/promises';
+import { trackChild, processInfo } from '../lib/process-owner.mjs';
 
 const scripts = fileURLToPath(new URL('.', import.meta.url));
 const exists = p => access(p).then(() => true, () => false);
@@ -20,7 +21,10 @@ async function port() {
 }
 async function exec(file, args, env) {
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [file, ...args], { env, stdio: ['ignore', 'pipe', 'pipe'] });
+    const root = path.dirname(path.dirname(path.dirname(file)));
+    const child = spawn(process.execPath, [file, ...args], { cwd: root, env, stdio: ['ignore', 'pipe', 'pipe'] });
+    const tracked = trackChild(child, root, path.join(root, 'e2e/artifacts/processes'), 'harness-controller');
+    tracked.ready.catch(reject);
     let output = '';
     child.stdout.on('data', data => { output += data; });
     child.stderr.on('data', data => { output += data; });
@@ -34,9 +38,10 @@ async function sandbox(t) {
   // Only our fake executables: no accidental host gates or toolchain during self-checks.
   const env = { ...process.env, PATH: bin, API_PORT: String(await port()), APP_PORT: String(await port()), ADMIN_PORT: String(await port()) };
   const stack = path.join(root, 'e2e/scripts/stack.mjs');
-  for (const dir of ['bin', 'backend/target', 'app/dist/build/h5', 'admin/dist', 'e2e/scripts']) await mkdir(path.join(root, dir), { recursive: true });
+  for (const dir of ['bin', 'backend/target', 'app/dist/build/h5', 'admin/dist', 'e2e/scripts', 'e2e/lib']) await mkdir(path.join(root, dir), { recursive: true });
   await cp(path.join(scripts, 'stack.mjs'), stack);
   await cp(path.join(scripts, 'static-server.mjs'), path.join(root, 'e2e/scripts/static-server.mjs'));
+  for (const file of ['process-owner.mjs', 'stack-urls.mjs']) await cp(path.join(scripts, '../lib', file), path.join(root, 'e2e/lib', file));
   for (const file of ['backend/pom.xml', 'backend/target/test.jar', 'app/package-lock.json', 'admin/package-lock.json']) await writeFile(path.join(root, file), '{}');
   for (const name of ['mvn', 'npm']) await writeFile(path.join(bin, name), '#!/bin/sh\nexit 0\n', { mode: 0o755 });
   const fake = `#!${process.execPath}
@@ -102,7 +107,7 @@ for (const scope of ['m1', 'm2']) test(`栈自检：${scope} 无管理后台也�
   await rm(path.join(f.root, 'admin'), { recursive: true });
   await mkdir(path.join(f.root, 'backend/src/main/resources/seed'), { recursive: true });
   await writeFile(path.join(f.root, 'backend/src/main/resources/seed/00-original.json'), '{}');
-  await mkdir(path.join(f.root, 'e2e/lib'));
+  await mkdir(path.join(f.root, 'e2e/lib'), { recursive: true });
   for (const file of ['m1-fixtures.mjs', 'm2-fixtures.mjs', 'http.mjs']) await cp(path.join(scripts, '../lib', file), path.join(f.root, 'e2e/lib', file));
   const result = await exec(f.stack, ['up'], { ...f.env, QA_SCOPE: scope });
   assert.equal(result.code, 0, result.output);
@@ -147,9 +152,11 @@ test('栈自检：占用端口拒绝启动，不影响原服务', { timeout: 100
 test('栈自检：构建中断后停止子进程并清除状态和临时目录', { timeout: 10000 }, async t => {
   const f = await sandbox(t);
   await writeFile(path.join(f.bin, 'mvn'), `#!${process.execPath}\nconsole.log('building-pid=' + process.pid);\nsetInterval(() => {}, 1000);\n`, { mode: 0o755 });
-  const child = spawn(process.execPath, [f.stack, 'up'], { env: f.env, stdio: 'ignore' });
+  const child = spawn(process.execPath, [f.stack, 'up'], { cwd: f.root, env: f.env, stdio: 'ignore' });
+  const tracked = trackChild(child, f.root, path.join(f.root, 'e2e/artifacts/processes'), 'interrupt-controller');
+  await tracked.ready;
   const ended = new Promise(resolve => child.once('exit', (code, signal) => resolve({ code, signal })));
-  t.after(() => { if (child.exitCode === null) child.kill('SIGTERM'); });
+  t.after(async () => { if (child.exitCode === null) await tracked.stop(); });
   let state;
   let pid;
   for (let i = 0; i < 80; i++) {
@@ -163,9 +170,59 @@ test('栈自检：构建中断后停止子进程并清除状态和临时目录',
     await delay(50);
   }
   assert.ok(pid, 'fake Maven 已进入构建');
-  child.kill('SIGTERM');
+  // Only signal the exact registered controller; its handler checks/stops its build tree.
+  const { checkOwned } = await import('../lib/process-owner.mjs');
+  const controller = await tracked.ready;
+  if (await checkOwned(controller, f.root)) process.kill(controller.pid, 'SIGTERM');
   assert.equal((await ended).code, 143);
   assert.equal(await exists(f.stateFile), false);
   assert.equal(await exists(state.tempDir), false);
-  assert.throws(() => process.kill(pid, 0), /ESRCH/);
+  assert.equal(await processInfo(pid), null);
+});
+
+test('栈自检：默认随机端口、服务cwd位于工作树，客户端读取本栈地址', { timeout: 30000 }, async t => {
+  const f = await sandbox(t); const env = { ...f.env };
+  for (const key of ['API_PORT', 'APP_PORT', 'ADMIN_PORT', 'BASE_URL', 'APP_URL', 'ADMIN_URL']) delete env[key];
+  assert.equal((await exec(f.stack, ['up'], env)).code, 0);
+  const state = JSON.parse(await readFile(f.stateFile, 'utf8'));
+  assert.equal(new Set(state.ports).size, 3);
+  assert.ok(state.ports.every(p => p >= 1024 && p <= 65535));
+  assert.equal(state.processes.find(p => p.label === 'backend').cwd, path.join(f.root, 'backend'));
+  assert.ok(state.processes.every(p => p.cwd === f.root || p.cwd.startsWith(`${f.root}/`)));
+  const reader = path.join(f.root, 'e2e/scripts/read-urls.mjs');
+  await writeFile(reader, "import * as urls from '../lib/stack-urls.mjs'; console.log(JSON.stringify(urls));");
+  const urls = await exec(reader, [], env);
+  assert.equal(urls.code, 0, urls.output);
+  assert.equal(JSON.parse(urls.output).BASE_URL, state.urls.api);
+  assert.equal(JSON.parse(urls.output).APP_URL, state.urls.app);
+});
+
+test('栈自检：cwd或启动时间不匹配时不发信号、不删状态/数据', { timeout: 30000 }, async t => {
+  const f = await sandbox(t); assert.equal((await exec(f.stack, ['up'], f.env)).code, 0);
+  const original = JSON.parse(await readFile(f.stateFile, 'utf8'));
+  try {
+    for (const patch of [{ cwd: path.join(f.root, 'unexpected') }, { birth: '0' }]) {
+      const changed = structuredClone(original); Object.assign(changed.processes[0], patch);
+      await writeFile(f.stateFile, JSON.stringify(changed));
+      const down = await exec(f.stack, ['down'], f.env);
+      assert.equal(down.code, 1); assert.match(down.output, /拒绝停止/);
+      assert.ok(await exists(f.stateFile)); assert.ok(await exists(original.tempDir));
+      assert.equal((await fetch(`${original.urls.api}/api/app/version?platform=android`)).status, 200);
+    }
+  } finally { await writeFile(f.stateFile, JSON.stringify(original)); }
+});
+
+test('栈自检：另一工作树同名服务PID即使被写入本状态也不会被停止', { timeout: 30000 }, async t => {
+  const own = await sandbox(t); const other = await sandbox(t);
+  assert.equal((await exec(own.stack, ['up'], own.env)).code, 0);
+  assert.equal((await exec(other.stack, ['up'], other.env)).code, 0);
+  const original = JSON.parse(await readFile(own.stateFile, 'utf8'));
+  const foreign = JSON.parse(await readFile(other.stateFile, 'utf8'));
+  try {
+    await writeFile(own.stateFile, JSON.stringify({ ...original, processes: foreign.processes }));
+    const down = await exec(own.stack, ['down'], own.env);
+    assert.equal(down.code, 1); assert.match(down.output, /不属于本工作树/);
+    assert.equal((await fetch(`${foreign.urls.api}/api/app/version?platform=android`)).status, 200);
+    assert.ok(await exists(original.tempDir));
+  } finally { await writeFile(own.stateFile, JSON.stringify(original)); }
 });

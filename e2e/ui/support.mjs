@@ -14,7 +14,7 @@ export async function step(page, info, name, action) {
     try {
       await action();
       // Capture the settled screen after uni-app's transient toast/loading fades.
-      await expect(page.locator('.uni-toast:visible, .uni-sample-toast:visible')).toHaveCount(0, { timeout: 7000 });
+      await expect(page.locator('.uni-toast:visible, .uni-sample-toast:visible, .el-message:visible')).toHaveCount(0, { timeout: 7000 });
     }
     catch (error) { actionFailed = true; throw error; }
     finally {
