@@ -1,0 +1,922 @@
+{
+  "questions": [
+    {
+      "ref": "co-data-01",
+      "category": "co-data",
+      "type": "SINGLE",
+      "stem": "无符号 8 位整数能表示的最大值是多少？",
+      "analysis": "8 位有 256 种编码，从 0 起到 255；256 是编码数量。",
+      "difficulty": 2,
+      "tags": [
+        "数据表示与运算"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "127",
+        "256",
+        "128",
+        "255"
+      ],
+      "answer": [
+        "D"
+      ]
+    },
+    {
+      "ref": "co-data-02",
+      "category": "co-data",
+      "type": "SINGLE",
+      "stem": "十进制 13 的二进制表示是什么？",
+      "analysis": "13=8+4+1，对应 1101；1011 表示 11。",
+      "difficulty": 2,
+      "tags": [
+        "数据表示与运算"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "1101",
+        "1011",
+        "1110",
+        "1001"
+      ],
+      "answer": [
+        "A"
+      ]
+    },
+    {
+      "ref": "co-data-03",
+      "category": "co-data",
+      "type": "SINGLE",
+      "stem": "8 位补码 11111110 表示什么整数？",
+      "analysis": "最高位权重为 -128，其余位合计 126，结果 -2；254 是按无符号解释。",
+      "difficulty": 2,
+      "tags": [
+        "数据表示与运算"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "-2",
+        "254",
+        "-126",
+        "-1"
+      ],
+      "answer": [
+        "A"
+      ]
+    },
+    {
+      "ref": "co-data-04",
+      "category": "co-data",
+      "type": "SINGLE",
+      "stem": "8 位有符号补码的表示范围是什么？",
+      "analysis": "补码负数比正数多一个编码，用于 -128；0 只占一种编码。",
+      "difficulty": 2,
+      "tags": [
+        "数据表示与运算"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "-128 到 127",
+        "-128 到 128",
+        "0 到 255",
+        "-127 到 127"
+      ],
+      "answer": [
+        "A"
+      ]
+    },
+    {
+      "ref": "co-data-05",
+      "category": "co-data",
+      "type": "SINGLE",
+      "stem": "8 位补码中 100 加 60 的数学结果超出范围，称为什么？",
+      "analysis": "结果 160 超过最大 127，是有符号溢出；不由是否产生最高进位单独决定。",
+      "difficulty": 2,
+      "tags": [
+        "数据表示与运算"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "溢出",
+        "地址对齐",
+        "除零",
+        "缓存命中"
+      ],
+      "answer": [
+        "A"
+      ]
+    },
+    {
+      "ref": "co-data-06",
+      "category": "co-data",
+      "type": "SINGLE",
+      "stem": "十六进制 2A 对应十进制多少？",
+      "analysis": "2×16+10=42；A 的数值为 10，不能按十进制位权计算。",
+      "difficulty": 2,
+      "tags": [
+        "数据表示与运算"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "42",
+        "210",
+        "24",
+        "32"
+      ],
+      "answer": [
+        "A"
+      ]
+    },
+    {
+      "ref": "co-data-07",
+      "category": "co-data",
+      "type": "SINGLE",
+      "stem": "一个字节通常由多少位组成？",
+      "analysis": "字节是 8 位；机器字可为 32 或 64 位，不能与字节混淆。",
+      "difficulty": 2,
+      "tags": [
+        "数据表示与运算"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "64",
+        "8",
+        "4",
+        "16"
+      ],
+      "answer": [
+        "B"
+      ]
+    },
+    {
+      "ref": "co-data-08",
+      "category": "co-data",
+      "type": "SINGLE",
+      "stem": "位串 00110100 与 00001111 按位 AND，结果是什么？",
+      "analysis": "仅两串都为 1 的位置保留，低四位得到 0100；OR 才会保留任一为 1 的位。",
+      "difficulty": 3,
+      "tags": [
+        "数据表示与运算"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "00111111",
+        "00111011",
+        "00000100",
+        "00000000"
+      ],
+      "answer": [
+        "C"
+      ]
+    },
+    {
+      "ref": "co-data-09",
+      "category": "co-data",
+      "type": "SINGLE",
+      "stem": "二进制整数右移一位并在高位补 0，对非负无符号数相当于什么？",
+      "analysis": "低位被丢弃，相当于整数除以 2；不是保留小数的实数除法。",
+      "difficulty": 3,
+      "tags": [
+        "数据表示与运算"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "恒等不变",
+        "乘以 2",
+        "加 1",
+        "除以 2 后向下取整"
+      ],
+      "answer": [
+        "D"
+      ]
+    },
+    {
+      "ref": "co-data-10",
+      "category": "co-data",
+      "type": "MULTIPLE",
+      "stem": "关于补码，哪些成立？",
+      "analysis": "补码零唯一，减法可转化为加负数；最高位为 1 表示负数，位宽仍限制范围。",
+      "difficulty": 3,
+      "tags": [
+        "数据表示与运算"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "补码没有表示范围限制",
+        "零只有一种补码表示",
+        "最高位为 1 时一定表示正数",
+        "同位宽下补码可统一部分加减运算电路"
+      ],
+      "answer": [
+        "B",
+        "D"
+      ]
+    },
+    {
+      "ref": "co-data-11",
+      "category": "co-data",
+      "type": "MULTIPLE",
+      "stem": "关于浮点数，哪些成立？",
+      "analysis": "有限尾数造成精度限制；二进制中 0.1 等不能精确表示，运算重排可能改变舍入结果。",
+      "difficulty": 3,
+      "tags": [
+        "数据表示与运算"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "计算可能发生舍入",
+        "所有十进制小数都能精确表示",
+        "有限位数只能表示部分实数",
+        "加法永远满足任意重排不改变结果"
+      ],
+      "answer": [
+        "A",
+        "C"
+      ]
+    },
+    {
+      "ref": "co-data-12",
+      "category": "co-data",
+      "type": "MULTIPLE",
+      "stem": "关于整数加法标志，哪些成立？",
+      "analysis": "进位看无符号最高位，有符号溢出看符号和范围；二者不能互相替代。",
+      "difficulty": 4,
+      "tags": [
+        "数据表示与运算"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "无符号进位与有符号溢出是不同概念",
+        "两个正补码数相加得到负结果说明有符号溢出",
+        "有进位就一定有符号溢出",
+        "没有进位就绝不发生有符号溢出"
+      ],
+      "answer": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "ref": "co-data-13",
+      "category": "co-data",
+      "type": "JUDGE",
+      "stem": "把 8 位无符号数扩展为 16 位且保留数值，应在高位补 0。",
+      "analysis": "无符号扩展补零；符号扩展是有符号补码的规则。",
+      "difficulty": 1,
+      "tags": [
+        "数据表示与运算"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "answer": [
+        "T"
+      ]
+    },
+    {
+      "ref": "co-data-14",
+      "category": "co-data",
+      "type": "JUDGE",
+      "stem": "符号扩展 8 位补码负数时，在高位补 0 可以保持其负值不变。",
+      "analysis": "应重复符号位 1；补 0 会把负数变成正整数。",
+      "difficulty": 1,
+      "tags": [
+        "数据表示与运算"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "answer": [
+        "F"
+      ]
+    },
+    {
+      "ref": "co-data-15",
+      "category": "co-data",
+      "type": "FILL",
+      "stem": "一个按字节编址的内存有 4096 字节，地址至少需要 ____ 位。",
+      "analysis": "4096=2 的 12 次方，需要区分 4096 个字节地址；不要再乘每字节的 8 位。",
+      "difficulty": 3,
+      "tags": [
+        "数据表示与运算"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "answer": [
+        [
+          "12"
+        ]
+      ],
+      "fillOptions": {
+        "ignoreCase": false,
+        "ignoreSpaces": false
+      }
+    },
+    {
+      "ref": "co-memory-01",
+      "category": "co-memory",
+      "type": "SINGLE",
+      "stem": "CPU 寄存器、缓存、主存中，通常访问延迟最小的是哪个？",
+      "analysis": "寄存器紧邻执行单元，容量小且访问快；大容量存储通常更慢。",
+      "difficulty": 2,
+      "tags": [
+        "存储层次与缓存"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "磁盘",
+        "网络存储",
+        "寄存器",
+        "主存"
+      ],
+      "answer": [
+        "C"
+      ]
+    },
+    {
+      "ref": "co-memory-02",
+      "category": "co-memory",
+      "type": "SINGLE",
+      "stem": "循环不断读取同一个变量，主要体现什么局部性？",
+      "analysis": "短期内重复访问同一地址是时间局部性；邻近地址连续访问才是典型空间局部性。",
+      "difficulty": 2,
+      "tags": [
+        "存储层次与缓存"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "时间局部性",
+        "随机局部性",
+        "空间局部性且绝无时间局部性",
+        "没有局部性"
+      ],
+      "answer": [
+        "A"
+      ]
+    },
+    {
+      "ref": "co-memory-03",
+      "category": "co-memory",
+      "type": "SINGLE",
+      "stem": "顺序扫描数组通常更容易利用哪种局部性？",
+      "analysis": "连续元素地址邻近，加载一个缓存块会带入后续元素。",
+      "difficulty": 2,
+      "tags": [
+        "存储层次与缓存"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "网络拥塞",
+        "空间局部性",
+        "数据完全随机性",
+        "中断嵌套"
+      ],
+      "answer": [
+        "B"
+      ]
+    },
+    {
+      "ref": "co-memory-04",
+      "category": "co-memory",
+      "type": "SINGLE",
+      "stem": "缓存命中率 90%，命中耗时 2 ns，未命中额外代价 40 ns，平均耗时是多少？",
+      "analysis": "平均为 2+0.1×40=6 ns；题设的 40 是额外代价而非含命中检查的总时间。",
+      "difficulty": 3,
+      "tags": [
+        "存储层次与缓存"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "42 ns",
+        "6 ns",
+        "4 ns",
+        "38 ns"
+      ],
+      "answer": [
+        "B"
+      ]
+    },
+    {
+      "ref": "co-memory-05",
+      "category": "co-memory",
+      "type": "SINGLE",
+      "stem": "直接映射缓存中，一个主存块能映射到几条缓存行？",
+      "analysis": "直接映射由块号确定唯一缓存行；全相联才允许任意行。",
+      "difficulty": 2,
+      "tags": [
+        "存储层次与缓存"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "任意一条",
+        "恰好两条",
+        "唯一一条指定行",
+        "整个缓存所有行同时占用"
+      ],
+      "answer": [
+        "C"
+      ]
+    },
+    {
+      "ref": "co-memory-06",
+      "category": "co-memory",
+      "type": "SINGLE",
+      "stem": "组相联缓存中，主存块先确定什么？",
+      "analysis": "块被映射到一个组，再在组内选择行；不是整个缓存任意放置。",
+      "difficulty": 2,
+      "tags": [
+        "存储层次与缓存"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "所属组",
+        "唯一硬盘扇区",
+        "必须占全部缓存",
+        "程序的源代码行号"
+      ],
+      "answer": [
+        "A"
+      ]
+    },
+    {
+      "ref": "co-memory-07",
+      "category": "co-memory",
+      "type": "SINGLE",
+      "stem": "写回缓存中的脏位通常表示什么？",
+      "analysis": "脏位记录与下层数据不一致；失效状态由有效位等信息表示。",
+      "difficulty": 2,
+      "tags": [
+        "存储层次与缓存"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "该块从未被访问",
+        "缓存块已修改但尚未同步回下层",
+        "该块必有硬件故障",
+        "该块已经无效"
+      ],
+      "answer": [
+        "B"
+      ]
+    },
+    {
+      "ref": "co-memory-08",
+      "category": "co-memory",
+      "type": "SINGLE",
+      "stem": "断电后常规 DRAM 内容怎样？",
+      "analysis": "DRAM 是易失存储，需要供电和刷新；不会自动持久化。",
+      "difficulty": 2,
+      "tags": [
+        "存储层次与缓存"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "永久保留",
+        "自动变成 ROM",
+        "不能保证保留",
+        "必然完整复制到磁盘"
+      ],
+      "answer": [
+        "C"
+      ]
+    },
+    {
+      "ref": "co-memory-09",
+      "category": "co-memory",
+      "type": "SINGLE",
+      "stem": "缓存块大小 32 字节，块内偏移需要几位？",
+      "analysis": "32=2⁵，5 位足以定位块内字节；不要把字节数当位数。",
+      "difficulty": 4,
+      "tags": [
+        "存储层次与缓存"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "5",
+        "8",
+        "32",
+        "4"
+      ],
+      "answer": [
+        "A"
+      ]
+    },
+    {
+      "ref": "co-memory-10",
+      "category": "co-memory",
+      "type": "MULTIPLE",
+      "stem": "提高缓存有效性的做法有哪些？",
+      "analysis": "顺序访问利用空间局部性，近期复用利用时间局部性；随机访问通常降低命中。",
+      "difficulty": 3,
+      "tags": [
+        "存储层次与缓存"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "把所有数据访问都改为随机访问",
+        "尽量按数组存储顺序遍历",
+        "总是跳到毫无关联的远处地址",
+        "重复使用短时间内刚访问的数据"
+      ],
+      "answer": [
+        "B",
+        "D"
+      ]
+    },
+    {
+      "ref": "co-memory-11",
+      "category": "co-memory",
+      "type": "MULTIPLE",
+      "stem": "关于存储层次，哪些成立？",
+      "analysis": "快而小的层次靠局部性覆盖大而慢层；缓存命中无需磁盘。",
+      "difficulty": 3,
+      "tags": [
+        "存储层次与缓存"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "寄存器与机械硬盘访问速度通常相同",
+        "缓存命中意味着一定要先访问磁盘",
+        "缓存用于缓解处理器与主存速度差",
+        "主存容量通常大于寄存器容量"
+      ],
+      "answer": [
+        "C",
+        "D"
+      ]
+    },
+    {
+      "ref": "co-memory-12",
+      "category": "co-memory",
+      "type": "MULTIPLE",
+      "stem": "关于虚拟地址与缓存，哪些说法成立？",
+      "analysis": "地址转换可失败或缺页，TLB 加速转换；页表还能承载有效性和保护信息。",
+      "difficulty": 4,
+      "tags": [
+        "存储层次与缓存"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "TLB 可缓存地址转换信息",
+        "虚拟地址不等同于必然存在的物理位置",
+        "TLB 保存整个硬盘的数据副本",
+        "页表项永远不需要权限信息"
+      ],
+      "answer": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "ref": "co-memory-13",
+      "category": "co-memory",
+      "type": "JUDGE",
+      "stem": "只要增大缓存容量，任何程序的运行时间都一定减半。",
+      "analysis": "收益依赖访存比例和局部性，不能从容量直接推出固定倍数。",
+      "difficulty": 1,
+      "tags": [
+        "存储层次与缓存"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "answer": [
+        "F"
+      ]
+    },
+    {
+      "ref": "co-memory-14",
+      "category": "co-memory",
+      "type": "JUDGE",
+      "stem": "ROM 和 DRAM 的主要区别之一是典型 ROM 不依赖持续供电保存已写内容。",
+      "analysis": "ROM 通常非易失，DRAM 易失；读取速度快慢不是这个定义的核心。",
+      "difficulty": 1,
+      "tags": [
+        "存储层次与缓存"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "answer": [
+        "T"
+      ]
+    },
+    {
+      "ref": "co-memory-15",
+      "category": "co-memory",
+      "type": "FILL",
+      "stem": "一块 2 KiB 缓存，块大小 64 字节，不计元数据，共能放 ____ 个块。",
+      "analysis": "2 KiB=2048 字节，2048÷64=32；KiB 是 1024 字节，不是 1000。",
+      "difficulty": 3,
+      "tags": [
+        "存储层次与缓存"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "answer": [
+        [
+          "32"
+        ]
+      ],
+      "fillOptions": {
+        "ignoreCase": false,
+        "ignoreSpaces": false
+      }
+    },
+    {
+      "ref": "co-cpu-01",
+      "category": "co-cpu",
+      "type": "SINGLE",
+      "stem": "程序计数器 PC 的典型作用是什么？",
+      "analysis": "PC 用于控制取指位置；它不是保存整个程序的容器。",
+      "difficulty": 2,
+      "tags": [
+        "指令、流水线与 IO"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "记录下一条待取指令的地址",
+        "专门保存磁盘容量",
+        "保存全部源代码",
+        "统计键盘按键总数"
+      ],
+      "answer": [
+        "A"
+      ]
+    },
+    {
+      "ref": "co-cpu-02",
+      "category": "co-cpu",
+      "type": "SINGLE",
+      "stem": "指令的操作码主要说明什么？",
+      "analysis": "操作码确定加减、访存、跳转等动作；操作数位置由其他字段或寻址方式提供。",
+      "difficulty": 2,
+      "tags": [
+        "指令、流水线与 IO"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "程序作者姓名",
+        "要执行哪类操作",
+        "操作系统版本",
+        "内存总容量"
+      ],
+      "answer": [
+        "B"
+      ]
+    },
+    {
+      "ref": "co-cpu-03",
+      "category": "co-cpu",
+      "type": "SINGLE",
+      "stem": "立即寻址的操作数通常放在哪里？",
+      "analysis": "立即数编码在指令中，无需再按地址取该操作数。",
+      "difficulty": 2,
+      "tags": [
+        "指令、流水线与 IO"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "必须位于硬盘文件",
+        "只可能是网络包",
+        "一定是栈顶",
+        "指令中直接给出"
+      ],
+      "answer": [
+        "D"
+      ]
+    },
+    {
+      "ref": "co-cpu-04",
+      "category": "co-cpu",
+      "type": "SINGLE",
+      "stem": "流水线的主要目标是什么？",
+      "analysis": "流水化重叠处理提升整体吞吐，单条指令延迟不一定降低。",
+      "difficulty": 2,
+      "tags": [
+        "指令、流水线与 IO"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "消除全部数据依赖",
+        "让任何程序都零延迟",
+        "让多条指令的不同阶段重叠提高吞吐",
+        "保证单条指令每阶段都消失"
+      ],
+      "answer": [
+        "C"
+      ]
+    },
+    {
+      "ref": "co-cpu-05",
+      "category": "co-cpu",
+      "type": "SINGLE",
+      "stem": "后一条指令要读取前一条尚未写回的结果，这属于什么？",
+      "analysis": "读后写完成之前的数据依赖造成数据冒险；控制冒险主要来自分支。",
+      "difficulty": 3,
+      "tags": [
+        "指令、流水线与 IO"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "数据冒险",
+        "纯控制冒险",
+        "电源中断",
+        "磁盘碎片"
+      ],
+      "answer": [
+        "A"
+      ]
+    },
+    {
+      "ref": "co-cpu-06",
+      "category": "co-cpu",
+      "type": "SINGLE",
+      "stem": "转发技术主要用来缓解什么？",
+      "analysis": "把结果直接传给后续阶段可减少等待写回；不能修复资源容量或源码问题。",
+      "difficulty": 2,
+      "tags": [
+        "指令、流水线与 IO"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "硬盘容量不足",
+        "程序源文件缺失",
+        "网络 IP 冲突",
+        "流水线数据依赖导致的等待"
+      ],
+      "answer": [
+        "D"
+      ]
+    },
+    {
+      "ref": "co-cpu-07",
+      "category": "co-cpu",
+      "type": "SINGLE",
+      "stem": "分支预测失败常见代价是什么？",
+      "analysis": "预测错要清理错误路径，产生流水线气泡；并不等于永久停机。",
+      "difficulty": 2,
+      "tags": [
+        "指令、流水线与 IO"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "丢弃错误路径指令并重新取指",
+        "永远停止 CPU",
+        "修改所有用户密码",
+        "自动增加主存容量"
+      ],
+      "answer": [
+        "A"
+      ]
+    },
+    {
+      "ref": "co-cpu-08",
+      "category": "co-cpu",
+      "type": "SINGLE",
+      "stem": "DMA 的典型优势是什么？",
+      "analysis": "DMA 控制器承担数据搬移，CPU 仍负责启动和完成处理。",
+      "difficulty": 2,
+      "tags": [
+        "指令、流水线与 IO"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "从此不需要设备控制器",
+        "让所有磁盘都变成寄存器",
+        "块数据传送时减轻 CPU 逐字搬运负担",
+        "完全不使用内存"
+      ],
+      "answer": [
+        "C"
+      ]
+    },
+    {
+      "ref": "co-cpu-09",
+      "category": "co-cpu",
+      "type": "SINGLE",
+      "stem": "理想 4 级流水线每级 1 拍、无停顿，连续完成 7 条指令需几拍？",
+      "analysis": "首条需要 4 拍，之后每拍一条，4+7-1=10；28 是完全不重叠执行。",
+      "difficulty": 4,
+      "tags": [
+        "指令、流水线与 IO"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "4",
+        "7",
+        "28",
+        "10"
+      ],
+      "answer": [
+        "D"
+      ]
+    },
+    {
+      "ref": "co-cpu-10",
+      "category": "co-cpu",
+      "type": "MULTIPLE",
+      "stem": "关于中断，哪些成立？",
+      "analysis": "中断使处理器暂时转去处理事件，保存现场后可返回；不等于重启。",
+      "difficulty": 3,
+      "tags": [
+        "指令、流水线与 IO"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "外设可用中断通知 CPU 事件",
+        "处理中断通常需要保存返回所需现场",
+        "中断与正常指令流绝不发生交替",
+        "每次中断都必须重启操作系统"
+      ],
+      "answer": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "ref": "co-cpu-11",
+      "category": "co-cpu",
+      "type": "MULTIPLE",
+      "stem": "关于流水线，哪些成立？",
+      "analysis": "资源冲突和分支均可停顿；加深流水线还受开销和预测失败影响。",
+      "difficulty": 3,
+      "tags": [
+        "指令、流水线与 IO"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "只要有流水线就不存在数据相关",
+        "控制冒险可能来自分支跳转",
+        "结构冒险可能来自资源争用",
+        "流水线级数越多性能必然无限提升"
+      ],
+      "answer": [
+        "B",
+        "C"
+      ]
+    },
+    {
+      "ref": "co-cpu-12",
+      "category": "co-cpu",
+      "type": "MULTIPLE",
+      "stem": "比较 CPU 性能时，哪些判断成立？",
+      "analysis": "执行时间=指令数×CPI×周期；比较需同时考虑三个因素，不能仅凭一个指标。",
+      "difficulty": 5,
+      "tags": [
+        "指令、流水线与 IO"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "执行时间还与时钟周期有关",
+        "主频最高者对所有程序都最快",
+        "相同指令数下 CPI 更低可能缩短耗时",
+        "只看指令数即可忽略 CPI 和频率"
+      ],
+      "answer": [
+        "A",
+        "C"
+      ]
+    },
+    {
+      "ref": "co-cpu-13",
+      "category": "co-cpu",
+      "type": "JUDGE",
+      "stem": "在指令数和 CPI 相同的前提下，时钟周期缩短一半，CPU 执行时间也缩短一半。",
+      "analysis": "由指令数×CPI×时钟周期可直接计算；前提固定另外两项十分关键。",
+      "difficulty": 1,
+      "tags": [
+        "指令、流水线与 IO"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "answer": [
+        "T"
+      ]
+    },
+    {
+      "ref": "co-cpu-14",
+      "category": "co-cpu",
+      "type": "JUDGE",
+      "stem": "轮询 IO 时，CPU 必然一次查询后就永远不再检查设备状态。",
+      "analysis": "轮询需要反复检查直到就绪，可能浪费等待周期；不是一次性通知。",
+      "difficulty": 1,
+      "tags": [
+        "指令、流水线与 IO"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "answer": [
+        "F"
+      ]
+    },
+    {
+      "ref": "co-cpu-15",
+      "category": "co-cpu",
+      "type": "FILL",
+      "stem": "程序执行 200 条指令，平均 CPI 为 3，共需 ____ 个时钟周期。",
+      "analysis": "周期总数为指令数乘平均 CPI，即 200×3=600；频率用于把周期换成时间。",
+      "difficulty": 3,
+      "tags": [
+        "指令、流水线与 IO"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "answer": [
+        [
+          "600"
+        ]
+      ],
+      "fillOptions": {
+        "ignoreCase": false,
+        "ignoreSpaces": false
+      }
+    }
+  ]
+}
