@@ -90,3 +90,23 @@ API 汇总为 `tests 22 / pass 18 / fail 1 / skipped 3`。本次将 QA-002 原�
 17 张稳定截图位于 `/data/crew/qzd-5b1e/shots/qa-retest-01/2026-11-02T10-56-22-506Z/app-iphone13/`。已视觉核对主页、首题错答与正确选项标记、90% 结果、错题本及100% 重练结果；截图等待实际 Toast/加载动画消退，不隐藏页面元素。主要文件：`02_AC-08_选择Java考试.png`、`05_PR-12_结果90百分比.png`、`06_WR-01_进入错题本.png`、`08_WR-03_重练结果与连对计数.png`。
 
 环境收尾：后端 PID 194047、App PID 194367 已退出；状态文件和临时 H2 目录已删除；8080、4173 均已重新绑定验证可用。没有留下 watch、服务或构建进程。此次仅修改 `e2e/` 和本报告，不修改业务实现；测试/报告 commit 见班子 worklog-qa.md。后续等待 QA-003 修复及 M2/M3 合并通知再扩展验证。
+
+## 2026-11-02 · QA-R1-OK 后 M2/M3 用例预编写
+
+基线 `main f549fb5`。本轮按工头指令先准备接口用例，**没有启动产品环境，没有执行 M2/M3 业务测试**；下述 skipped 是显式“仅收集”，不能作为功能通过证据，也不同于首轮按未实现范围跳过的三组标记。
+
+| 检查 | 通过 | 失败 | skipped | 退出码 | 证据（e2e/ 下） |
+| --- | ---: | ---: | ---: | ---: | --- |
+| `QA_SCOPE=m2 QA_COLLECT_ONLY=1 sozai-lock light -- npm run test:api` | 0 | 0 | 12 | 0 | `artifacts/m2-m3-prep/m2-collection.log` |
+| `QA_SCOPE=m3 QA_COLLECT_ONLY=1 sozai-lock light -- npm run test:api` | 0 | 0 | 15 | 0 | `artifacts/m2-m3-prep/m3-collection.log` |
+| `sozai-lock light -- node --test scripts/check-harness.mjs` | 8 | 0 | 0 | 0 | `artifacts/m2-m3-prep/harness.log` |
+| `sozai-lock light -- node --test scripts/check-offline-proxy.mjs` | 1 | 0 | 0 | 0 | `artifacts/m2-m3-prep/proxy.log` |
+| `QA_SCOPE=m2 npm run test:api`（无服务预检） | 0 | 0 | 0 | 2 | `artifacts/m2-m3-prep/no-service.log`；提示服务未启动，未运行业务场景 |
+
+新增文件 `api/m2.test.mjs`（12 场景）、`api/m3.test.mjs`（15 场景）。M2 使用临时种子建立三份固定/规则卷，包括一分钟卷，避免依赖 M3；M3 通过管理员接口独立建数据。编排与代理检查使用假服务，仅验证测试工具自身。
+
+M2 对应 EX-01/02/03/07/08/09/10/11/12/13/14/15/16/19/20/21/23/24、ST-01/02/03/04/07/08/09、DY-08、NF-01 的相关接口行为：断开传输与补发、版本防覆盖、并发交卷幂等、加权分数、未答排除、截止拒收、后台结算、记录/最好成绩、规则去重、统计对账和周榜。M3 对应 AD-01～11、AD-13～22 与 EX-17/18/21/22、CA-04/09、NF-01 的相关接口行为；没有覆盖上传图片 UI 的 AD-12。
+
+边界说明：断网代理只验证服务器在收到/未收到请求时的行为，不声称测过 App 离线队列。自动结算场景不提前读取记录详情，先检查统计；真实执行时还需确认统计读取不会主动触发结算。跨北京时间零点、周界、历史连续打卡仍待受控时间/历史夹具，当前没有证据。API 没有规定部分业务限制的精确 HTTP 错误码时，用例只接受 4xx 并验证没有完成非法发布或修改，不把 500 当作合法拒绝。
+
+所有新增 JS 通过语法检查，`git diff --check` 退出 0。无产品截图、无新增业务缺陷结论。等待后端 M2/QA-003、M3 合入后的实跑通知。
