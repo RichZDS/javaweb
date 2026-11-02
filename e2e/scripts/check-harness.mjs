@@ -85,6 +85,7 @@ test('栈自检：起服务、SPA/静态资源/API 代理、重复启动拒绝�
   assert.match((await fetch(`${admin}/app.js`)).headers.get('content-type'), /javascript/);
   assert.equal((await fetch(`${admin}/missing.js`)).status, 404);
   assert.equal((await (await fetch(`${admin}/api/test?x=1`)).json()).data.path, '/api/test?x=1');
+  assert.match(await (await fetch(`http://127.0.0.1:${f.env.APP_PORT}/quiz/history-route`)).text(), /H5 harness/);
   assert.notEqual((await exec(f.stack, ['up'], f.env)).code, 0);
   assert.equal((await exec(f.stack, ['down'], f.env)).code, 0);
   assert.equal(await exists(f.stateFile), false);
@@ -94,6 +95,24 @@ test('栈自检：起服务、SPA/静态资源/API 代理、重复启动拒绝�
     await new Promise((resolve, reject) => { probe.once('error', reject); probe.listen(p, '127.0.0.1', resolve); });
     await new Promise(resolve => probe.close(resolve));
   }
+});
+
+test('栈自检：M1 无管理后台也可启动，隔离追加种子并关闭两个进程', { timeout: 30000 }, async t => {
+  const f = await sandbox(t);
+  await rm(path.join(f.root, 'admin'), { recursive: true });
+  await mkdir(path.join(f.root, 'backend/src/main/resources/seed'), { recursive: true });
+  await writeFile(path.join(f.root, 'backend/src/main/resources/seed/00-original.json'), '{}');
+  await mkdir(path.join(f.root, 'e2e/lib'));
+  for (const file of ['m1-fixtures.mjs', 'http.mjs']) await cp(path.join(scripts, '../lib', file), path.join(f.root, 'e2e/lib', file));
+  const result = await exec(f.stack, ['up'], { ...f.env, QA_SCOPE: 'm1' });
+  assert.equal(result.code, 0, result.output);
+  assert.doesNotMatch(result.output, /ADMIN_URL/);
+  const state = JSON.parse(await readFile(f.stateFile, 'utf8'));
+  assert.equal(state.processes.length, 2);
+  assert.ok(await exists(path.join(state.tempDir, 'seed/00-original.json')));
+  assert.equal(JSON.parse(await readFile(path.join(state.tempDir, 'seed/99-qa-m1.json'))).questions.length, 20);
+  await exec(f.stack, ['down'], f.env);
+  assert.equal(await exists(state.tempDir), false);
 });
 
 test('栈自检：构建失败保留日志，清除状态和临时目录', { timeout: 10000 }, async t => {
