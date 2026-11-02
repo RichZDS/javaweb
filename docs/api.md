@@ -72,7 +72,7 @@
   - 不传参数：只列本人目标考试下的记录；本人没有目标考试时列全部。
   - `categoryId`：只列这个一级分类（考试）下的记录；不是一级分类返回 400 `VALIDATION_FAILED`（`fields` 指向 `categoryId`）。
   - `all=true`：列本人全部记录，忽略 `categoryId`。
-  - 练习按 `practice_session.root_category_id` 归属；它为空的练习（没有目标考试时开的跨考试练习）只在 `all=true` 或本人没有目标考试时列出。考试按试卷的 `categoryId` 归属。
+  - 练习按开始时记下的考试（`practice_session.root_category_id`）归属：选了分类时是第一个分类所属的考试，没选分类时是本人目标考试。没有目标考试时开的错题、收藏练习不属于任何考试（为空），只在 `all=true` 或本人没有目标考试时列出。考试按试卷的 `categoryId` 归属。
   - 每项带 `rootCategoryId`、`rootCategoryName`（归属考试的 id 和名称，练习可能为 `null`），供“全部考试”视图显示来源。
 - 搜题 `GET /api/questions/search` 的 `categoryId` 本来就支持 1–3 级任意分类；App 搜题页默认传目标考试，并让学生把范围缩到科目或章节。接口不变。
 
