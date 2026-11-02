@@ -1,0 +1,256 @@
+{
+  "categories": [
+    {
+      "key": "cs408",
+      "name": "计算机考研 408",
+      "children": [
+        {
+          "key": "ds",
+          "name": "数据结构",
+          "children": [
+            {
+              "key": "ds-linear",
+              "name": "线性表、栈与队列"
+            },
+            {
+              "key": "ds-tree",
+              "name": "树与图"
+            },
+            {
+              "key": "ds-search",
+              "name": "查找、排序与散列"
+            }
+          ]
+        },
+        {
+          "key": "co",
+          "name": "计算机组成原理",
+          "children": [
+            {
+              "key": "co-data",
+              "name": "数据表示与运算"
+            },
+            {
+              "key": "co-memory",
+              "name": "存储层次与缓存"
+            },
+            {
+              "key": "co-cpu",
+              "name": "指令、流水线与 IO"
+            }
+          ]
+        },
+        {
+          "key": "os",
+          "name": "操作系统",
+          "children": [
+            {
+              "key": "os-process",
+              "name": "进程、线程与同步"
+            },
+            {
+              "key": "os-memory",
+              "name": "内存管理与虚拟存储"
+            },
+            {
+              "key": "os-files",
+              "name": "文件、调度与 IO"
+            }
+          ]
+        },
+        {
+          "key": "cn",
+          "name": "计算机网络",
+          "children": [
+            {
+              "key": "cn-link",
+              "name": "分层、链路与以太网"
+            },
+            {
+              "key": "cn-ip",
+              "name": "网络层与路由"
+            },
+            {
+              "key": "cn-app",
+              "name": "传输层与应用协议"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "java",
+      "name": "Java 程序设计",
+      "children": [
+        {
+          "key": "java-basic",
+          "name": "基础语法",
+          "children": [
+            {
+              "key": "jb-types",
+              "name": "类型、运算与转换"
+            },
+            {
+              "key": "jb-control",
+              "name": "条件、循环与方法"
+            },
+            {
+              "key": "jb-strings",
+              "name": "字符串与数组"
+            }
+          ]
+        },
+        {
+          "key": "java-oop",
+          "name": "面向对象",
+          "children": [
+            {
+              "key": "jo-class",
+              "name": "封装、构造与对象"
+            },
+            {
+              "key": "jo-inherit",
+              "name": "继承、多态与重写"
+            },
+            {
+              "key": "jo-interface",
+              "name": "接口、抽象与组合"
+            }
+          ]
+        },
+        {
+          "key": "java-collections",
+          "name": "集合与泛型",
+          "children": [
+            {
+              "key": "jc-list",
+              "name": "List 与迭代"
+            },
+            {
+              "key": "jc-set",
+              "name": "Set、Map 与散列约定"
+            },
+            {
+              "key": "jc-generic",
+              "name": "泛型与比较规则"
+            }
+          ]
+        },
+        {
+          "key": "java-io",
+          "name": "异常与 IO",
+          "children": [
+            {
+              "key": "ji-exception",
+              "name": "异常处理与资源关闭"
+            },
+            {
+              "key": "ji-stream",
+              "name": "字节流与缓冲"
+            },
+            {
+              "key": "ji-text",
+              "name": "字符编码与文本文件"
+            }
+          ]
+        },
+        {
+          "key": "java-thread",
+          "name": "多线程",
+          "children": [
+            {
+              "key": "jt-life",
+              "name": "线程生命周期与协作"
+            },
+            {
+              "key": "jt-sync",
+              "name": "锁、可见性与原子性"
+            },
+            {
+              "key": "jt-pool",
+              "name": "执行器、Future 与任务"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "db",
+      "name": "数据库原理与 MySQL",
+      "children": [
+        {
+          "key": "db-model",
+          "name": "关系模型",
+          "children": [
+            {
+              "key": "dm-rel",
+              "name": "关系、元组与关系运算"
+            },
+            {
+              "key": "dm-keys",
+              "name": "主键、外键与约束"
+            },
+            {
+              "key": "dm-normal",
+              "name": "函数依赖与规范化"
+            }
+          ]
+        },
+        {
+          "key": "db-sql",
+          "name": "SQL 查询",
+          "children": [
+            {
+              "key": "dq-select",
+              "name": "筛选、NULL 与排序"
+            },
+            {
+              "key": "dq-group",
+              "name": "聚合、分组与子查询"
+            },
+            {
+              "key": "dq-join",
+              "name": "连接、更新与结果集"
+            }
+          ]
+        },
+        {
+          "key": "db-tx",
+          "name": "事务与并发",
+          "children": [
+            {
+              "key": "dt-acid",
+              "name": "事务、提交与回滚"
+            },
+            {
+              "key": "dt-isolation",
+              "name": "隔离级别与读取现象"
+            },
+            {
+              "key": "dt-lock",
+              "name": "锁、死锁与并发更新"
+            }
+          ]
+        },
+        {
+          "key": "db-index",
+          "name": "索引与优化",
+          "children": [
+            {
+              "key": "di-tree",
+              "name": "B+ 树与索引结构"
+            },
+            {
+              "key": "di-plan",
+              "name": "执行计划与查询诊断"
+            },
+            {
+              "key": "di-design",
+              "name": "索引设计与性能权衡"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

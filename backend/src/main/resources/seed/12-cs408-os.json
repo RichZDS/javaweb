@@ -1,0 +1,925 @@
+{
+  "questions": [
+    {
+      "ref": "os-process-01",
+      "category": "os-process",
+      "type": "SINGLE",
+      "stem": "进程和程序的主要区别是什么？",
+      "analysis": "程序是静态指令集合，进程含执行状态和资源；同一程序可有多个进程。",
+      "difficulty": 2,
+      "tags": [
+        "进程、线程与同步"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "进程是程序的一次执行及其状态",
+        "进程只能存在于源代码文件",
+        "两者永远完全相同",
+        "程序一定在运行"
+      ],
+      "answer": [
+        "A"
+      ]
+    },
+    {
+      "ref": "os-process-02",
+      "category": "os-process",
+      "type": "SINGLE",
+      "stem": "同一进程的多个线程通常共享什么？",
+      "analysis": "线程共享进程资源，但各有执行位置和栈；共享地址空间不等于共享所有执行现场。",
+      "difficulty": 2,
+      "tags": [
+        "进程、线程与同步"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "所有线程必须共享同一程序计数器值",
+        "进程的地址空间",
+        "每个线程独有的栈顶寄存器",
+        "每个线程的独立调用栈内容必然完全相同"
+      ],
+      "answer": [
+        "B"
+      ]
+    },
+    {
+      "ref": "os-process-03",
+      "category": "os-process",
+      "type": "SINGLE",
+      "stem": "就绪进程与阻塞进程的区别是什么？",
+      "analysis": "就绪已满足执行条件，阻塞在等 IO 等事件，事件到达后可回到就绪。",
+      "difficulty": 2,
+      "tags": [
+        "进程、线程与同步"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "阻塞进程正在占用 CPU 执行用户代码",
+        "两者不可能转换",
+        "就绪只等 CPU，阻塞还等事件",
+        "就绪进程已经终止"
+      ],
+      "answer": [
+        "C"
+      ]
+    },
+    {
+      "ref": "os-process-04",
+      "category": "os-process",
+      "type": "SINGLE",
+      "stem": "两个线程都执行非原子的 count++，可能出现什么？",
+      "analysis": "读、加、写交错可能覆盖彼此的结果，不能把复合操作当作原子操作。",
+      "difficulty": 2,
+      "tags": [
+        "进程、线程与同步"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "自动形成事务",
+        "必然编译失败",
+        "丢失更新",
+        "必然每次增加 2"
+      ],
+      "answer": [
+        "C"
+      ]
+    },
+    {
+      "ref": "os-process-05",
+      "category": "os-process",
+      "type": "SINGLE",
+      "stem": "互斥锁通常保护什么？",
+      "analysis": "锁限制受保护区域并发进入，不会自动处理未受保护的代码或持久化。",
+      "difficulty": 2,
+      "tags": [
+        "进程、线程与同步"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "强制所有代码永远单线程",
+        "同一时刻只让一个线程进入的临界区",
+        "让线程永不阻塞",
+        "让共享变量自动持久化"
+      ],
+      "answer": [
+        "B"
+      ]
+    },
+    {
+      "ref": "os-process-06",
+      "category": "os-process",
+      "type": "SINGLE",
+      "stem": "信号量初值为 3，最多允许几个任务同时持有许可（每个取一个）？",
+      "analysis": "每次获取消耗一个许可，最多三个；许可耗尽后其他任务等待。",
+      "difficulty": 2,
+      "tags": [
+        "进程、线程与同步"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "无限",
+        "6",
+        "1",
+        "3"
+      ],
+      "answer": [
+        "D"
+      ]
+    },
+    {
+      "ref": "os-process-07",
+      "category": "os-process",
+      "type": "SINGLE",
+      "stem": "死锁中“循环等待”的含义是什么？",
+      "analysis": "循环等待针对资源依赖环，与源代码循环和设备旋转无关。",
+      "difficulty": 2,
+      "tags": [
+        "进程、线程与同步"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "CPU 每秒切换很多次",
+        "若干进程首尾相接等待下一进程持有的资源",
+        "一个进程重复执行循环",
+        "磁盘反复旋转"
+      ],
+      "answer": [
+        "B"
+      ]
+    },
+    {
+      "ref": "os-process-08",
+      "category": "os-process",
+      "type": "SINGLE",
+      "stem": "统一规定先拿锁 L1 再拿 L2，主要破坏哪项死锁条件？",
+      "analysis": "固定全局锁顺序防止反向持锁等待形成环；并未取消互斥本身。",
+      "difficulty": 3,
+      "tags": [
+        "进程、线程与同步"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "程序执行",
+        "循环等待",
+        "资源存在",
+        "互斥"
+      ],
+      "answer": [
+        "B"
+      ]
+    },
+    {
+      "ref": "os-process-09",
+      "category": "os-process",
+      "type": "SINGLE",
+      "stem": "生产者消费者有界队列中，“空位”信号量初值应为多少？",
+      "analysis": "开始缓冲区为空，所有位置可写；已有产品数初始为 0，二者不可颠倒。",
+      "difficulty": 4,
+      "tags": [
+        "进程、线程与同步"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "缓冲区容量",
+        "生产者数量",
+        "消费者数量",
+        "0"
+      ],
+      "answer": [
+        "A"
+      ]
+    },
+    {
+      "ref": "os-process-10",
+      "category": "os-process",
+      "type": "MULTIPLE",
+      "stem": "关于线程同步，哪些成立？",
+      "analysis": "同步需要所有相关访问遵守协议，配对释放避免阻塞；增加线程不会自动消除竞争。",
+      "difficulty": 3,
+      "tags": [
+        "进程、线程与同步"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "只给读取方加锁就必然保护所有写入",
+        "线程数越多正确性越有保证",
+        "锁的获取和释放应配对",
+        "对共享可变数据需考虑并发访问"
+      ],
+      "answer": [
+        "C",
+        "D"
+      ]
+    },
+    {
+      "ref": "os-process-11",
+      "category": "os-process",
+      "type": "MULTIPLE",
+      "stem": "死锁必要条件包含哪些？",
+      "analysis": "经典条件还含互斥与循环等待；全部终止或资源永不短缺不会构成该等待死锁。",
+      "difficulty": 3,
+      "tags": [
+        "进程、线程与同步"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "资源数量无限且总能立即获得",
+        "占有并等待",
+        "不可抢占",
+        "所有进程都已终止"
+      ],
+      "answer": [
+        "B",
+        "C"
+      ]
+    },
+    {
+      "ref": "os-process-12",
+      "category": "os-process",
+      "type": "MULTIPLE",
+      "stem": "关于进程切换，哪些成立？",
+      "analysis": "恢复执行依赖保存现场，频繁切换耗时；公平性和吞吐需权衡。",
+      "difficulty": 4,
+      "tags": [
+        "进程、线程与同步"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "切换次数越多性能一定越好",
+        "需要保存被切出执行流的必要状态",
+        "每次切换都会把程序源码删除",
+        "会有调度和现场切换开销"
+      ],
+      "answer": [
+        "B",
+        "D"
+      ]
+    },
+    {
+      "ref": "os-process-13",
+      "category": "os-process",
+      "type": "JUDGE",
+      "stem": "把共享计数器的读、改、写都放在同一把锁保护下，可避免这段更新的相互覆盖。",
+      "analysis": "所有更新都遵守同一互斥协议时不会交错进入；未加锁的其他写入不在该保证内。",
+      "difficulty": 1,
+      "tags": [
+        "进程、线程与同步"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "answer": [
+        "T"
+      ]
+    },
+    {
+      "ref": "os-process-14",
+      "category": "os-process",
+      "type": "JUDGE",
+      "stem": "线程只要调用了 sleep，就自动释放此前持有的所有互斥锁。",
+      "analysis": "睡眠与释放锁是不同操作；持锁睡眠可能使其他线程长时间等待。",
+      "difficulty": 1,
+      "tags": [
+        "进程、线程与同步"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "answer": [
+        "F"
+      ]
+    },
+    {
+      "ref": "os-process-15",
+      "category": "os-process",
+      "type": "FILL",
+      "stem": "阅读下面完整程序，写出标准输出（不写末尾换行）：____。\n\n```python\nevents = []\nfor task in [\"A\", \"B\", \"A\"]:\n    events.append(task)\nprint(\"-\".join(events))\n```",
+      "analysis": "这是确定顺序的事件记录模拟，不启动真实线程；append 依次保存 A、B、A，join 用连字符连接。",
+      "difficulty": 3,
+      "tags": [
+        "进程、线程与同步",
+        "看代码写输出"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "answer": [
+        [
+          "A-B-A"
+        ]
+      ],
+      "fillOptions": {
+        "ignoreCase": false,
+        "ignoreSpaces": false
+      }
+    },
+    {
+      "ref": "os-memory-01",
+      "category": "os-memory",
+      "type": "SINGLE",
+      "stem": "分页系统把虚拟地址通常分为哪两部分？",
+      "analysis": "页号用于查映射，页内偏移定位页中位置；转换通常保留偏移。",
+      "difficulty": 2,
+      "tags": [
+        "内存管理与虚拟存储"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "页号和页内偏移",
+        "用户名和密码",
+        "CPU 型号和主频",
+        "文件名和扩展名"
+      ],
+      "answer": [
+        "A"
+      ]
+    },
+    {
+      "ref": "os-memory-02",
+      "category": "os-memory",
+      "type": "SINGLE",
+      "stem": "页大小 1024 字节，虚拟地址 2500 的页号（从 0 起）是多少？",
+      "analysis": "2500 除以 1024 的商为 2，余数 452 是偏移而不是页号。",
+      "difficulty": 2,
+      "tags": [
+        "内存管理与虚拟存储"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "3",
+        "2",
+        "452",
+        "1024"
+      ],
+      "answer": [
+        "B"
+      ]
+    },
+    {
+      "ref": "os-memory-03",
+      "category": "os-memory",
+      "type": "SINGLE",
+      "stem": "进程访问合法虚拟页但该页尚未驻留主存，通常触发什么？",
+      "analysis": "合法页不在内存需要调入；不是所有缺页都等于非法地址。",
+      "difficulty": 2,
+      "tags": [
+        "内存管理与虚拟存储"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "必然编译错误",
+        "必然网络超时",
+        "缺页异常",
+        "正确率归零"
+      ],
+      "answer": [
+        "C"
+      ]
+    },
+    {
+      "ref": "os-memory-04",
+      "category": "os-memory",
+      "type": "SINGLE",
+      "stem": "LRU 页面置换选择淘汰什么？",
+      "analysis": "LRU 看最近使用时间，LFU 才看访问频率；不能混为一谈。",
+      "difficulty": 2,
+      "tags": [
+        "内存管理与虚拟存储"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "访问次数永远最多的页",
+        "最近最长时间未使用的页",
+        "刚被访问的页",
+        "页号最大的页"
+      ],
+      "answer": [
+        "B"
+      ]
+    },
+    {
+      "ref": "os-memory-05",
+      "category": "os-memory",
+      "type": "SINGLE",
+      "stem": "三个页框中依次访问 A、B、C、A，再访问 D，LRU 淘汰哪页？",
+      "analysis": "最后一次使用从旧到新为 B、C、A；刚再次访问的 A 不该被淘汰。",
+      "difficulty": 3,
+      "tags": [
+        "内存管理与虚拟存储"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "B",
+        "C",
+        "A",
+        "D"
+      ],
+      "answer": [
+        "A"
+      ]
+    },
+    {
+      "ref": "os-memory-06",
+      "category": "os-memory",
+      "type": "SINGLE",
+      "stem": "虚拟内存带来的主要效果之一是什么？",
+      "analysis": "虚拟地址可超出当前驻留物理页并有隔离；硬件容量和访存代价仍然存在。",
+      "difficulty": 2,
+      "tags": [
+        "内存管理与虚拟存储"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "让物理内存容量无限",
+        "保证永不缺页",
+        "给进程提供受映射和保护的地址空间",
+        "使访问磁盘比寄存器快"
+      ],
+      "answer": [
+        "C"
+      ]
+    },
+    {
+      "ref": "os-memory-07",
+      "category": "os-memory",
+      "type": "SINGLE",
+      "stem": "固定大小分页可能在最后一页留下未用空间，这叫什么？",
+      "analysis": "分配单位内部未用部分是内部碎片；可变分区之间的小空洞是外部碎片。",
+      "difficulty": 2,
+      "tags": [
+        "内存管理与虚拟存储"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "内部碎片",
+        "文件名冲突",
+        "网络丢包",
+        "死锁环"
+      ],
+      "answer": [
+        "A"
+      ]
+    },
+    {
+      "ref": "os-memory-08",
+      "category": "os-memory",
+      "type": "SINGLE",
+      "stem": "工作集远大于可用页框且频繁换页，可能出现什么？",
+      "analysis": "大量时间用于调页而非有效执行，就是内存抖动。",
+      "difficulty": 2,
+      "tags": [
+        "内存管理与虚拟存储"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "CPU 缓存无限增大",
+        "编译优化必然成功",
+        "中断永久消失",
+        "抖动"
+      ],
+      "answer": [
+        "D"
+      ]
+    },
+    {
+      "ref": "os-memory-09",
+      "category": "os-memory",
+      "type": "SINGLE",
+      "stem": "某页号映射到物理页框 5，页大小 512 字节，偏移 20，物理地址是什么？",
+      "analysis": "物理地址=5×512+20=2580；页框号不能直接与偏移相加。",
+      "difficulty": 4,
+      "tags": [
+        "内存管理与虚拟存储"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "10240",
+        "2580",
+        "2560",
+        "532"
+      ],
+      "answer": [
+        "B"
+      ]
+    },
+    {
+      "ref": "os-memory-10",
+      "category": "os-memory",
+      "type": "MULTIPLE",
+      "stem": "页表可能记录哪些信息？",
+      "analysis": "页表服务于地址转换和保护，不是编译结构或网页展示的专用容器。",
+      "difficulty": 3,
+      "tags": [
+        "内存管理与虚拟存储"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "每个程序的全部语法树必然存其中",
+        "物理页框号",
+        "页面访问权限",
+        "网页的 CSS 样式必然存其中"
+      ],
+      "answer": [
+        "B",
+        "C"
+      ]
+    },
+    {
+      "ref": "os-memory-11",
+      "category": "os-memory",
+      "type": "MULTIPLE",
+      "stem": "关于虚拟内存，哪些成立？",
+      "analysis": "转换使同地址可对应不同资源；页表权限仍决定访问是否允许。",
+      "difficulty": 3,
+      "tags": [
+        "内存管理与虚拟存储"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "虚拟地址永远等于物理地址",
+        "不同进程的相同虚拟地址可映射到不同物理页",
+        "页表可支持进程隔离",
+        "只要用了分页就不需要权限检查"
+      ],
+      "answer": [
+        "B",
+        "C"
+      ]
+    },
+    {
+      "ref": "os-memory-12",
+      "category": "os-memory",
+      "type": "MULTIPLE",
+      "stem": "关于置换策略，哪些成立？",
+      "analysis": "FIFO 与 LRU 依据不同；最优需未来信息，现实不能普遍预知。",
+      "difficulty": 5,
+      "tags": [
+        "内存管理与虚拟存储"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "最优置换总能在不知未来的实际系统中精确实现",
+        "LRU 关注最近使用历史",
+        "FIFO 一定比所有策略缺页更少",
+        "FIFO 按进入内存的先后顺序选择"
+      ],
+      "answer": [
+        "B",
+        "D"
+      ]
+    },
+    {
+      "ref": "os-memory-13",
+      "category": "os-memory",
+      "type": "JUDGE",
+      "stem": "增大页面大小必然消除所有内部碎片。",
+      "analysis": "更大分配单位反而可能增加尾页浪费，不能保证消除内部碎片。",
+      "difficulty": 1,
+      "tags": [
+        "内存管理与虚拟存储"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "answer": [
+        "F"
+      ]
+    },
+    {
+      "ref": "os-memory-14",
+      "category": "os-memory",
+      "type": "JUDGE",
+      "stem": "只修改虚拟页到物理页框的映射，通常不会改变页内偏移。",
+      "analysis": "分页以整页为单位映射，页内相对位置保持不变。",
+      "difficulty": 1,
+      "tags": [
+        "内存管理与虚拟存储"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "answer": [
+        "T"
+      ]
+    },
+    {
+      "ref": "os-memory-15",
+      "category": "os-memory",
+      "type": "FILL",
+      "stem": "阅读下面完整程序，写出标准输出（不写末尾换行）：____。\n\n```python\naddress = 2500\npage_size = 1024\nprint(address // page_size, address % page_size)\n```",
+      "analysis": "整数商给出页号 2，余数给出页内偏移 452；二者不可颠倒。",
+      "difficulty": 3,
+      "tags": [
+        "内存管理与虚拟存储",
+        "看代码写输出"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "answer": [
+        [
+          "2 452"
+        ]
+      ],
+      "fillOptions": {
+        "ignoreCase": false,
+        "ignoreSpaces": false
+      }
+    },
+    {
+      "ref": "os-files-01",
+      "category": "os-files",
+      "type": "SINGLE",
+      "stem": "绝对路径与相对路径的关键区别是什么？",
+      "analysis": "相对路径依赖当前目录，绝对路径有固定根起点；是否含目录不是区别。",
+      "difficulty": 2,
+      "tags": [
+        "文件、调度与 IO"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "绝对路径必须是数字",
+        "相对路径不能含目录",
+        "两者都只能从当前目录定位",
+        "绝对路径从文件系统根定位"
+      ],
+      "answer": [
+        "D"
+      ]
+    },
+    {
+      "ref": "os-files-02",
+      "category": "os-files",
+      "type": "SINGLE",
+      "stem": "文件描述符通常是什么？",
+      "analysis": "描述符用于访问打开文件状态，不等于数据内容或密码。",
+      "difficulty": 2,
+      "tags": [
+        "文件、调度与 IO"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "硬盘总容量",
+        "进程用于引用已打开文件或 IO 资源的标识",
+        "用户明文密码",
+        "文件内容本身"
+      ],
+      "answer": [
+        "B"
+      ]
+    },
+    {
+      "ref": "os-files-03",
+      "category": "os-files",
+      "type": "SINGLE",
+      "stem": "顺序读取大文件时，用缓冲区批量读取主要减少什么？",
+      "analysis": "合并读取可减少调用开销，不能减少文件本身的信息量。",
+      "difficulty": 2,
+      "tags": [
+        "文件、调度与 IO"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "用户数量",
+        "文件逻辑内容",
+        "文件字节数",
+        "频繁的小额底层 IO 调用"
+      ],
+      "answer": [
+        "D"
+      ]
+    },
+    {
+      "ref": "os-files-04",
+      "category": "os-files",
+      "type": "SINGLE",
+      "stem": "时间片轮转调度主要改善什么？",
+      "analysis": "时间片让任务轮转响应；片太短还可能增加切换开销。",
+      "difficulty": 2,
+      "tags": [
+        "文件、调度与 IO"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "让所有任务同时占一个 CPU 核",
+        "保证最短平均周转时间对任何输入最优",
+        "交互任务轮流获得 CPU 的机会",
+        "消除上下文切换"
+      ],
+      "answer": [
+        "C"
+      ]
+    },
+    {
+      "ref": "os-files-05",
+      "category": "os-files",
+      "type": "SINGLE",
+      "stem": "两个任务同时到达，运行时间分别 2 和 6，先短后长且无切换开销，平均周转时间是多少？",
+      "analysis": "完成时间为 2 和 8，平均 (2+8)/2=5；平均运行时长 4 不是平均周转。",
+      "difficulty": 3,
+      "tags": [
+        "文件、调度与 IO"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "4",
+        "5",
+        "6",
+        "8"
+      ],
+      "answer": [
+        "B"
+      ]
+    },
+    {
+      "ref": "os-files-06",
+      "category": "os-files",
+      "type": "SINGLE",
+      "stem": "优先级调度若持续有高优先级任务到达，低优先级任务可能发生什么？",
+      "analysis": "长期得不到调度叫饥饿；不需要资源环，因此不必是死锁。",
+      "difficulty": 2,
+      "tags": [
+        "文件、调度与 IO"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "必然死锁",
+        "饥饿",
+        "自动结束",
+        "总是先运行"
+      ],
+      "answer": [
+        "B"
+      ]
+    },
+    {
+      "ref": "os-files-07",
+      "category": "os-files",
+      "type": "SINGLE",
+      "stem": "“老化”机制通常如何缓解饥饿？",
+      "analysis": "等待越久优先级提高，可最终得到服务；删除任务不等于完成服务。",
+      "difficulty": 2,
+      "tags": [
+        "文件、调度与 IO"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "永远提高新任务优先级",
+        "逐渐删除等待任务",
+        "关闭所有中断",
+        "逐渐提高等待较久任务的优先级"
+      ],
+      "answer": [
+        "D"
+      ]
+    },
+    {
+      "ref": "os-files-08",
+      "category": "os-files",
+      "type": "SINGLE",
+      "stem": "机械硬盘调度考虑寻道距离，是因为哪一因素？",
+      "analysis": "机械设备有移动磁头的延迟；固态盘没有同样的机械寻道机制。",
+      "difficulty": 2,
+      "tags": [
+        "文件、调度与 IO"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "文件名太长",
+        "磁头移动需要时间",
+        "DRAM 刷新太慢",
+        "CPU 没有寄存器"
+      ],
+      "answer": [
+        "B"
+      ]
+    },
+    {
+      "ref": "os-files-09",
+      "category": "os-files",
+      "type": "SINGLE",
+      "stem": "文件访问权限的作用是什么？",
+      "analysis": "权限做访问控制，不能替代校验、备份或压缩。",
+      "difficulty": 2,
+      "tags": [
+        "文件、调度与 IO"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "控制哪些主体可以读写或执行",
+        "替代所有备份",
+        "保证文件永不损坏",
+        "自动压缩文件"
+      ],
+      "answer": [
+        "A"
+      ]
+    },
+    {
+      "ref": "os-files-10",
+      "category": "os-files",
+      "type": "MULTIPLE",
+      "stem": "关于文件系统，哪些成立？",
+      "analysis": "名称和元数据用于管理，删除目录项与擦除物理内容不同。",
+      "difficulty": 3,
+      "tags": [
+        "文件、调度与 IO"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "删除一个名称必然立即覆写所有物理字节",
+        "目录组织文件名称到文件对象的关系",
+        "文件元数据可包含大小和权限",
+        "文件名一定包含文件全部内容"
+      ],
+      "answer": [
+        "B",
+        "C"
+      ]
+    },
+    {
+      "ref": "os-files-11",
+      "category": "os-files",
+      "type": "MULTIPLE",
+      "stem": "关于 IO，哪些成立？",
+      "analysis": "异步是完成通知方式变化，不消除设备耗时；缓冲数据可能尚未持久化。",
+      "difficulty": 3,
+      "tags": [
+        "文件、调度与 IO"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "异步 IO 完成可用事件通知",
+        "异步意味着设备不需要任何时间",
+        "阻塞 IO 可能使调用线程等待",
+        "缓冲必然导致所有数据实时落盘"
+      ],
+      "answer": [
+        "A",
+        "C"
+      ]
+    },
+    {
+      "ref": "os-files-12",
+      "category": "os-files",
+      "type": "MULTIPLE",
+      "stem": "调度指标包括哪些？",
+      "analysis": "调度看完成与首次响应等时间指标；源码风格不是调度性能指标。",
+      "difficulty": 4,
+      "tags": [
+        "文件、调度与 IO"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "options": [
+        "变量命名是否押韵",
+        "源文件扩展名长度",
+        "周转时间",
+        "响应时间"
+      ],
+      "answer": [
+        "C",
+        "D"
+      ]
+    },
+    {
+      "ref": "os-files-13",
+      "category": "os-files",
+      "type": "JUDGE",
+      "stem": "时间片极小会使切换开销占比可能增大。",
+      "analysis": "每片结束可能切换，片越小单位时间切换越频繁，开销不再可忽略。",
+      "difficulty": 1,
+      "tags": [
+        "文件、调度与 IO"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "answer": [
+        "T"
+      ]
+    },
+    {
+      "ref": "os-files-14",
+      "category": "os-files",
+      "type": "JUDGE",
+      "stem": "有读权限就必然有写权限。",
+      "analysis": "读和写是独立授权，允许查看不等于允许修改。",
+      "difficulty": 1,
+      "tags": [
+        "文件、调度与 IO"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "answer": [
+        "F"
+      ]
+    },
+    {
+      "ref": "os-files-15",
+      "category": "os-files",
+      "type": "FILL",
+      "stem": "阅读下面完整程序，写出标准输出（不写末尾换行）：____。\n\n```python\ndurations = [2, 6]\nfinish = 0\ntotal = 0\nfor d in durations:\n    finish += d\n    total += finish\nprint(total // len(durations))\n```",
+      "analysis": "模拟同时到达且依次执行的两个任务，完成时刻为 2、8，总周转 10，整数平均为 5。",
+      "difficulty": 3,
+      "tags": [
+        "文件、调度与 IO",
+        "看代码写输出"
+      ],
+      "source": "原创（qzd 产品题库）",
+      "answer": [
+        [
+          "5"
+        ]
+      ],
+      "fillOptions": {
+        "ignoreCase": false,
+        "ignoreSpaces": false
+      }
+    }
+  ]
+}
