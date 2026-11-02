@@ -111,6 +111,11 @@ export function interpretResponse<T>(status: number, body: unknown): Interpreted
   return { ok: false, error: new ApiError(code, message, status) }
 }
 
+/** catch 到的任意错误转成 ApiError（非接口错误按网络问题处理） */
+export function toApiError(e: unknown): ApiError {
+  return e instanceof ApiError ? e : networkError()
+}
+
 /** 400 VALIDATION_FAILED 时把 data.fields 拼成一句话，优先展示字段级提示 */
 export function describeError(error: ApiError): string {
   if (error.code === 'VALIDATION_FAILED') {

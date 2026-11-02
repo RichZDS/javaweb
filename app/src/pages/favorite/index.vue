@@ -58,7 +58,16 @@ const total = ref(0)
 const state = ref<'loading' | 'ready' | 'error'>('loading')
 const hasMore = computed(() => list.value.length < total.value)
 
+let loadedFor: number | null = null
+
 onShow(() => {
+  // 切换了目标考试：章节筛选和列表都换成新考试的
+  if (loadedFor !== user.targetCategoryId) {
+    chapters.value = []
+    list.value = []
+    if (loadedFor !== null) categoryId.value = null
+    loadedFor = user.targetCategoryId
+  }
   if (!chapters.value.length && user.targetCategoryId) {
     categoryApi
       .tree(user.targetCategoryId)

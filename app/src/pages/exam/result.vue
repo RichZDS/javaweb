@@ -274,7 +274,7 @@ function goExams() {
 }
 
 .row-name {
-  width: 72px;
+  width: 104px;
   flex: none;
   font-size: var(--fs-sm);
   overflow: hidden;

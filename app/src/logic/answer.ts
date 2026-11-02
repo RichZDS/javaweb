@@ -64,13 +64,17 @@ export function isComplete(type: QuestionType, answer: readonly string[] | null 
   return answer.length === 1
 }
 
-/** 提交前整理：选择题去重，填空题截到空数（不 trim，空白处理按后端规则来） */
-export function toSubmitAnswer(type: QuestionType, answer: readonly string[], blankCount = 0): string[] {
+/**
+ * 提交前整理：选择题去重，填空题截到空数（不 trim，空白处理按后端规则来）。
+ * 每一项都保证是字符串：后端对 userAnswer 的每项严格要求 JSON 字符串。
+ */
+export function toSubmitAnswer(type: QuestionType, answer: readonly unknown[], blankCount = 0): string[] {
+  const asText = (v: unknown) => (v === null || v === undefined ? '' : String(v))
   if (type === 'FILL') {
     const n = Math.max(blankCount, 1)
-    return Array.from({ length: n }, (_, i) => answer[i] ?? '')
+    return Array.from({ length: n }, (_, i) => asText(answer[i]))
   }
-  return [...new Set(answer)]
+  return [...new Set(answer.map(asText))].filter((k) => k !== '')
 }
 
 /** 展示用：`A、C` / `正确` / `第1空 int；第2空 5`；没作答时返回「未作答」 */

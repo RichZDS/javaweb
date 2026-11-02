@@ -1,0 +1,8 @@
+node_modules
+dist
+*.local
+*.log
+
+# 根目录 .gitignore 忽略了 .env.*；这两份只有路径前缀，没有密钥
+!.env.development
+!.env.production

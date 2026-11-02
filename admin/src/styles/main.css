@@ -1,0 +1,72 @@
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
+  background: #f4f6fb;
+  color: #1f2633;
+}
+
+.page-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.toolbar .spacer {
+  flex: 1;
+}
+
+.pager {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.muted {
+  color: #98a0ad;
+  font-size: 13px;
+}
+
+.ellipsis {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* 后端渲染的 Markdown 预览 */
+.md-preview {
+  border: 1px solid #e6e9f0;
+  border-radius: 6px;
+  padding: 10px 12px;
+  min-height: 60px;
+  background: #fafbfd;
+  overflow-wrap: anywhere;
+}
+
+.md-preview pre {
+  overflow-x: auto;
+  font-family: Menlo, Consolas, 'Courier New', monospace;
+  font-size: 13px;
+}
+
+.md-preview p {
+  margin: 0 0 6px;
+}
+
+.md-preview img {
+  max-width: 100%;
+}
