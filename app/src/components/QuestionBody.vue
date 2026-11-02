@@ -25,8 +25,8 @@
       <view v-if="question.type === 'MULTIPLE' && !locked" class="muted qb-hint">多选题：选出全部正确选项后提交</view>
     </view>
 
-    <!-- 填空题：每空一个输入框，看代码写输出可能有多行 -->
-    <view v-else class="qb-blanks">
+    <!-- 填空题：每空一个输入框，看代码写输出可能有多行；只读且没有作答时（背题、看详情）不显示空输入框 -->
+    <view v-else-if="!locked || hasAnyAnswer('FILL', modelValue)" class="qb-blanks">
       <view v-for="(_, i) in blankCount" :key="i" class="qb-blank">
         <text class="qb-blank-label">第 {{ i + 1 }} 空</text>
         <textarea
@@ -46,7 +46,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { QuestionOption, QuestionType } from '@/api/types'
-import { TYPE_LABEL, setBlank, toggleChoice } from '@/logic/answer'
+import { TYPE_LABEL, hasAnyAnswer, setBlank, toggleChoice } from '@/logic/answer'
 import { resolveAssetUrl } from '@/logic/http'
 import { API_BASE } from '@/api/http'
 

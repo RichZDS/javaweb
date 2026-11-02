@@ -418,7 +418,7 @@ async function saveNote() {
   }
   savingNote.value = true
   try {
-    await favoriteApi.save(q.id, note || null)
+    await favoriteApi.save(q.id, note)
     q.favorited = true
     q.note = note || null
     closePopup(notePopup.value)

@@ -218,7 +218,7 @@ async function startDaily() {
 async function continuePractice() {
   // 以服务器为准再取一次，避免显示的是旧数据
   try {
-    const latest = await practiceApi.current()
+    const latest = await practiceApi.current(false)
     current.value = latest
     if (!latest) {
       uni.showToast({ title: '没有未完成的练习', icon: 'none' })

@@ -6,6 +6,7 @@
         class="bar-input"
         confirm-type="search"
         placeholder="输入题干里的关键词"
+        maxlength="50"
         focus
         @confirm="search(1)"
       />

@@ -114,7 +114,7 @@ function editNote(item: FavoriteItem) {
         return
       }
       try {
-        await favoriteApi.save(item.questionId, note || null)
+        await favoriteApi.save(item.questionId, note)
         item.note = note || null
         uni.showToast({ title: '已保存', icon: 'none' })
       } catch {

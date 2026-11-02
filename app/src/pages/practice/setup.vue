@@ -54,7 +54,7 @@
             <text>背题模式</text>
             <text class="muted">直接看答案和解析，不计入统计和错题本</text>
           </view>
-          <switch :checked="recite" color="#3a6cf4" @change="(e: any) => (recite = e.detail.value)" />
+          <switch :checked="recite" color="#3a6cf4" @change="(e: any) => (recite = e.detail.value === true)" />
         </view>
       </view>
 

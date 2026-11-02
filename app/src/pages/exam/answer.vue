@@ -214,7 +214,7 @@ async function load() {
       send: (e) =>
         examApi.saveAnswer(recordId.value, e.questionId, { userAnswer: e.userAnswer, version: e.version, marked: e.marked }),
       fetchServer: async (questionId) => {
-        const fresh = await examApi.record(recordId.value, true)
+        const fresh = await examApi.record(recordId.value)
         return isExamSheet(fresh) ? fresh.answers.find((a) => a.questionId === questionId) ?? null : null
       },
       onDraft: (d) => {
@@ -234,7 +234,7 @@ async function load() {
 async function refreshClock() {
   try {
     const before = monoNow()
-    const data = await examApi.record(recordId.value, true)
+    const data = await examApi.record(recordId.value)
     const after = monoNow()
     if (!isExamSheet(data)) {
       onExpired()
