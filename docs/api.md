@@ -149,7 +149,8 @@
   "types": ["SINGLE", "MULTIPLE"],
   "scope": "ALL",
   "reciteMode": false,
-  "acceptFewer": false
+  "acceptFewer": false,
+  "shuffleOptions": false
 }
 ```
 
@@ -163,16 +164,17 @@
 - `SEQUENTIAL`：同一章节已有未完成的顺序练习时，直接返回那一次（200）。
 - `DAILY`：每人每个目标考试每天一组 10 道，优先没做过的题，不够再补其他题；当天已有就返回那一组（200）。
 - `reciteMode` 为真时是背题模式：题目直接带答案，不能提交，不计入统计和错题本。
+- `shuffleOptions`（默认 `false`）为真时，这一次练习里每道单选、多选题的选项随机排一次并固定，规则见第 6.1 节。对所有模式有效（含背题）；返回已有练习时（同章节未完成的 `SEQUENTIAL`、当天的 `DAILY`）沿用那一次创建时的设置。
 - 新建返回 201，返回已有返回 200，data 都是 `PracticeSession`。
 
 `PracticeSession`：
 
 ```json
 {
-  "id": 9, "mode": "RANDOM", "reciteMode": false, "status": "IN_PROGRESS",
+  "id": 9, "mode": "RANDOM", "reciteMode": false, "shuffleOptions": false, "status": "IN_PROGRESS",
   "questionCount": 20, "answeredCount": 3, "correctCount": 2, "currentIndex": 3,
   "startedAt": "…", "completedAt": null, "dailyDate": null,
-  "questions": [ { "...题目字段": "...", "submitted": true, "userAnswer": ["A"], "correct": true, "correctAnswer": ["A"], "acceptedAnswers": null, "analysisHtml": "…" } ]
+  "questions": [ { "...题目字段": "...", "optionMapping": null, "submitted": true, "userAnswer": ["A"], "correct": true, "correctAnswer": ["A"], "acceptedAnswers": null, "analysisHtml": "…" } ]
 }
 ```
 
@@ -185,7 +187,7 @@
 | GET | `/api/practice/sessions/{id}` | 取一次练习，只能取自己的 |
 | GET | `/api/practice/sessions/current` | 最近一次未完成的非每日练习，没有时 data 为 `null`，用于首页“继续练习” |
 | GET | `/api/practice/sessions?page=&size=` | 练习记录 `{id, mode, questionCount, answeredCount, correctCount, startedAt, completedAt}` |
-| POST | `/api/practice/sessions/{id}/answers` | `{questionId, userAnswer, timeSpentSec}`。返回 `{questionId, correct, userAnswer, correctAnswer, acceptedAnswers, analysisHtml, alreadySubmitted}`。每题只能提交一次，重复提交返回第一次的结果且 `alreadySubmitted=true`。背题模式返回 409 `CONFLICT` |
+| POST | `/api/practice/sessions/{id}/answers` | `{questionId, userAnswer, timeSpentSec}`。返回 `{questionId, correct, userAnswer, correctAnswer, acceptedAnswers, analysisHtml, alreadySubmitted, optionMapping}`。每题只能提交一次，重复提交返回第一次的结果且 `alreadySubmitted=true`。背题模式返回 409 `CONFLICT` |
 | PUT | `/api/practice/sessions/{id}/progress` | `{currentIndex}`，保存看到第几题 |
 | POST | `/api/practice/sessions/{id}/finish` | 结束，返回 `{durationSec, answeredCount, correctCount, correctRate, wrongQuestionIds}`。全部题都提交后自动完成；每日一练只有全部提交才写 `completedAt` |
 
@@ -208,7 +210,7 @@
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
-| GET | `/api/exams?categoryId=` | 已上架试卷 `{paperId, title, categoryId, mode, questionCount, totalScore, passScore, durationMin, myAttempts, myBestScore, inProgressRecordId}`，默认按本人目标考试过滤 |
+| GET | `/api/exams?categoryId=` | 已上架试卷 `{paperId, title, categoryId, mode, questionCount, totalScore, passScore, durationMin, myAttempts, myBestScore, inProgressRecordId, shuffleOptions}`，默认按本人目标考试过滤；`shuffleOptions` 表示开考时是否打乱选项 |
 | GET | `/api/exams/{paperId}` | 考前须知：上面字段 + `description` + `scoringRules`（判分规则说明文字） |
 | POST | `/api/exams/{paperId}/start` | 开考。已有进行中的同卷考试则返回它（200），否则新建（201）。规则卷题不够返回 409 `POOL_INSUFFICIENT`，`data.gaps = [{categoryId, categoryPath, type, need, available}]` |
 | GET | `/api/exam-records/{id}` | 进行中返回 `ExamSheet`，已结算返回 `ExamResult` |
@@ -220,10 +222,10 @@
 
 ```json
 {
-  "recordId": 5, "paperId": 2, "title": "数据结构模拟卷一", "status": "IN_PROGRESS",
+  "recordId": 5, "paperId": 2, "title": "数据结构模拟卷一", "status": "IN_PROGRESS", "shuffleOptions": false,
   "startedAt": "…", "deadlineAt": "…", "serverTime": "…",
   "durationMin": 60, "totalScore": 100, "passScore": 60,
-  "questions": [ { "index": 1, "questionId": 101, "type": "SINGLE", "stemHtml": "…", "options": [], "blankCount": 0, "imageUrl": null, "score": 2 } ],
+  "questions": [ { "index": 1, "questionId": 101, "type": "SINGLE", "stemHtml": "…", "options": [], "blankCount": 0, "imageUrl": null, "score": 2, "optionMapping": null } ],
   "answers": [ { "questionId": 101, "userAnswer": ["A"], "version": 3, "marked": false, "savedAt": "…" } ]
 }
 ```
@@ -238,7 +240,7 @@
   "correctCount": 30, "wrongCount": 8, "unansweredCount": 2,
   "byType": [ { "type": "SINGLE", "score": 40, "total": 50, "rate": 0.8 } ],
   "byCategory": [ { "categoryId": 12, "categoryPath": "…", "score": 10, "total": 14, "rate": 0.71 } ],
-  "items": [ { "index": 1, "questionId": 101, "type": "SINGLE", "stemHtml": "…", "options": [], "blankCount": 0, "imageUrl": null, "userAnswer": ["B"], "correctAnswer": ["A"], "acceptedAnswers": null, "correct": false, "score": 0, "maxScore": 2, "analysisHtml": "…" } ]
+  "items": [ { "index": 1, "questionId": 101, "type": "SINGLE", "stemHtml": "…", "options": [], "blankCount": 0, "imageUrl": null, "userAnswer": ["B"], "correctAnswer": ["A"], "acceptedAnswers": null, "correct": false, "score": 0, "maxScore": 2, "analysisHtml": "…", "optionMapping": null } ]
 }
 ```
 
@@ -246,6 +248,19 @@
 - 截止时间 = 开始时间 + 时长。服务器每 30 秒结算一次已过截止时间的考试；访问记录时发现已过期也立即结算。只按截止前收到的答案算分，未答 0 分。
 - 结算时：写作答记录（来源为考试）；答错的题进错题本；未答的题不进错题本。
 - 进行中的考试，`GET /api/questions/{id}` 对其中的题返回 403。
+- 试卷 `shuffleOptions` 为真时，开考时每道单选、多选题的选项顺序随机排一次，存进这场考试的快照；之后改试卷设置不影响已开考的场次。规则见第 6.1 节。
+
+### 6.1 选项打乱（练习和考试通用）
+
+练习的 `shuffleOptions` 或试卷的 `shuffleOptions` 为真时，这一场里的每道单选、多选题按随机顺序显示；判断题、填空题不打乱。
+
+- “某一场里的题”都带 `optionMapping`（练习的 `questions[]` 和提交返回、`ExamSheet.questions[]`、`ExamResult.items[]`）：新标签 → 原标签，例如 `{"A":"C","B":"A","C":"D","D":"B"}`。没打乱的题（判断、填空，或这一场没开打乱）为 `null`。
+- 打乱的题里，和选项字母有关的字段都用**新标签**：`options[].key` 依次是 A、B、C……，`text` / `html` 是对应原选项的内容；客户端提交、保存的 `userAnswer` 用新标签；返回的 `userAnswer`、`correctAnswer` 用新标签。
+- `analysis` / `analysisHtml` **原文不变**，里面的字母是原标签；前端借 `optionMapping` 在选项旁注明“原选项 C”。
+- 后端把新标签换回原标签再判分、存库，所以作答记录、错题本里都是原标签。错题本的 `lastWrongAnswer` 用原标签（错题本展示的是原题）。
+- 题目详情、搜题、错题本、收藏、后台题目都是“题本身”，不打乱，没有 `optionMapping`。
+- 练习用题目的当前内容：开练习后题目的选项个数被改了，这道题在这一场里按原顺序显示（`optionMapping` 为 `null`）。考试用快照，不受影响。
+- 客户端传了不存在的新标签照常判错。
 
 ## 7. 统计
 
@@ -287,8 +302,8 @@
 | POST | `/api/admin/questions/import` | multipart `file`（xlsx，≤ 5 MB）→ `{total, success, failed: [{row, reason}]}`；整表先校验，部分行错时只导入正确的行 |
 | GET | `/api/admin/papers?categoryId=&status=&page=&size=` | 试卷列表 |
 | GET | `/api/admin/papers/{id}` | 详情：固定卷带 `questions: [{questionId, score, sort, stemPreview, type}]`，规则卷带 `rules: [{categoryId, type, count, score}]` |
-| POST | `/api/admin/papers` | `{title, categoryId, description, mode: "FIXED"|"RULE", durationMin, passScore, questions?, rules?}`，总分由题目或规则自动算出。`categoryId` 是一级分类（考试）。规则卷每条规则的 `categoryId` 可以是 1–3 级任意分类，但必须属于这份试卷的考试，抽题时包含它下面的全部章节；同一道题不会被两条规则重复抽到。固定卷的题也必须属于这份试卷的考试 |
-| PUT | `/api/admin/papers/{id}` | 修改；有人考过的试卷只能改标题、描述、上下架 |
+| POST | `/api/admin/papers` | `{title, categoryId, description, mode: "FIXED"|"RULE", durationMin, passScore, questions?, rules?, shuffleOptions?}`，`shuffleOptions` 默认 `false`；总分由题目或规则自动算出。`categoryId` 是一级分类（考试）。规则卷每条规则的 `categoryId` 可以是 1–3 级任意分类，但必须属于这份试卷的考试，抽题时包含它下面的全部章节；同一道题不会被两条规则重复抽到。固定卷的题也必须属于这份试卷的考试 |
+| PUT | `/api/admin/papers/{id}` | 修改；有人考过的试卷只能改标题、描述、`shuffleOptions`（只影响之后开考的场次）、上下架 |
 | PUT | `/api/admin/papers/{id}/status` | `{status: "ONLINE"|"OFFLINE"}`。上架时校验：固定卷至少 1 道题且 `passScore ≤ totalScore`；规则卷题量够，不够返回 409 带 `gaps` |
 | DELETE | `/api/admin/papers/{id}` | 没人考过才能删 |
 | GET | `/api/admin/users?keyword=&page=&size=` | 用户列表，带 `answerCount`、`lastActiveAt` |
@@ -333,7 +348,7 @@
 
 题目删除返回 `{ "deleted": true, "archived": false }`：没人做过时真删（`deleted:true`），有人做过时改为归档（`deleted:false, archived:true`）。
 
-试卷返回 `AdminPaper`：`{id, title, categoryId, categoryName, description, mode, durationMin, totalScore, passScore, status, questionCount, attempts, questions, rules, createdAt, updatedAt}`。固定卷 `questions` 为 `[{questionId, score, sort, type, stemPreview}]`、`rules` 为 `null`；规则卷反之，`rules` 为 `[{categoryId, categoryPath, type, count, score}]`。`totalScore` 由后端算出，请求里传了也忽略。新建、修改、改状态都返回 `AdminPaper`。
+试卷返回 `AdminPaper`：`{id, title, categoryId, categoryName, description, mode, durationMin, totalScore, passScore, status, shuffleOptions, questionCount, attempts, questions, rules, createdAt, updatedAt}`。固定卷 `questions` 为 `[{questionId, score, sort, type, stemPreview}]`、`rules` 为 `null`；规则卷反之，`rules` 为 `[{categoryId, categoryPath, type, count, score}]`。`totalScore` 由后端算出，请求里传了也忽略。新建、修改、改状态都返回 `AdminPaper`。
 
 用户列表项 `AdminUser`：`{id, username, nickname, role, status, answerCount, lastActiveAt, createdAt}`。纠错列表项：`{id, questionId, stemPreview, categoryPath, type, content, status, reply, username, createdAt, handledAt}`。
 

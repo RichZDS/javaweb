@@ -18,6 +18,7 @@ public class PracticeSession {
     private Boolean reciteMode;
     private String paramsJson;
     private String questionIds;
+    private String optionOrders;
     private Integer currentIndex;
     private String status;
     private Long rootCategoryId;
@@ -78,6 +79,15 @@ public class PracticeSession {
 
     public PracticeSession setQuestionIds(String questionIds) {
         this.questionIds = questionIds;
+        return this;
+    }
+
+    public String getOptionOrders() {
+        return optionOrders;
+    }
+
+    public PracticeSession setOptionOrders(String optionOrders) {
+        this.optionOrders = optionOrders;
         return this;
     }
 

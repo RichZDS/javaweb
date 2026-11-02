@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,7 @@ import com.richzds.quiz.common.PageResult;
 import com.richzds.quiz.common.Rates;
 import com.richzds.quiz.common.TimeUtil;
 import com.richzds.quiz.domain.AnswerKey;
+import com.richzds.quiz.domain.OptionShuffle;
 import com.richzds.quiz.domain.PracticeMode;
 import com.richzds.quiz.domain.QuestionType;
 import com.richzds.quiz.dto.PracticeDtos.FinishResult;
@@ -40,6 +42,7 @@ import com.richzds.quiz.dto.PracticeDtos.StartRequest;
 import com.richzds.quiz.dto.PracticeDtos.SubmitRequest;
 import com.richzds.quiz.dto.PracticeDtos.SubmitResult;
 import com.richzds.quiz.dto.QuestionDtos.AnswerView;
+import com.richzds.quiz.dto.QuestionDtos.QuestionView;
 import com.richzds.quiz.entity.AnswerRecord;
 import com.richzds.quiz.entity.ExamPaper;
 import com.richzds.quiz.entity.ExamRecord;
@@ -73,6 +76,7 @@ public class PracticeService {
 
     private static final TypeReference<List<Long>> LONG_LIST = new TypeReference<>() { };
     private static final TypeReference<List<String>> STRING_LIST = new TypeReference<>() { };
+    private static final TypeReference<Map<String, List<String>>> ORDER_MAP = new TypeReference<>() { };
 
     private final PracticeSessionMapper sessionMapper;
     private final AnswerRecordMapper answerMapper;
@@ -348,6 +352,7 @@ public class PracticeService {
                                        List<Long> questionIds, Long rootId) {
         LocalDateTime now = TimeUtil.nowUtc(clock);
         return new PracticeSession()
+                .setOptionOrders(Boolean.TRUE.equals(req.shuffleOptions()) ? randomOrders(questionIds) : null)
                 .setUserId(userId)
                 .setMode(mode.name())
                 .setReciteMode(recite)
@@ -358,6 +363,28 @@ public class PracticeService {
                 .setRootCategoryId(rootId)
                 .setStartedAt(now)
                 .setUpdatedAt(now);
+    }
+
+    /** 给每道单选、多选题随机定一个选项顺序，存成 {"题目 id": [按显示顺序的原标签]}。 */
+    private String randomOrders(List<Long> questionIds) {
+        Map<String, List<String>> orders = new LinkedHashMap<>();
+        Map<Long, Question> questions = questionService.loadByIds(questionIds);
+        for (Long id : questionIds) {
+            Question q = questions.get(id);
+            if (q != null && QuestionType.valueOf(q.getType()).isChoice()) {
+                orders.put(id.toString(), OptionShuffle.randomOrder(assembler.optionItems(q), ThreadLocalRandom.current()));
+            }
+        }
+        return JsonUtil.write(orders);
+    }
+
+    /** 这次练习里这道题的选项映射；没打乱（或存的顺序和当前选项对不上）时为 null。 */
+    private OptionShuffle shuffleOf(PracticeSession s, Question q) {
+        if (s.getOptionOrders() == null || !QuestionType.valueOf(q.getType()).isChoice()) {
+            return null;
+        }
+        Map<String, List<String>> orders = JsonUtil.read(s.getOptionOrders(), ORDER_MAP);
+        return orders == null ? null : OptionShuffle.of(orders.get(q.getId().toString()), assembler.optionItems(q));
     }
 
     private PracticeSession findDaily(long userId, long rootId, LocalDate day) {
@@ -425,16 +452,19 @@ public class PracticeService {
         if (q == null) {
             throw BizException.notFound("题目");
         }
+        OptionShuffle shuffle = shuffleOf(s, q);
         AnswerRecord existing = findRecord(s.getId(), questionId);
         if (existing != null) {
-            return result(existing, q, true);
+            return result(existing, q, true, shuffle);
         }
         if (!STATUS_IN_PROGRESS.equals(s.getStatus())) {
             throw BizException.conflict("这次练习已结束");
         }
 
         AnswerKey key = AnswerKey.of(q);
-        List<String> answer = gradingService.normalize(key.type(), req.userAnswer(), key.blankCount());
+        // 客户端按显示标签提交；库里存原标签，判分也用原标签
+        List<String> given = shuffle == null ? req.userAnswer() : shuffle.toOriginal(req.userAnswer());
+        List<String> answer = gradingService.normalize(key.type(), given, key.blankCount());
         boolean correct = gradingService.grade(key, answer);
         LocalDateTime now = TimeUtil.nowUtc(clock);
         Long rootId = categoryService.tree().rootOf(q.getCategoryId());
@@ -458,7 +488,7 @@ public class PracticeService {
             if (first == null) {
                 throw BizException.conflict("这道题正在提交，请稍后刷新");
             }
-            return result(first, q, true);
+            return result(first, q, true, shuffle);
         }
         wrongBookService.onGraded(userId, questionId, correct, answer,
                 PracticeMode.valueOf(s.getMode()).countsWrongStreak());
@@ -468,7 +498,7 @@ public class PracticeService {
         if (submitted >= ids.size()) {
             complete(s.getId(), now);
         }
-        return result(record, q, false);
+        return result(record, q, false, shuffle);
     }
 
     @Transactional
@@ -537,22 +567,39 @@ public class PracticeService {
                 correct++;
             }
             AnswerView answer = submitted || recite ? assembler.answer(q) : null;
-            items.add(new SessionQuestion(assembler.view(q, tree, favorites.get(id)), submitted,
-                    submitted ? JsonUtil.read(r.getUserAnswer(), STRING_LIST) : null,
-                    submitted ? r.getIsCorrect() : null, answer));
+            QuestionView view = assembler.view(q, tree, favorites.get(id));
+            List<String> userAnswer = submitted ? JsonUtil.read(r.getUserAnswer(), STRING_LIST) : null;
+            OptionShuffle shuffle = shuffleOf(s, q);
+            if (shuffle != null) {
+                view = QuestionAssembler.withOptions(view,
+                        assembler.optionViews(shuffle.displayOptions(assembler.optionItems(q))));
+                userAnswer = shuffle.toDisplay(userAnswer);
+                if (answer != null) {
+                    answer = QuestionAssembler.withCorrectAnswer(answer, shuffle.toDisplay(answer.correctAnswer()));
+                }
+            }
+            items.add(new SessionQuestion(view, submitted, userAnswer, submitted ? r.getIsCorrect() : null,
+                    shuffle == null ? null : shuffle.mapping(), answer));
         }
-        return new SessionView(s.getId(), s.getMode(), recite, s.getStatus(), ids.size(), records.size(), correct,
+        return new SessionView(s.getId(), s.getMode(), recite, s.getOptionOrders() != null, s.getStatus(), ids.size(),
+                records.size(), correct,
                 s.getCurrentIndex(), TimeUtil.toInstant(s.getStartedAt()), TimeUtil.toInstant(s.getCompletedAt()),
                 s.getDailyDate(), items);
     }
 
-    private SubmitResult result(AnswerRecord r, Question q, boolean already) {
+    /** 提交结果；打乱了选项时 userAnswer、correctAnswer 换成显示标签并带上 optionMapping。 */
+    private SubmitResult result(AnswerRecord r, Question q, boolean already, OptionShuffle shuffle) {
         AnswerKey key = AnswerKey.of(q);
         boolean fill = key.type() == QuestionType.FILL;
-        return new SubmitResult(q.getId(), Boolean.TRUE.equals(r.getIsCorrect()),
-                JsonUtil.read(r.getUserAnswer(), STRING_LIST),
-                fill ? null : key.correctAnswer(), fill ? key.acceptedAnswers() : null,
-                assembler.html(q.getAnalysis()), already);
+        List<String> userAnswer = JsonUtil.read(r.getUserAnswer(), STRING_LIST);
+        List<String> correctAnswer = fill ? null : key.correctAnswer();
+        if (shuffle != null) {
+            userAnswer = shuffle.toDisplay(userAnswer);
+            correctAnswer = shuffle.toDisplay(correctAnswer);
+        }
+        return new SubmitResult(q.getId(), Boolean.TRUE.equals(r.getIsCorrect()), userAnswer, correctAnswer,
+                fill ? key.acceptedAnswers() : null, assembler.html(q.getAnalysis()), already,
+                shuffle == null ? null : shuffle.mapping());
     }
 
     /** 取本人的练习；不存在或不是本人的都返回 404。 */

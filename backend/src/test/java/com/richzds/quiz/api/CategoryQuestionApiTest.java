@@ -161,8 +161,8 @@ class CategoryQuestionApiTest extends ApiTestBase {
         Question q = single(t[2], "A");
         Question other = single(t[2], "B");
         LocalDateTime now = LocalDateTime.ofInstant(clock.instant(), ZoneOffset.UTC);
-        ExamSnapshot snapshot = new ExamSnapshot("卷", List.of(new ExamSnapshot.Item(1, q.getId(), t[2].getId(), "",
-                "SINGLE", "x", List.of(), 0, null, 2, List.of("A"), null, null, null)));
+        ExamSnapshot snapshot = new ExamSnapshot("卷", false, List.of(new ExamSnapshot.Item(1, q.getId(),
+                t[2].getId(), "", "SINGLE", "x", List.of(), 0, null, 2, List.of("A"), null, null, null, null)));
         examRecordMapper.insert(new ExamRecord().setUserId(u.id()).setPaperId(1L)
                 .setQuestionSnapshot(JsonUtil.write(snapshot)).setTotalScore(2).setPassScore(1)
                 .setStartedAt(now).setDeadlineAt(now.plusMinutes(30)).setStatus("IN_PROGRESS"));

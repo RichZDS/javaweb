@@ -28,6 +28,8 @@ import com.richzds.quiz.common.PageResult;
 import com.richzds.quiz.common.Rates;
 import com.richzds.quiz.common.TimeUtil;
 import com.richzds.quiz.domain.AnswerKey;
+import com.richzds.quiz.domain.OptionItem;
+import com.richzds.quiz.domain.OptionShuffle;
 import com.richzds.quiz.domain.QuestionType;
 import com.richzds.quiz.dto.ExamDtos.CategoryScore;
 import com.richzds.quiz.dto.ExamDtos.ExamResult;
@@ -139,7 +141,8 @@ public class ExamService {
         return papers.stream().map(p -> {
             MyStats m = mine.getOrDefault(p.getId(), MyStats.EMPTY);
             return new PaperItem(p.getId(), p.getTitle(), p.getCategoryId(), p.getMode(), questionCount(p),
-                    p.getTotalScore(), p.getPassScore(), p.getDurationMin(), m.attempts(), m.best(), m.inProgress());
+                    p.getTotalScore(), p.getPassScore(), p.getDurationMin(), m.attempts(), m.best(), m.inProgress(),
+                    Boolean.TRUE.equals(p.getShuffleOptions()));
         }).toList();
     }
 
@@ -149,7 +152,7 @@ public class ExamService {
         MyStats m = myStats(userId).getOrDefault(p.getId(), MyStats.EMPTY);
         return new PaperDetail(p.getId(), p.getTitle(), p.getCategoryId(), p.getMode(), questionCount(p),
                 p.getTotalScore(), p.getPassScore(), p.getDurationMin(), m.attempts(), m.best(), m.inProgress(),
-                p.getDescription(), SCORING_RULES);
+                Boolean.TRUE.equals(p.getShuffleOptions()), p.getDescription(), SCORING_RULES);
     }
 
     /** 本人每份试卷的已完成次数、最高分、进行中的记录。 */
@@ -215,8 +218,9 @@ public class ExamService {
         }
 
         CategoryTree tree = categoryService.tree();
+        boolean shuffle = Boolean.TRUE.equals(paper.getShuffleOptions());
         List<ExamSnapshot.Item> items = MODE_RULE.equals(paper.getMode())
-                ? drawByRules(paper, tree) : fixedItems(paper, tree);
+                ? drawByRules(paper, tree, shuffle) : fixedItems(paper, tree, shuffle);
         if (items.isEmpty()) {
             throw BizException.conflict("这份试卷没有题目");
         }
@@ -224,7 +228,7 @@ public class ExamService {
         ExamRecord record = new ExamRecord()
                 .setUserId(userId)
                 .setPaperId(paperId)
-                .setQuestionSnapshot(JsonUtil.write(new ExamSnapshot(paper.getTitle(), items)))
+                .setQuestionSnapshot(JsonUtil.write(new ExamSnapshot(paper.getTitle(), shuffle, items)))
                 .setTotalScore(total)
                 .setPassScore(paper.getPassScore())
                 .setStartedAt(now)
@@ -234,7 +238,7 @@ public class ExamService {
         return new Started(sheet(record), true);
     }
 
-    private List<ExamSnapshot.Item> fixedItems(ExamPaper paper, CategoryTree tree) {
+    private List<ExamSnapshot.Item> fixedItems(ExamPaper paper, CategoryTree tree, boolean shuffle) {
         List<PaperQuestion> links = paperQuestionMapper.selectList(new LambdaQueryWrapper<PaperQuestion>()
                 .eq(PaperQuestion::getPaperId, paper.getId())
                 .orderByAsc(PaperQuestion::getSort).orderByAsc(PaperQuestion::getId));
@@ -243,14 +247,14 @@ public class ExamService {
         for (PaperQuestion link : links) {
             Question q = questions.get(link.getQuestionId());
             if (q != null) {
-                items.add(item(items.size() + 1, q, link.getScore(), tree));
+                items.add(item(items.size() + 1, q, link.getScore(), tree, shuffle));
             }
         }
         return items;
     }
 
     /** 规则卷：每条规则从分类子树里该题型的已发布题中抽，规则之间不重复；题不够返回 409 带 gaps。 */
-    private List<ExamSnapshot.Item> drawByRules(ExamPaper paper, CategoryTree tree) {
+    private List<ExamSnapshot.Item> drawByRules(ExamPaper paper, CategoryTree tree, boolean shuffle) {
         List<PaperRule> rules = paperRuleMapper.selectList(new LambdaQueryWrapper<PaperRule>()
                 .eq(PaperRule::getPaperId, paper.getId())
                 .orderByAsc(PaperRule::getSort).orderByAsc(PaperRule::getId));
@@ -266,7 +270,7 @@ public class ExamService {
         List<ExamSnapshot.Item> items = new ArrayList<>();
         for (int i = 0; i < rules.size(); i++) {
             for (Long id : picked.get(i)) {
-                items.add(item(items.size() + 1, questions.get(id), rules.get(i).getScore(), tree));
+                items.add(item(items.size() + 1, questions.get(id), rules.get(i).getScore(), tree, shuffle));
             }
         }
         return items;
@@ -306,13 +310,17 @@ public class ExamService {
         return new BizException(ErrorCode.POOL_INSUFFICIENT, "规则卷题量不够", Map.of("gaps", data));
     }
 
-    private ExamSnapshot.Item item(int index, Question q, int score, CategoryTree tree) {
+    /** 一道题的快照；shuffle 为真时单选、多选题随机定一个选项显示顺序。 */
+    private ExamSnapshot.Item item(int index, Question q, int score, CategoryTree tree, boolean shuffle) {
         AnswerKey key = AnswerKey.of(q);
         boolean fill = key.type() == QuestionType.FILL;
+        List<OptionItem> options = assembler.optionItems(q);
+        List<String> order = shuffle && key.type().isChoice()
+                ? OptionShuffle.randomOrder(options, ThreadLocalRandom.current()) : null;
         return new ExamSnapshot.Item(index, q.getId(), q.getCategoryId(), tree.path(q.getCategoryId()), q.getType(),
-                q.getStem(), assembler.optionItems(q), key.blankCount(), q.getImageUrl(), score,
+                q.getStem(), options, key.blankCount(), q.getImageUrl(), score,
                 fill ? null : key.correctAnswer(), fill ? key.acceptedAnswers() : null,
-                fill ? key.fillOptions() : null, q.getAnalysis());
+                fill ? key.fillOptions() : null, q.getAnalysis(), order);
     }
 
     // ------------------------------------------------------------------ 答卷
@@ -347,8 +355,9 @@ public class ExamService {
         ExamSnapshot.Item item = JsonUtil.read(r.getQuestionSnapshot(), ExamSnapshot.class).questions().stream()
                 .filter(i -> i.questionId() == questionId).findFirst()
                 .orElseThrow(() -> BizException.notFound("本场考试里的这道题"));
-        List<String> answer = gradingService.normalize(QuestionType.valueOf(item.type()), req.userAnswer(),
-                item.blankCount());
+        OptionShuffle shuffle = item.shuffle();
+        List<String> given = shuffle == null ? req.userAnswer() : shuffle.toOriginal(req.userAnswer());
+        List<String> answer = gradingService.normalize(QuestionType.valueOf(item.type()), given, item.blankCount());
         int version = req.version();
         boolean marked = Boolean.TRUE.equals(req.marked());
         int updated = answerMapper.update(null, new LambdaUpdateWrapper<ExamAnswer>()
@@ -410,16 +419,28 @@ public class ExamService {
 
     private ExamSheet sheet(ExamRecord r) {
         ExamSnapshot snap = snapshot(r);
-        List<SheetQuestion> questions = snap.questions().stream().map(i -> new SheetQuestion(i.index(),
-                i.questionId(), i.type(), assembler.html(i.stem()), assembler.optionViews(i.options()),
-                i.blankCount(), i.imageUrl(), i.score())).toList();
+        Map<Long, OptionShuffle> shuffles = new HashMap<>();
+        List<SheetQuestion> questions = snap.questions().stream().map(i -> {
+            OptionShuffle sh = i.shuffle();
+            if (sh != null) {
+                shuffles.put(i.questionId(), sh);
+            }
+            return new SheetQuestion(i.index(), i.questionId(), i.type(), assembler.html(i.stem()),
+                    assembler.optionViews(sh == null ? i.options() : sh.displayOptions(i.options())), i.blankCount(),
+                    i.imageUrl(), i.score(), sh == null ? null : sh.mapping());
+        }).toList();
+        // 库里存的是原标签，回显时换成这场考试的显示标签
         List<SavedAnswer> answers = answerMapper.selectList(new LambdaQueryWrapper<ExamAnswer>()
                         .eq(ExamAnswer::getRecordId, r.getId()).orderByAsc(ExamAnswer::getId))
-                .stream().map(a -> new SavedAnswer(a.getQuestionId(), JsonUtil.read(a.getUserAnswer(), STRING_LIST),
-                        a.getVersion(), Boolean.TRUE.equals(a.getMarked()), TimeUtil.toInstant(a.getReceivedAt())))
+                .stream().map(a -> {
+                    List<String> stored = JsonUtil.read(a.getUserAnswer(), STRING_LIST);
+                    OptionShuffle sh = shuffles.get(a.getQuestionId());
+                    return new SavedAnswer(a.getQuestionId(), sh == null ? stored : sh.toDisplay(stored),
+                            a.getVersion(), Boolean.TRUE.equals(a.getMarked()), TimeUtil.toInstant(a.getReceivedAt()));
+                })
                 .toList();
         int durationMin = (int) Duration.between(r.getStartedAt(), r.getDeadlineAt()).toMinutes();
-        return new ExamSheet(r.getId(), r.getPaperId(), snap.title(), r.getStatus(),
+        return new ExamSheet(r.getId(), r.getPaperId(), snap.title(), r.getStatus(), snap.shuffleOptions(),
                 TimeUtil.toInstant(r.getStartedAt()), TimeUtil.toInstant(r.getDeadlineAt()), clock.instant(),
                 durationMin, r.getTotalScore(), r.getPassScore(), questions, answers);
     }
@@ -467,10 +488,13 @@ public class ExamService {
             c[1] += i.score();
             categoryPaths.putIfAbsent(i.categoryId(), i.categoryPath());
             boolean fill = QuestionType.FILL.name().equals(i.type());
+            OptionShuffle sh = i.shuffle();
             items.add(new ResultItem(i.index(), i.questionId(), i.type(), assembler.html(i.stem()),
-                    assembler.optionViews(i.options()), i.blankCount(), i.imageUrl(), given,
-                    fill ? null : i.correctAnswer(),
-                    fill ? i.acceptedAnswers() : null, correct, score, i.score(), assembler.html(i.analysis())));
+                    assembler.optionViews(sh == null ? i.options() : sh.displayOptions(i.options())), i.blankCount(),
+                    i.imageUrl(), sh == null ? given : sh.toDisplay(given),
+                    fill ? null : sh == null ? i.correctAnswer() : sh.toDisplay(i.correctAnswer()),
+                    fill ? i.acceptedAnswers() : null, correct, score, i.score(), assembler.html(i.analysis()),
+                    sh == null ? null : sh.mapping()));
         }
         List<TypeScore> types = byType.entrySet().stream().filter(e -> e.getValue() != null)
                 .map(e -> new TypeScore(e.getKey(), e.getValue()[0], e.getValue()[1],

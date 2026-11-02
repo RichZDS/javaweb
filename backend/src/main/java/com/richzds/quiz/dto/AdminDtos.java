@@ -120,7 +120,8 @@ public final class AdminDtos {
             @Max(value = 600, message = "最多 600 分钟") Integer durationMin,
             @NotNull(message = "不能为空") @Min(value = 0, message = "不能为负") Integer passScore,
             @Valid @Size(max = 200, message = "最多 200 道题") List<PaperQuestionInput> questions,
-            @Valid @Size(max = 50, message = "最多 50 条规则") List<PaperRuleInput> rules) {
+            @Valid @Size(max = 50, message = "最多 50 条规则") List<PaperRuleInput> rules,
+            Boolean shuffleOptions) {
     }
 
     public record PaperStatusRequest(@NotNull(message = "不能为空")
@@ -130,7 +131,7 @@ public final class AdminDtos {
 
     public record AdminPaper(Long id, String title, Long categoryId, String categoryName, String description,
                              String mode, Integer durationMin, Integer totalScore, Integer passScore, String status,
-                             int questionCount, long attempts, List<AdminPaperQuestion> questions,
+                             boolean shuffleOptions, int questionCount, long attempts, List<AdminPaperQuestion> questions,
                              List<AdminPaperRule> rules, Instant createdAt, Instant updatedAt) {
     }
 
