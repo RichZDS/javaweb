@@ -4,6 +4,7 @@
  * 这时页面每次回到前台都会重新向服务器取一次时间来校正。
  */
 export function monoNow(): number {
-  const perf = (globalThis as { performance?: { now?: () => number } }).performance
+  // 先用 typeof 判断：没声明的全局变量直接读会抛 ReferenceError
+  const perf = typeof performance !== 'undefined' ? performance : undefined
   return perf && typeof perf.now === 'function' ? perf.now() : Date.now()
 }
