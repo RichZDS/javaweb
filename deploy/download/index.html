@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>下载码上刷题</title>
+<style>
+  :root { color-scheme: light dark; --fg: #1f2328; --muted: #656d76; --bg: #f6f8fa; --card: #fff; --accent: #2f6feb; }
+  @media (prefers-color-scheme: dark) { :root { --fg: #e6edf3; --muted: #8d96a0; --bg: #0d1117; --card: #161b22; --accent: #4493f8; } }
+  body { margin: 0; font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--fg); }
+  main { max-width: 420px; margin: 48px auto; padding: 0 16px; }
+  .card { background: var(--card); border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+  h1 { font-size: 22px; margin: 0 0 8px; }
+  p { color: var(--muted); line-height: 1.6; margin: 8px 0; }
+  a.btn { display: block; text-align: center; margin-top: 20px; padding: 12px; border-radius: 8px; background: var(--accent); color: #fff; text-decoration: none; font-weight: 600; }
+  #notes { white-space: pre-line; }
+</style>
+</head>
+<body>
+<main>
+  <div class="card">
+    <h1>码上刷题 · Android</h1>
+    <p id="version">最新版本：读取中…</p>
+    <p id="notes"></p>
+    <a class="btn" id="apk" href="quiz.apk">下载安装包</a>
+    <p>iPhone 用户请使用网页版：<a href="../">打开网页版</a></p>
+  </div>
+</main>
+<script>
+  // 版本信息来自后端 GET /api/app/version（配置项 APP_RELEASE_ANDROID_*）
+  fetch('../api/app/version?platform=android')
+    .then(function (r) { return r.json(); })
+    .then(function (res) {
+      if (res.code !== 'OK') { throw new Error(res.message); }
+      document.getElementById('version').textContent = '最新版本：' + res.data.latestVersion;
+      document.getElementById('notes').textContent = res.data.notes || '';
+      if (res.data.downloadUrl) { document.getElementById('apk').href = res.data.downloadUrl; }
+    })
+    .catch(function () { document.getElementById('version').textContent = '最新版本：暂时读取不到'; });
+</script>
+</body>
+</html>

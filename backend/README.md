@@ -49,7 +49,9 @@ UPLOAD_DIR=/var/lib/quiz/uploads \
 java -jar quiz-backend.jar
 ```
 
-缺 `JWT_SECRET`（或不足 32 字节）、缺 `ADMIN_PASSWORD` 时启动失败，日志里写明缺哪一项。生产不开跨域（同域部署）。
+启动前会检查必填的环境变量（`DB_URL`、`DB_USERNAME`、`DB_PASSWORD`、`JWT_SECRET` 至少 32 字节、`ADMIN_PASSWORD`），
+缺几个就在一条错误里全部列出。生产不开跨域（同域部署），并按 `X-Forwarded-*` 头识别外层的 https 和 `/quiz` 前缀
+（`server.forward-headers-strategy=framework`）。服务器上的 docker compose 部署见 [`../deploy/README.md`](../deploy/README.md)。
 
 ### 配置项（prod 全部从环境变量读）
 
@@ -69,6 +71,7 @@ java -jar quiz-backend.jar
 | `APP_RELEASE_ANDROID_DOWNLOAD_URL` | `app.release.android.download-url` | 否 | 空 | 安装包下载地址 |
 | `APP_RELEASE_ANDROID_NOTES` | `app.release.android.notes` | 否 | 空 | 更新说明 |
 | `APP_RELEASE_IOS_LATEST_VERSION` 等 | `app.release.ios.*` | 否 | 同上 | 四项与 Android 一一对应 |
+| `SERVER_TOMCAT_THREADS_MAX` | `server.tomcat.threads.max` | 否 | `50` | 小内存服务器上限制请求线程数 |
 
 其他配置（一般不用改）：`app.jwt.expire-days`（默认 7）、`app.exam.auto-settle`（默认 `true`，每 30 秒结算到时的考试；
 test 配置里为 `false`，测试直接调用结算任务）、`app.seed.location`（种子文件目录，默认
