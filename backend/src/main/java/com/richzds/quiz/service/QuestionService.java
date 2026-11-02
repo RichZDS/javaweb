@@ -53,7 +53,18 @@ public class QuestionService {
         this.clock = clock;
     }
 
+    /** 搜题关键词去掉首尾空白后的最大长度（按字符计）。 */
+    public static final int MAX_KEYWORD_CHARS = 50;
+
+    /** keyword 必填，去掉首尾空白后 1–50 字（docs/api.md 第 3 节）。 */
     public PageResult<SearchItem> search(String keyword, Long categoryId, PageQuery pageQuery) {
+        String kw = keyword == null ? "" : keyword.strip();
+        if (kw.isEmpty()) {
+            throw BizException.invalid("keyword", "不能为空");
+        }
+        if (kw.codePointCount(0, kw.length()) > MAX_KEYWORD_CHARS) {
+            throw BizException.invalid("keyword", "最多 " + MAX_KEYWORD_CHARS + " 字");
+        }
         CategoryTree tree = categoryService.tree();
         Page<Question> page = pageQuery.toPage();
         Set<Long> chapters = null;
@@ -63,12 +74,11 @@ public class QuestionService {
                 return new PageResult<>(List.of(), 0, page.getCurrent(), page.getSize());
             }
         }
-        String kw = keyword == null ? null : keyword.strip();
         LambdaQueryWrapper<Question> query = new LambdaQueryWrapper<Question>()
                 .select(Question::getId, Question::getCategoryId, Question::getType, Question::getStem)
                 .eq(Question::getStatus, STATUS_PUBLISHED)
                 .in(chapters != null, Question::getCategoryId, chapters)
-                .apply(kw != null && !kw.isEmpty(), "stem LIKE {0}", "%" + escapeLike(kw) + "%")
+                .apply("stem LIKE {0}", "%" + escapeLike(kw) + "%")
                 .orderByAsc(Question::getCategoryId).orderByAsc(Question::getSort).orderByAsc(Question::getId);
         questionMapper.selectPage(page, query);
         return PageResult.of(page, q -> new SearchItem(q.getId(), q.getCategoryId(), tree.path(q.getCategoryId()),

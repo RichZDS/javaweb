@@ -36,7 +36,7 @@ public class QuestionController {
         this.questionService = questionService;
     }
 
-    @Operation(summary = "按题干关键词搜题")
+    @Operation(summary = "按题干关键词搜题；keyword 必填，去掉首尾空白后 1–50 字")
     @GetMapping("/search")
     public ApiResponse<PageResult<SearchItem>> search(@RequestParam(required = false) String keyword,
                                                       @RequestParam(required = false) Long categoryId,

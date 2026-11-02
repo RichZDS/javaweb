@@ -1,10 +1,13 @@
 package com.richzds.quiz.common;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import jakarta.validation.ConstraintViolationException;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DuplicateKeyException;
@@ -79,9 +82,51 @@ public class GlobalExceptionHandler {
         return invalid(List.of(new FieldError(e.getRequestPartName(), "不能为空")));
     }
 
+    /**
+     * 请求体读不出来：JSON 语法错时 fields 为空；某个字段类型不对（整数字段给了小数或字符串等）时，
+     * fields 指出字段路径，例如 {@code count}、{@code categoryIds[0]}。
+     */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiResponse<Object>> handleUnreadable(HttpMessageNotReadableException e) {
+        if (e.getCause() instanceof MismatchedInputException mismatch && !mismatch.getPath().isEmpty()) {
+            return invalid(List.of(new FieldError(fieldPath(mismatch), typeHint(mismatch.getTargetType()))));
+        }
         return build(ErrorCode.VALIDATION_FAILED, "请求体格式不正确", Map.of("fields", List.of()));
+    }
+
+    private static String fieldPath(JsonMappingException e) {
+        StringBuilder path = new StringBuilder();
+        for (JsonMappingException.Reference ref : e.getPath()) {
+            if (ref.getFieldName() != null) {
+                if (!path.isEmpty()) {
+                    path.append('.');
+                }
+                path.append(ref.getFieldName());
+            } else if (ref.getIndex() >= 0) {
+                path.append('[').append(ref.getIndex()).append(']');
+            }
+        }
+        return path.toString();
+    }
+
+    private static String typeHint(Class<?> target) {
+        if (target == null) {
+            return "格式不正确";
+        }
+        if (target == Integer.class || target == int.class || target == Long.class || target == long.class
+                || target == Short.class || target == short.class) {
+            return "必须是整数";
+        }
+        if (target == Boolean.class || target == boolean.class) {
+            return "必须是 true 或 false";
+        }
+        if (Collection.class.isAssignableFrom(target)) {
+            return "必须是数组";
+        }
+        if (target == String.class) {
+            return "必须是字符串";
+        }
+        return "格式不正确";
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
