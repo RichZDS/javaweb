@@ -1,6 +1,7 @@
 package com.richzds.quiz.mapper;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
@@ -94,6 +95,41 @@ public interface AnswerRecordMapper extends BaseMapper<AnswerRecord> {
             </script>
             """)
     List<AggRow> leaderboard(@Param("rootId") Long rootId, @Param("from") LocalDateTime from);
+
+    /** 若干道题各自的作答条数和全对条数（后台题目列表用）。 */
+    @Select("""
+            <script>
+            SELECT question_id AS group_id, COUNT(*) AS total_count,
+                   SUM(CASE WHEN is_correct = TRUE THEN 1 ELSE 0 END) AS correct_count
+            FROM answer_record
+            WHERE answered = TRUE AND question_id IN
+            <foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach>
+            GROUP BY question_id
+            </script>
+            """)
+    List<AggRow> countByQuestions(@Param("ids") Collection<Long> ids);
+
+    /** 若干用户各自的作答条数（后台用户列表用）。 */
+    @Select("""
+            <script>
+            SELECT user_id AS group_id, COUNT(*) AS total_count
+            FROM answer_record
+            WHERE answered = TRUE AND user_id IN
+            <foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach>
+            GROUP BY user_id
+            </script>
+            """)
+    List<AggRow> countByUsers(@Param("ids") Collection<Long> ids);
+
+    /** 看板：从 from 起按北京时间每天的作答条数和活跃人数（有作答的不同用户数）。 */
+    @Select("""
+            SELECT CAST(TIMESTAMPADD(HOUR, 8, graded_at) AS DATE) AS stat_day, COUNT(*) AS total_count,
+                   COUNT(DISTINCT user_id) AS distinct_count
+            FROM answer_record
+            WHERE answered = TRUE AND graded_at >= #{from}
+            GROUP BY CAST(TIMESTAMPADD(HOUR, 8, graded_at) AS DATE)
+            """)
+    List<AggRow> dailyActivity(@Param("from") LocalDateTime from);
 
     /** 若干次练习各自的提交数和全对数（练习记录列表用）。 */
     @Select("""

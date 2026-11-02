@@ -21,21 +21,33 @@ public final class QuestionRules {
         return String.valueOf((char) ('A' + i));
     }
 
+    /** 只查选项结构：选择题 2–6 项、key 依次为 A、B、C……、内容非空；判断题和填空题不能带选项。 */
+    public static String checkOptions(QuestionType type, List<OptionItem> options) {
+        if (!type.isChoice()) {
+            return options == null || options.isEmpty() ? null : "判断题和填空题不需要选项";
+        }
+        if (options == null || options.size() < MIN_OPTIONS || options.size() > MAX_OPTIONS) {
+            return "选择题要有 2–6 个选项";
+        }
+        for (int i = 0; i < options.size(); i++) {
+            OptionItem o = options.get(i);
+            if (o == null || !keyAt(i).equals(o.key())) {
+                return "选项 key 必须按顺序是 A、B、C……";
+            }
+            if (o.text() == null || o.text().isBlank()) {
+                return "选项 " + keyAt(i) + " 的内容不能为空";
+            }
+        }
+        return null;
+    }
+
     public static String check(QuestionType type, List<OptionItem> options, List<String> correctAnswer,
                                List<List<String>> acceptedAnswers) {
         switch (type) {
             case SINGLE, MULTIPLE -> {
-                if (options == null || options.size() < MIN_OPTIONS || options.size() > MAX_OPTIONS) {
-                    return "选择题要有 2–6 个选项";
-                }
-                for (int i = 0; i < options.size(); i++) {
-                    OptionItem o = options.get(i);
-                    if (o == null || !keyAt(i).equals(o.key())) {
-                        return "选项 key 必须按顺序是 A、B、C……";
-                    }
-                    if (o.text() == null || o.text().isBlank()) {
-                        return "选项 " + keyAt(i) + " 的内容不能为空";
-                    }
+                String optionError = checkOptions(type, options);
+                if (optionError != null) {
+                    return optionError;
                 }
                 if (correctAnswer == null || correctAnswer.isEmpty()) {
                     return "缺少正确答案";
