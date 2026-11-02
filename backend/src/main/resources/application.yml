@@ -14,6 +14,9 @@ spring:
   jackson:
     serialization:
       write-dates-as-timestamps: false
+    deserialization:
+      # 整数字段收到小数时报 400，而不是悄悄截断（1.5 → 1）
+      accept-float-as-int: false
 
 server:
   port: 8080

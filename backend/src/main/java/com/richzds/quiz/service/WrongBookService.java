@@ -118,13 +118,17 @@ public class WrongBookService {
     }
 
     public PageResult<WrongItem> list(long userId, Long categoryId, String sort, PageQuery pageQuery) {
+        String order = sort == null || sort.isBlank() ? "RECENT" : sort.strip();
+        if (!"RECENT".equals(order) && !"MOST".equals(order)) {
+            throw BizException.invalid("sort", "只能是 RECENT 或 MOST");
+        }
         CategoryTree tree = categoryService.tree();
         Set<Long> chapters = categoryId == null ? null : tree.chapterIdsUnder(categoryId);
         Page<WrongQuestion> page = pageQuery.toPage();
         if (chapters != null && chapters.isEmpty()) {
             return new PageResult<>(List.of(), 0, page.getCurrent(), page.getSize());
         }
-        wrongMapper.selectActivePage(page, userId, chapters, "MOST".equals(sort) ? "MOST" : "RECENT");
+        wrongMapper.selectActivePage(page, userId, chapters, order);
         Map<Long, Question> questions = questionService.loadByIds(
                 page.getRecords().stream().map(WrongQuestion::getQuestionId).toList());
         List<WrongItem> items = page.getRecords().stream().map(w -> {
