@@ -51,6 +51,14 @@
 
         <view class="recite">
           <view class="recite-text">
+            <text>选项顺序打乱</text>
+            <text class="muted">单选、多选题的选项随机排一次，防止记住位置</text>
+          </view>
+          <switch :checked="shuffle" color="#3a6cf4" @change="(e: any) => (shuffle = e.detail.value === true)" />
+        </view>
+
+        <view class="recite">
+          <view class="recite-text">
             <text>背题模式</text>
             <text class="muted">直接看答案和解析，不计入统计和错题本</text>
           </view>
@@ -94,6 +102,7 @@ const count = ref<10 | 20 | 50>(10)
 const types = reactive(new Set<QuestionType>(TYPES))
 const scope = ref<PracticeScope>('ALL')
 const recite = ref(false)
+const shuffle = ref(false)
 const starting = ref(false)
 let preselect: number | null = null
 
@@ -177,6 +186,7 @@ async function start(acceptFewer: boolean) {
         types: TYPES.filter((t) => types.has(t)),
         scope: scope.value,
         reciteMode: recite.value,
+        shuffleOptions: shuffle.value,
         acceptFewer,
       },
       ['POOL_INSUFFICIENT'],

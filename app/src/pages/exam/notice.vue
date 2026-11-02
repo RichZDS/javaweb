@@ -29,6 +29,7 @@
         <view class="rule">· 每道题的答案先存在本机，再自动上传；每题旁边会显示「已保存」或「未同步」。</view>
         <view class="rule">· 网络断开时可以继续作答，联网后自动补传；截止前没有传到服务器的答案不计分。</view>
         <view class="rule">· App 被关掉后重新打开，可以从「继续考试」接着答。</view>
+        <view v-if="paper.shuffleOptions" class="rule strong">· 本卷选项顺序随机：每场考试单选、多选题的选项顺序打乱，作答和成绩单都按你看到的顺序显示，解析旁会注明原选项。</view>
         <view class="rule">· 交卷后才能看到答案和解析，答错的题会进错题本。</view>
       </view>
 
@@ -132,6 +133,10 @@ async function start() {
   font-size: var(--fs-sm);
   color: var(--c-text-2);
   margin-bottom: 4px;
+
+  &.strong {
+    color: var(--c-primary);
+  }
 }
 
 .footer {

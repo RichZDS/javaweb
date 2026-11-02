@@ -20,6 +20,7 @@ public class ExamPaper {
     private Integer totalScore;
     private Integer passScore;
     private String status;
+    private Boolean shuffleOptions;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -101,6 +102,15 @@ public class ExamPaper {
 
     public ExamPaper setStatus(String status) {
         this.status = status;
+        return this;
+    }
+
+    public Boolean getShuffleOptions() {
+        return shuffleOptions;
+    }
+
+    public ExamPaper setShuffleOptions(Boolean shuffleOptions) {
+        this.shuffleOptions = shuffleOptions;
         return this;
     }
 

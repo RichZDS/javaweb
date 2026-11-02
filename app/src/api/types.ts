@@ -120,6 +120,8 @@ export interface StartPracticeBody {
   reciteMode?: boolean
   acceptFewer?: boolean
   tag?: string
+  /** 这一次练习里单选、多选题的选项随机排一次（6.1） */
+  shuffleOptions?: boolean
   /** RETRY 模式：重做某次练习的错题 */
   fromSessionId?: number
   /** RETRY 模式：重做某次已结算考试的错题 */
@@ -128,6 +130,8 @@ export interface StartPracticeBody {
 
 /** 练习里的一道题：提交后（或背题模式）带答案字段 */
 export interface PracticeQuestion extends Question, Partial<AnswerPart> {
+  /** 选项打乱时 新标签 → 原标签，否则 null */
+  optionMapping?: Record<string, string> | null
   submitted: boolean
   userAnswer: string[] | null
   correct: boolean | null
@@ -137,6 +141,7 @@ export interface PracticeSession {
   id: number
   mode: PracticeMode
   reciteMode: boolean
+  shuffleOptions?: boolean
   status: 'IN_PROGRESS' | 'COMPLETED' | string
   questionCount: number
   answeredCount: number
@@ -172,6 +177,7 @@ export interface SubmitAnswerResult {
   acceptedAnswers: string[][] | null
   analysisHtml: string | null
   alreadySubmitted: boolean
+  optionMapping?: Record<string, string> | null
 }
 
 export interface FinishResult {
@@ -237,6 +243,8 @@ export interface ExamPaper {
   myAttempts: number
   myBestScore: number | null
   inProgressRecordId: number | null
+  /** 开考时是否打乱选项 */
+  shuffleOptions?: boolean
 }
 
 export interface ExamNotice extends ExamPaper {
@@ -262,6 +270,7 @@ export interface ExamSheetQuestion {
   blankCount: number
   imageUrl: string | null
   score: number
+  optionMapping?: Record<string, string> | null
 }
 
 export interface ExamSavedAnswer {
@@ -278,6 +287,7 @@ export interface ExamSheet {
   paperId: number
   title: string
   status: 'IN_PROGRESS'
+  shuffleOptions?: boolean
   startedAt: string
   deadlineAt: string
   serverTime: string
@@ -309,6 +319,7 @@ export interface ExamResultItem {
   score: number
   maxScore: number
   analysisHtml: string | null
+  optionMapping?: Record<string, string> | null
 }
 
 /** 已结算的考试（成绩单） */

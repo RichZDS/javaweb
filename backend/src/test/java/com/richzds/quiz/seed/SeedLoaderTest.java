@@ -74,6 +74,8 @@ class SeedLoaderTest extends ApiTestBase {
         rule.forEach(row -> assertThat(((Number) row.get("total_score")).intValue())
                 .isEqualTo(((Number) row.get("s")).intValue()));
         assertThat(fixed.size() + rule.size()).isEqualTo(r.papers());
+        assertThat(jdbc.queryForList("SELECT shuffle_options FROM exam_paper ORDER BY id", Boolean.class))
+                .as("样例里规则卷写了 shuffleOptions: true，固定卷没写").containsExactly(false, true);
 
         // 导入的题能正常出现在接口里，代码块已渲染
         Login u = register("seed1");

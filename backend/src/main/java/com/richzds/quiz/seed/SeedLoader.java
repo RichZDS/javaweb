@@ -99,7 +99,8 @@ public class SeedLoader implements ApplicationRunner {
     }
 
     public record SeedPaper(String title, String category, String mode, Integer durationMin, Integer passScore,
-                            String description, List<SeedRule> rules, List<SeedPaperQuestion> questions) {
+                            String description, List<SeedRule> rules, List<SeedPaperQuestion> questions,
+                            Boolean shuffleOptions) {
     }
 
     public record SeedRule(String category, String type, Integer count, Integer score) {
@@ -391,6 +392,7 @@ public class SeedLoader implements ApplicationRunner {
                     .setTotalScore(total)
                     .setPassScore(p.passScore())
                     .setStatus("ONLINE")
+                    .setShuffleOptions(Boolean.TRUE.equals(p.shuffleOptions()))
                     .setCreatedAt(now)
                     .setUpdatedAt(now);
             paperMapper.insert(paper);

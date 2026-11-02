@@ -8,9 +8,9 @@
         :closable="false"
         show-icon
         class="lock-tip"
-        :title="`这份试卷已经有人考过（${original?.attempts} 次），只能改标题和描述；上下架在试卷列表里操作。`"
+        :title="`这份试卷已经有人考过（${original?.attempts} 次），只能改标题、描述和选项打乱；上下架在试卷列表里操作。`"
       />
-      <el-form label-width="96px" class="form">
+      <el-form label-width="112px" class="form">
         <el-form-item label="标题" required>
           <el-input v-model="form.title" maxlength="100" show-word-limit style="width: 480px" />
         </el-form-item>
@@ -21,6 +21,10 @@
         </el-form-item>
         <el-form-item label="描述">
           <el-input v-model="form.description" type="textarea" :autosize="{ minRows: 2, maxRows: 6 }" maxlength="500" show-word-limit style="width: 480px" />
+        </el-form-item>
+        <el-form-item label="选项打乱">
+          <el-switch v-model="form.shuffleOptions" />
+          <span class="muted hint">开启后每场考试的单选、多选题选项顺序随机；判断、填空不打乱。只影响之后开考的场次</span>
         </el-form-item>
         <el-form-item label="组卷方式" required>
           <el-radio-group v-model="form.mode" :disabled="locked || !!id">

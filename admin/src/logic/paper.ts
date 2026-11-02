@@ -19,12 +19,14 @@ export interface PaperForm {
   mode: PaperMode
   durationMin: number
   passScore: number
+  /** 有人考过后仍可修改，只影响之后开考的场次 */
+  shuffleOptions: boolean
   questions: PaperQuestionRef[]
   rules: RuleRow[]
 }
 
 export function emptyPaperForm(categoryId: number | null = null): PaperForm {
-  return { title: '', categoryId, description: '', mode: 'FIXED', durationMin: 60, passScore: 60, questions: [], rules: [] }
+  return { title: '', categoryId, description: '', mode: 'FIXED', durationMin: 60, passScore: 60, shuffleOptions: false, questions: [], rules: [] }
 }
 
 export function formFromPaper(p: AdminPaper): PaperForm {
@@ -35,12 +37,13 @@ export function formFromPaper(p: AdminPaper): PaperForm {
     mode: p.mode,
     durationMin: Number(p.durationMin),
     passScore: Number(p.passScore),
+    shuffleOptions: p.shuffleOptions === true,
     questions: [...(p.questions ?? [])].sort((a, b) => a.sort - b.sort).map((q) => ({ ...q })),
     rules: (p.rules ?? []).map((r) => ({ ...r })),
   }
 }
 
-/** 有人考过的试卷只能改标题、描述（上下架在列表里操作） */
+/** 有人考过的试卷只能改标题、描述、选项打乱（上下架在列表里操作） */
 export function isStructureLocked(paper: Pick<AdminPaper, 'attempts'> | null | undefined): boolean {
   return !!paper && paper.attempts > 0
 }
@@ -113,6 +116,7 @@ export function buildPaperBody(form: PaperForm): PaperBody {
     mode: form.mode,
     durationMin: Number(form.durationMin),
     passScore: Number(form.passScore),
+    shuffleOptions: form.shuffleOptions === true,
   }
   if (form.mode === 'FIXED') {
     body.questions = form.questions.map((q, i) => ({ questionId: Number(q.questionId), score: Number(q.score), sort: i + 1 }))

@@ -125,6 +125,7 @@
       "durationMin": 15,
       "passScore": 54,
       "description": "开发和测试用的示例规则卷，每次开考随机抽题。",
+      "shuffleOptions": true,
       "rules": [
         { "category": "sample-java-basic", "type": "SINGLE", "count": 2, "score": 10 },
         { "category": "sample-java-basic", "type": "MULTIPLE", "count": 2, "score": 15 },

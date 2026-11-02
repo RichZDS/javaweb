@@ -143,6 +143,8 @@ export interface PaperBody {
   passScore: number
   questions?: { questionId: number; score: number; sort: number }[]
   rules?: { categoryId: number; type: QuestionType; count: number; score: number }[]
+  /** 开考时打乱单选、多选题的选项（只影响之后开考的场次） */
+  shuffleOptions: boolean
 }
 
 export interface AdminPaper {
@@ -156,6 +158,7 @@ export interface AdminPaper {
   totalScore: number
   passScore: number
   status: PaperStatus
+  shuffleOptions?: boolean
   questionCount: number
   attempts: number
   questions: PaperQuestionRef[] | null

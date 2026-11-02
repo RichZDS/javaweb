@@ -6,7 +6,10 @@
     </view>
     <view class="ar-row">
       <text class="ar-label">正确答案</text>
-      <text class="ar-value ok-text">{{ correctText || '—' }}</text>
+      <text class="ar-value ok-text">
+        {{ correctText || '—' }}
+        <text v-if="mappingNote" class="ar-orig">（{{ mappingNote }}）</text>
+      </text>
     </view>
     <view v-if="!recite" class="ar-row">
       <text class="ar-label">{{ userLabel }}</text>
@@ -14,6 +17,7 @@
     </view>
     <view class="ar-analysis">
       <view class="ar-label">解析</view>
+      <view v-if="mappingNote" class="ar-shuffle-tip">本题选项顺序已打乱，解析里的字母是原选项，可对照选项旁的「原选项」。</view>
       <rich-text v-if="analysisHtml" class="rich" :nodes="analysisHtml" />
       <view v-else class="muted">暂无解析</view>
     </view>
@@ -24,6 +28,7 @@
 import { computed } from 'vue'
 import type { QuestionType } from '@/api/types'
 import { formatAnswer, formatCorrect } from '@/logic/answer'
+import { analysisNote } from '@/logic/shuffle'
 
 const props = withDefaults(
   defineProps<{
@@ -38,6 +43,8 @@ const props = withDefaults(
     userLabel?: string
     /** 没有作答（考试里未答的题）：显示「未作答」，不算答错 */
     unanswered?: boolean
+    /** 选项打乱时 新标签 → 原标签 */
+    optionMapping?: Record<string, string> | null
   }>(),
   {
     correct: null,
@@ -48,11 +55,13 @@ const props = withDefaults(
     recite: false,
     userLabel: '你的答案',
     unanswered: false,
+    optionMapping: null,
   },
 )
 
 const correctText = computed(() => formatCorrect(props.type, props.correctAnswer, props.acceptedAnswers))
 const userText = computed(() => formatAnswer(props.type, props.userAnswer))
+const mappingNote = computed(() => (props.type === 'FILL' ? '' : analysisNote(props.optionMapping, props.correctAnswer)))
 </script>
 
 <style lang="scss" scoped>
@@ -108,6 +117,17 @@ const userText = computed(() => formatAnswer(props.type, props.userAnswer))
 
 .bad-text {
   color: var(--c-wrong);
+}
+
+.ar-orig {
+  color: var(--c-text-3);
+  font-size: var(--fs-xs);
+}
+
+.ar-shuffle-tip {
+  font-size: var(--fs-xs);
+  color: var(--c-warn);
+  margin-bottom: 4px;
 }
 
 .none-text {
