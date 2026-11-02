@@ -446,4 +446,59 @@ class ExamApiTest extends ApiTestBase {
         assertThat(ids(retry.data().get("questions"), "id")).as("按试卷顺序，没答的不算")
                 .containsExactly(qs.get(1).getId(), qs.get(3).getId());
     }
+
+    /** 考试记录的范围（docs/api.md 0.4 节、第 6 节）：默认目标考试、指定一级分类、all=true、非一级分类 400、paperId 优先。 */
+    @Test
+    void recordsAreScopedToTheTargetExam() throws Exception {
+        Login u = register("rec_scope");
+        Category[] a = tree("EA");
+        Category[] b = tree("EB");
+        ExamPaper pa = fixedPaper(a[0], singles(a[2], 2), 10, 30, 10);
+        ExamPaper pa2 = fixedPaper(a[0], singles(a[2], 2), 10, 30, 10);
+        ExamPaper pb = fixedPaper(b[0], singles(b[2], 2), 10, 30, 10);
+        long ra = 0;
+        long ra2 = 0;
+        long rb = 0;
+        for (ExamPaper p : List.of(pa, pb, pa2)) {
+            long rid = data(start(u, p)).get("recordId").asLong();
+            call(post("/api/exam-records/" + rid + "/submit", u, null));
+            clock.advance(Duration.ofMinutes(1));
+            if (p == pa) {
+                ra = rid;
+            } else if (p == pb) {
+                rb = rid;
+            } else {
+                ra2 = rid;
+            }
+        }
+        String list = "/api/exam-records";
+
+        assertThat(ids(data(call(get(list, u))).get("items"), "recordId")).as("没有目标考试：全部")
+                .containsExactly(ra2, rb, ra);
+        setTarget(u, a[0]);
+        JsonNode mine = data(call(get(list, u)));
+        assertThat(ids(mine.get("items"), "recordId")).as("默认只看目标考试 EA").containsExactly(ra2, ra);
+        assertThat(mine.get("total").asLong()).isEqualTo(2);
+        assertThat(mine.get("items").get(0).get("rootCategoryId").asLong()).isEqualTo(a[0].getId());
+        assertThat(mine.get("items").get(0).get("rootCategoryName").asText()).isEqualTo("EA");
+        JsonNode inB = data(call(get(list + "?categoryId=" + b[0].getId(), u)));
+        assertThat(ids(inB.get("items"), "recordId")).as("指定一级分类").containsExactly(rb);
+        assertThat(inB.get("items").get(0).get("rootCategoryName").asText()).isEqualTo("EB");
+        assertThat(ids(data(call(get(list + "?all=true&categoryId=" + a[2].getId(), u))).get("items"), "recordId"))
+                .as("all=true 列全部、忽略 categoryId").containsExactly(ra2, rb, ra);
+        assertThat(ids(data(call(get(list + "?paperId=" + pb.getId() + "&categoryId=" + a[2].getId() + "&all=false", u)))
+                .get("items"), "recordId")).as("paperId 优先：不看目标考试、忽略 categoryId 和 all").containsExactly(rb);
+        assertThat(ids(data(call(get(list + "?paperId=" + pa.getId(), u))).get("items"), "recordId"))
+                .containsExactly(ra);
+        Category[] empty = tree("EC");
+        assertThat(data(call(get(list + "?categoryId=" + empty[0].getId(), u))).get("total").asLong())
+                .as("这个考试下没有试卷").isZero();
+
+        for (String bad : List.of(String.valueOf(a[2].getId()), String.valueOf(a[1].getId()), "999999")) {
+            Resp r = call(get(list + "?categoryId=" + bad, u));
+            assertThat(r.status()).as("categoryId=" + bad).isEqualTo(400);
+            assertThat(r.code()).isEqualTo("VALIDATION_FAILED");
+            assertThat(r.body().get("data").get("fields").get(0).get("field").asText()).isEqualTo("categoryId");
+        }
+    }
 }

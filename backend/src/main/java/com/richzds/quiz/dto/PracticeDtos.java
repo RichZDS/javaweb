@@ -73,7 +73,9 @@ public final class PracticeDtos {
                                List<Long> wrongQuestionIds) {
     }
 
-    public record SessionListItem(Long id, String mode, int questionCount, int answeredCount, int correctCount,
+    /** 练习记录列表项；rootCategoryId / rootCategoryName 是练习归属的考试，没有目标考试时开的跨考试练习为 null。 */
+    public record SessionListItem(Long id, String mode, Long rootCategoryId, String rootCategoryName,
+                                  int questionCount, int answeredCount, int correctCount,
                                   Instant startedAt, Instant completedAt) {
     }
 }

@@ -62,6 +62,7 @@ import com.richzds.quiz.service.CategoryTree;
 import com.richzds.quiz.service.GradingService;
 import com.richzds.quiz.service.QuestionAssembler;
 import com.richzds.quiz.service.QuestionService;
+import com.richzds.quiz.service.RootScope;
 import com.richzds.quiz.service.UserService;
 
 /**
@@ -97,13 +98,14 @@ public class ExamService {
     private final QuestionAssembler assembler;
     private final GradingService gradingService;
     private final ExamSettler settler;
+    private final RootScope rootScope;
     private final Clock clock;
 
     public ExamService(ExamPaperMapper paperMapper, PaperQuestionMapper paperQuestionMapper,
                        PaperRuleMapper paperRuleMapper, ExamRecordMapper recordMapper, ExamAnswerMapper answerMapper,
                        QuestionMapper questionMapper, UserService userService,
                        QuestionService questionService, CategoryService categoryService, QuestionAssembler assembler,
-                       GradingService gradingService, ExamSettler settler, Clock clock) {
+                       GradingService gradingService, ExamSettler settler, RootScope rootScope, Clock clock) {
         this.paperMapper = paperMapper;
         this.paperQuestionMapper = paperQuestionMapper;
         this.paperRuleMapper = paperRuleMapper;
@@ -116,6 +118,7 @@ public class ExamService {
         this.assembler = assembler;
         this.gradingService = gradingService;
         this.settler = settler;
+        this.rootScope = rootScope;
         this.clock = clock;
     }
 
@@ -398,19 +401,47 @@ public class ExamService {
         return result(recordMapper.selectById(recordId));
     }
 
-    public PageResult<RecordItem> records(long userId, Long paperId, PageQuery pageQuery) {
+    /**
+     * 考试记录，按开始时间倒序。传了 paperId 只按这份试卷过滤（忽略 categoryId 和 all）；否则范围同练习记录
+     * （docs/api.md 0.4 节）：all=true 列全部，否则 categoryId 或目标考试，都没有时列全部。按试卷所属的一级分类归属。
+     */
+    public PageResult<RecordItem> records(long userId, Long paperId, Long categoryId, boolean all, PageQuery pageQuery) {
         settleExpiredOf(userId);
+        Long root = paperId != null || all ? null : rootScope.resolve(userId, categoryId);
         Page<ExamRecord> page = pageQuery.toPage();
+        List<Long> rootPapers = null;
+        if (root != null) {
+            rootPapers = paperMapper.selectList(new LambdaQueryWrapper<ExamPaper>()
+                    .select(ExamPaper::getId).eq(ExamPaper::getCategoryId, root))
+                    .stream().map(ExamPaper::getId).toList();
+            if (rootPapers.isEmpty()) {
+                return new PageResult<>(List.of(), 0, page.getCurrent(), page.getSize());
+            }
+        }
         recordMapper.selectPage(page, new LambdaQueryWrapper<ExamRecord>()
                 .select(ExamRecord::getId, ExamRecord::getPaperId, ExamRecord::getQuestionSnapshot,
                         ExamRecord::getStatus, ExamRecord::getScore, ExamRecord::getTotalScore,
                         ExamRecord::getPassed, ExamRecord::getStartedAt, ExamRecord::getSubmittedAt)
                 .eq(ExamRecord::getUserId, userId)
                 .eq(paperId != null, ExamRecord::getPaperId, paperId)
+                .in(rootPapers != null, ExamRecord::getPaperId, rootPapers)
                 .orderByDesc(ExamRecord::getStartedAt).orderByDesc(ExamRecord::getId));
-        return PageResult.of(page, r -> new RecordItem(r.getId(), r.getPaperId(), snapshot(r).title(), r.getStatus(),
-                r.getScore(), r.getTotalScore(), r.getPassed(), TimeUtil.toInstant(r.getStartedAt()),
-                TimeUtil.toInstant(r.getSubmittedAt())));
+        Map<Long, Long> paperRoot = new HashMap<>();
+        Set<Long> paperIds = new LinkedHashSet<>();
+        page.getRecords().forEach(r -> paperIds.add(r.getPaperId()));
+        if (!paperIds.isEmpty()) {
+            for (ExamPaper p : paperMapper.selectList(new LambdaQueryWrapper<ExamPaper>()
+                    .select(ExamPaper::getId, ExamPaper::getCategoryId).in(ExamPaper::getId, paperIds))) {
+                paperRoot.put(p.getId(), p.getCategoryId());
+            }
+        }
+        CategoryTree tree = categoryService.tree();
+        return PageResult.of(page, r -> {
+            Long rootId = paperRoot.get(r.getPaperId());
+            return new RecordItem(r.getId(), r.getPaperId(), snapshot(r).title(), rootId,
+                    rootScope.nameOf(tree, rootId), r.getStatus(), r.getScore(), r.getTotalScore(), r.getPassed(),
+                    TimeUtil.toInstant(r.getStartedAt()), TimeUtil.toInstant(r.getSubmittedAt()));
+        });
     }
 
     /** 本人已过截止时间的考试逐个结算（每个一个事务）。 */

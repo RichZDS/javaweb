@@ -65,26 +65,27 @@ public class StatsService {
     private final ExamPaperMapper paperMapper;
     private final QuestionMapper questionMapper;
     private final UserMapper userMapper;
-    private final UserService userService;
     private final CategoryService categoryService;
+    private final RootScope rootScope;
     private final Clock clock;
 
     public StatsService(AnswerRecordMapper answerMapper, PracticeSessionMapper sessionMapper,
                         ExamRecordMapper examRecordMapper, ExamPaperMapper paperMapper, QuestionMapper questionMapper,
-                        UserMapper userMapper, UserService userService, CategoryService categoryService, Clock clock) {
+                        UserMapper userMapper, CategoryService categoryService, RootScope rootScope,
+                        Clock clock) {
         this.answerMapper = answerMapper;
         this.sessionMapper = sessionMapper;
         this.examRecordMapper = examRecordMapper;
         this.paperMapper = paperMapper;
         this.questionMapper = questionMapper;
         this.userMapper = userMapper;
-        this.userService = userService;
         this.categoryService = categoryService;
+        this.rootScope = rootScope;
         this.clock = clock;
     }
 
     public Overview overview(long userId, Long categoryId) {
-        Long root = resolveRoot(userId, categoryId);
+        Long root = rootScope.resolve(userId, categoryId);
         AggRow all = answerMapper.countAnswers(userId, root, null);
         AggRow today = answerMapper.countAnswers(userId, root,
                 TimeUtil.beijingDayStartUtc(TimeUtil.todayBeijing(clock)));
@@ -122,7 +123,7 @@ public class StatsService {
     /** 近 days 天（含今天）每天的作答，没作答的日子也给出，从早到晚。 */
     public List<DailyItem> daily(long userId, Long categoryId, Integer days) {
         int n = checkDays(days);
-        Long root = resolveRoot(userId, categoryId);
+        Long root = rootScope.resolve(userId, categoryId);
         LocalDate today = TimeUtil.todayBeijing(clock);
         LocalDate first = today.minusDays(n - 1L);
         Map<LocalDate, AggRow> byDay = new HashMap<>();
@@ -141,7 +142,7 @@ public class StatsService {
 
     /** 范围内每个章节（按分类树顺序），没做过的章节也列出。章节按作答时所在章节归属。 */
     public List<CategoryItem> categories(long userId, Long categoryId) {
-        Long root = resolveRoot(userId, categoryId);
+        Long root = rootScope.resolve(userId, categoryId);
         CategoryTree tree = categoryService.tree();
         List<Long> chapters = new ArrayList<>();
         for (Category r : tree.roots()) {
@@ -176,7 +177,7 @@ public class StatsService {
         if (max < 1 || max > MAX_WEAK_LIMIT) {
             throw BizException.invalid("limit", "只能是 1–" + MAX_WEAK_LIMIT);
         }
-        Long root = resolveRoot(userId, categoryId);
+        Long root = rootScope.resolve(userId, categoryId);
         LocalDateTime from = TimeUtil.beijingDayStartUtc(TimeUtil.todayBeijing(clock).minusDays(n - 1L));
         Map<Long, AnswerRecord> lastByQuestion = new LinkedHashMap<>();
         for (AnswerRecord r : answerMapper.selectList(new LambdaQueryWrapper<AnswerRecord>()
@@ -211,7 +212,7 @@ public class StatsService {
 
     /** 已结算的考试成绩，按交卷时间从早到晚（画折线用）。 */
     public List<ExamItem> exams(long userId, Long categoryId, Long paperId) {
-        Long root = resolveRoot(userId, categoryId);
+        Long root = rootScope.resolve(userId, categoryId);
         return finishedExams(userId, root, paperId).stream()
                 .sorted(Comparator.comparing(ExamRecord::getSubmittedAt).thenComparing(ExamRecord::getId))
                 .map(r -> {
@@ -251,7 +252,7 @@ public class StatsService {
         if (period != null && !period.isBlank() && !"WEEK".equals(period.strip())) {
             throw BizException.invalid("period", "目前只支持 WEEK");
         }
-        Long root = resolveRoot(userId, categoryId);
+        Long root = rootScope.resolve(userId, categoryId);
         LocalDate monday = TimeUtil.todayBeijing(clock).with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         List<AggRow> rows = answerMapper.leaderboard(root, TimeUtil.beijingDayStartUtc(monday));
         List<Long> topIds = rows.stream().limit(LEADERBOARD_SIZE).map(AggRow::getGroupId).toList();
@@ -279,18 +280,6 @@ public class StatsService {
             }
         }
         return new Leaderboard(items, me);
-    }
-
-    /** 统计范围：指定的一级分类，否则本人目标考试，都没有时为 null（不过滤）。 */
-    private Long resolveRoot(long userId, Long categoryId) {
-        if (categoryId != null) {
-            Category c = categoryService.tree().get(categoryId);
-            if (c == null || c.getLevel() != CategoryTree.LEVEL_EXAM) {
-                throw BizException.invalid("categoryId", "必须是一级分类（考试）");
-            }
-            return categoryId;
-        }
-        return userService.requireUser(userId).getTargetCategoryId();
     }
 
     private static int checkDays(Integer days) {

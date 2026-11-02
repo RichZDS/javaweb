@@ -402,6 +402,48 @@ class PracticeApiTest extends ApiTestBase {
         assertThat(call(get(current, u)).data().isNull()).as("目标考试下没有了就是 null，不退到别的考试").isTrue();
     }
 
+    /** 练习记录的范围（docs/api.md 0.4 节）：默认目标考试、指定一级分类、all=true、非一级分类 400、归属为空的练习。 */
+    @Test
+    void historyIsScopedToTheTargetExam() throws Exception {
+        Login u = register("hist_scope");
+        Category[] a = tree("A");
+        Category[] b = tree("B");
+        List<Question> qa = singles(a[2], 10);
+        singles(b[2], 10);
+        // 没有目标考试时开的收藏练习：不限考试，root_category_id 为空
+        call(put("/api/favorites/" + qa.get(0).getId(), u, null));
+        long free = data(start(u, Map.of("mode", "FAVORITE"))).get("id").asLong();
+        clock.advance(Duration.ofMinutes(1));
+        long sa = data(start(u, random(a[2], 10))).get("id").asLong();
+        clock.advance(Duration.ofMinutes(1));
+        long sb = data(start(u, random(b[2], 10))).get("id").asLong();
+        String list = "/api/practice/sessions";
+
+        assertThat(ids(data(call(get(list, u))).get("items"), "id")).as("没有目标考试：全部，含归属为空的")
+                .containsExactly(sb, sa, free);
+        setTarget(u, a[0]);
+        JsonNode mine = data(call(get(list, u)));
+        assertThat(ids(mine.get("items"), "id")).as("默认只看目标考试 A").containsExactly(sa);
+        assertThat(mine.get("total").asLong()).isEqualTo(1);
+        assertThat(mine.get("items").get(0).get("rootCategoryId").asLong()).isEqualTo(a[0].getId());
+        assertThat(mine.get("items").get(0).get("rootCategoryName").asText()).isEqualTo("A");
+        assertThat(ids(data(call(get(list + "?categoryId=" + b[0].getId(), u))).get("items"), "id"))
+                .as("指定一级分类").containsExactly(sb);
+
+        JsonNode all = data(call(get(list + "?all=true&categoryId=" + a[2].getId(), u)));
+        assertThat(ids(all.get("items"), "id")).as("all=true 列全部、忽略 categoryId").containsExactly(sb, sa, free);
+        JsonNode freeItem = all.get("items").get(2);
+        assertThat(freeItem.get("rootCategoryId").isNull()).as("归属为空的练习").isTrue();
+        assertThat(freeItem.get("rootCategoryName").isNull()).isTrue();
+
+        for (String bad : List.of(String.valueOf(a[2].getId()), String.valueOf(a[1].getId()), "999999")) {
+            Resp r = call(get(list + "?categoryId=" + bad, u));
+            assertThat(r.status()).as("categoryId=" + bad).isEqualTo(400);
+            assertThat(r.code()).isEqualTo("VALIDATION_FAILED");
+            assertThat(r.body().get("data").get("fields").get(0).get("field").asText()).isEqualTo("categoryId");
+        }
+    }
+
     @Test
     void currentAndHistory() throws Exception {
         Login u = register("hist1");

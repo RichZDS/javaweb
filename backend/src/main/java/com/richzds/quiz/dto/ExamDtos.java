@@ -73,8 +73,10 @@ public final class ExamDtos {
                              Map<String, String> optionMapping) {
     }
 
-    public record RecordItem(Long recordId, Long paperId, String title, String status, Integer score,
-                             int totalScore, Boolean passed, Instant startedAt, Instant submittedAt) {
+    /** 考试记录列表项；rootCategoryId / rootCategoryName 是试卷所属的考试（一级分类）。 */
+    public record RecordItem(Long recordId, Long paperId, String title, Long rootCategoryId, String rootCategoryName,
+                             String status, Integer score, int totalScore, Boolean passed, Instant startedAt,
+                             Instant submittedAt) {
     }
 
     /** 规则卷题量缺口。 */
