@@ -66,6 +66,16 @@
 - 试卷新建后是下架状态；固定卷只能选已发布的题；后台 `attempts` 数全部考试记录（含进行中）；有考试记录后只能改标题和描述，改别的返回 409。
 - 看板：`userCount` 只数普通用户，`questionCount` 只数已发布，`papers[].attempts` 只数已结算场次，`avgScore` 保留 2 位小数。
 
+### 0.4 补充约定（最终验收，PM-M3-12 / PM-M3-13）
+
+- 练习记录 `GET /api/practice/sessions` 和考试记录 `GET /api/exam-records` 与统计、错题本一样，默认只看本人目标考试：
+  - 不传参数：只列本人目标考试下的记录；本人没有目标考试时列全部。
+  - `categoryId`：只列这个一级分类（考试）下的记录；不是一级分类返回 400 `VALIDATION_FAILED`（`fields` 指向 `categoryId`）。
+  - `all=true`：列本人全部记录，忽略 `categoryId`。
+  - 练习按 `practice_session.root_category_id` 归属；它为空的练习（没有目标考试时开的跨考试练习）只在 `all=true` 或本人没有目标考试时列出。考试按试卷的 `categoryId` 归属。
+  - 每项带 `rootCategoryId`、`rootCategoryName`（归属考试的 id 和名称，练习可能为 `null`），供“全部考试”视图显示来源。
+- 搜题 `GET /api/questions/search` 的 `categoryId` 本来就支持 1–3 级任意分类；App 搜题页默认传目标考试，并让学生把范围缩到科目或章节。接口不变。
+
 ## 1. 题目的表示
 
 题型 `type`：`SINGLE` 单选、`MULTIPLE` 多选、`JUDGE` 判断、`FILL` 填空。
@@ -186,7 +196,7 @@
 | --- | --- | --- |
 | GET | `/api/practice/sessions/{id}` | 取一次练习，只能取自己的 |
 | GET | `/api/practice/sessions/current` | 本人目标考试下最近一次未完成的非每日练习（没有目标考试时不限考试），没有时 data 为 `null`，用于首页“继续练习”；可传 `?categoryId=` 指定一级分类 |
-| GET | `/api/practice/sessions?page=&size=` | 练习记录 `{id, mode, questionCount, answeredCount, correctCount, startedAt, completedAt}` |
+| GET | `/api/practice/sessions?categoryId=&all=&page=&size=` | 练习记录 `{id, mode, rootCategoryId, rootCategoryName, questionCount, answeredCount, correctCount, startedAt, completedAt}`，按开始时间倒序。范围规则见 0.4 节 |
 | POST | `/api/practice/sessions/{id}/answers` | `{questionId, userAnswer, timeSpentSec}`。返回 `{questionId, correct, userAnswer, correctAnswer, acceptedAnswers, analysisHtml, alreadySubmitted, optionMapping}`。每题只能提交一次，重复提交返回第一次的结果且 `alreadySubmitted=true`。背题模式返回 409 `CONFLICT` |
 | PUT | `/api/practice/sessions/{id}/progress` | `{currentIndex}`，保存看到第几题 |
 | POST | `/api/practice/sessions/{id}/finish` | 结束，返回 `{durationSec, answeredCount, correctCount, correctRate, wrongQuestionIds}`。全部题都提交后自动完成；每日一练只有全部提交才写 `completedAt` |
@@ -216,7 +226,7 @@
 | GET | `/api/exam-records/{id}` | 进行中返回 `ExamSheet`，已结算返回 `ExamResult` |
 | PUT | `/api/exam-records/{id}/answers/{questionId}` | `{userAnswer, version, marked}`。`version` 由客户端每题递增。返回 `{accepted, version}`：版本更大时保存并返回 `{accepted:true, version:<本次版本>}`；不更大时不保存，返回 `{accepted:false, version:<已存版本>}`。截止后返回 409 `EXAM_EXPIRED`，不保存 |
 | POST | `/api/exam-records/{id}/submit` | 交卷并结算，可重复调用，只结算一次，返回 `ExamResult` |
-| GET | `/api/exam-records?paperId=&page=&size=` | 考试记录 `{recordId, paperId, title, status, score, totalScore, passed, startedAt, submittedAt}` |
+| GET | `/api/exam-records?paperId=&categoryId=&all=&page=&size=` | 考试记录 `{recordId, paperId, title, rootCategoryId, rootCategoryName, status, score, totalScore, passed, startedAt, submittedAt}`。传了 `paperId` 时只按这份试卷过滤，忽略 `categoryId` 和 `all`；否则范围规则见 0.4 节，按试卷所属的一级分类算 |
 
 `ExamSheet`（不含任何答案和解析）：
 
