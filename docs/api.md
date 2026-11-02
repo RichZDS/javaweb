@@ -182,6 +182,8 @@
 
 ## 5. 错题本和收藏
 
+错题本和收藏的列表、分组、计数都默认只看本人目标考试下的题（没有目标考试时看全部），和首页、统计、考试列表口径一致。传 `categoryId`（任意层级）时只看该分类下的题。用 `WRONG`、`FAVORITE` 模式开练习时，不传 `categoryIds` 也按同一范围取题，保证“列表里看到的题”和“重练全部”拿到的题是同一批。
+
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
 | GET | `/api/wrong-questions?categoryId=&sort=RECENT\|MOST&page=&size=` | `{questionId, categoryId, categoryPath, type, stemPreview, wrongCount, correctStreak, lastWrongAnswer, lastWrongAt}` |
