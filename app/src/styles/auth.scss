@@ -1,0 +1,73 @@
+/* 登录、注册页共用 */
+.auth {
+  padding-top: 48px;
+}
+
+.brand {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.brand-name {
+  display: block;
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--c-primary);
+}
+
+.brand-sub {
+  display: block;
+  margin-top: 6px;
+  color: var(--c-text-2);
+  font-size: var(--fs-sm);
+}
+
+.form {
+  padding: 20px 18px;
+}
+
+.field {
+  margin-bottom: 16px;
+}
+
+.label {
+  font-size: var(--fs-sm);
+  color: var(--c-text-2);
+}
+
+.input {
+  height: 44px;
+  margin-top: 6px;
+  padding: 0 12px;
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-size: var(--fs-base);
+}
+
+.err {
+  display: block;
+  margin-top: 4px;
+  color: var(--c-wrong);
+  font-size: var(--fs-xs);
+}
+
+.submit {
+  margin-top: 8px;
+}
+
+.hint {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.switch {
+  text-align: center;
+  color: var(--c-text-2);
+  font-size: var(--fs-sm);
+}
+
+.link {
+  color: var(--c-primary);
+}

@@ -1,0 +1,11 @@
+node_modules
+dist
+unpackage
+*.local
+*.log
+.DS_Store
+
+# 根目录 .gitignore 忽略了 .env.*；这三份只有接口地址，没有密钥，需要提交给 CI 构建用
+!.env.development
+!.env.production
+!.env.app
