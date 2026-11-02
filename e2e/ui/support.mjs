@@ -20,7 +20,7 @@ export async function step(page, info, name, action) {
     finally {
       const file = path.join(dir, `${name.replace(/[^a-zA-Z0-9\u4e00-\u9fff_-]/g, '_')}.png`);
       try {
-        await page.screenshot({ path: file, fullPage: true });
+        await page.screenshot({ path: file, fullPage: true, animations: 'disabled' });
         await info.attach(name, { path: file, contentType: 'image/png' });
       } catch (error) { if (!actionFailed) throw error; }
     }

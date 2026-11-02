@@ -83,7 +83,7 @@ API 汇总为 `tests 22 / pass 18 / fail 1 / skipped 3`。本次将 QA-002 原�
 - **QA-001 已修复**：缺失、空串、纯空格、51 字符四种关键词均返回 400 `VALIDATION_FAILED`，`fields` 正确指向 `keyword`；正常搜索、分页和题目详情仍通过。
 - **QA-002 已修复**：小数 `1.5` 返回 400，`fields` 指向 `wrongRemoveThreshold`，原设置保持默认 3，不再截断成 1。
 - **未知 sort 已验证**：`GET /api/wrong-questions?sort=UNKNOWN` 返回 400，`fields` 指向 `sort`。
-- **QA-003，轻微 / 后端，待修复**（按工头 QA-003-ACK 定级）：注册登录后 `PUT /api/me/settings` 发送 `{"wrongRemoveThreshold":"2"}`，预期请求体数字字段只接受原生 JSON 数字并返回 400；实际 200 `OK`，设置保存为 2。复现及返回在 `repro-final.log`，已转后端。此约定针对请求体，查询参数不受影响。
+- **QA-003，轻微 / 后端，第一轮待修复，第二轮已验证修复**（按工头 QA-003-ACK 定级）：注册登录后 `PUT /api/me/settings` 发送 `{"wrongRemoveThreshold":"2"}`，预期请求体数字字段只接受原生 JSON 数字并返回 400；第一轮实际 200 `OK`，设置保存为 2。原证据在 `repro-final.log`；db63cdc 的修复证据见下方 QA-RUN-02。此约定针对请求体，查询参数不受影响。
 
 修复版本的 App 主流程 **1/1 通过，退出 0**，执行约 21.4 秒。实际用户 24、练习 28：十题含四题型，答对九题、错误题 197，结果页 90%；错题练习 29 答对后结果 100%，`correctStreak=1`，无 pageerror。结果核对 JSON：`artifacts/retest-01/walk-result.json`。两次首页统计请求均为预期未实现的 404，按 M1 范围记录为阶段限制。
 
@@ -110,3 +110,59 @@ M2 对应 EX-01/02/03/07/08/09/10/11/12/13/14/15/16/19/20/21/23/24、ST-01/02/03
 边界说明：断网代理只验证服务器在收到/未收到请求时的行为，不声称测过 App 离线队列。自动结算场景不提前读取记录详情，先检查统计；真实执行时还需确认统计读取不会主动触发结算。跨北京时间零点、周界、历史连续打卡仍待受控时间/历史夹具，当前没有证据。API 没有规定部分业务限制的精确 HTTP 错误码时，用例只接受 4xx 并验证没有完成非法发布或修改，不把 500 当作合法拒绝。
 
 所有新增 JS 通过语法检查，`git diff --check` 退出 0。无产品截图、无新增业务缺陷结论。等待后端 M2/QA-003、M3 合入后的实跑通知。
+
+## 2026-11-02 · QA-RUN-02 M1＋M2 接口与 App 考试实测
+
+产品基线 **main `db63cdc`**。已阅读 `api.md` 0.1、0.2、6 节新增约定，重新构建后端/H5，使用临时 H2：原始 396 题加 20 道验收题，原始 6 卷加 3 份验收卷，导入日志为 **416 题、9 份试卷**。管理接口仍在 M3，不执行、不算失败。
+
+### 实际执行与计数
+
+命令在 `e2e/`，BASE_URL 为 `http://127.0.0.1:8080`。下列为每次执行的原始汇总，重复覆盖的用例不相加为总通过数。
+
+| 命令 / 检查 | 通过 | 失败 | skipped | 退出码 | 证据（e2e/ 下） |
+| --- | ---: | ---: | ---: | ---: | --- |
+| `QA_SCOPE=m2 bash scripts/stack.sh up` | — | — | — | 0 | `artifacts/run-02/stack-up.log` |
+| `QA_SCOPE=m1+m2 sozai-lock light -- npm run test:api`（已有核心用例） | 32 | 0 | 1（M3） | 0 | `artifacts/run-02/api-initial.log`；约 175.9 秒 |
+| `sozai-lock light -- node scripts/repro-m1-issues.mjs` | 7 请求断言 | 0 | 0 | 0 | `artifacts/run-02/qa003-retest.log` |
+| `QA_SCOPE=m1+m2 sozai-lock light -- node --test api/m1.test.mjs`（加入原生字符串校验后） | 19 | 1 | 1（M3） | 1 | `artifacts/run-02/m1-with-new-contract.log` |
+| `sozai-lock light -- node scripts/repro-native-strings.mjs` | 0 | 1 | 0 | 1 | `artifacts/run-02/native-string-gap.log` |
+| `QA_SCOPE=m2 QA_STAGE=run-02-stable QA_MAIN_COMMIT=db63cdc sozai-lock light -- npm run test:ui` | 1 | 0 | 0 | 0 | `artifacts/run-02/ui-stable.log`、`ui-stable-results.json`；约 71 秒 |
+| `sozai-lock light -- node scripts/check-result-fields.mjs artifacts/run-02/walk-result.json` | 0 场 | 2 场响应未符合 | 0 | 1 | `artifacts/run-02/result-field-gap.log` |
+| `bash scripts/stack.sh down` 及清理复核 | — | — | — | 0 | `artifacts/run-02/cleanup.log` |
+
+核心 M1 的 19 项和 M2 的 13 项均通过。后加的原生字符串契约校验未通过；另有成绩单新增字段未交付，详见已知差距表。因此不能将本轮描述为“全部接口约定已通过”。M1 重跑只针对有新增断言的文件，M2 复用同一产品代码本轮已通过的 13 项，不重复等待全部截止用例。M3 仅保留一组明确的范围 skip。
+
+**QA-003 已修复**：`wrongRemoveThreshold:"2"` 返回 400 `VALIDATION_FAILED`，fields 正确指向字段。原 QA-001 四种非法关键词、QA-002 小数、未知 sort 同样返回 400，共七个请求断言通过。
+
+M2 已验证：进行中同卷复用且不计已考次数、答案保密/查题限制、旧/同版本拒绝、重连补传、并发交卷幂等、1/2/3/4 分加权判分、未答不计正式作答/错题、考试 RETRY、截止拒收、周期结算、最好成绩、规则交集去重、所有权、分类/趋势/薄弱点、并列排名（1、1、3）、统计参数边界。截止用例真实等待约 62 秒；后台结算用例真实等待约 95 秒且期间不调用记录详情/交卷。已检查 `StatsService`：统计只读取已结束记录，没有调用结算逻辑，所以查询统计没有替代定时任务完成该证明。超时 `submittedAt` 与 `deadlineAt` 完全一致。
+
+### App 真实用户走查
+
+单个 Chromium 浏览器，iPhone 13 尺寸，真实本地 API；通过 UI 登录、开考、选项/填空、标记、交卷和跳转。API 只用于准备隔离账号/试卷与核对结果，没有替代作答操作。
+
+稳定轮用户 67、固定卷记录 13、一分钟卷记录 14：
+
+1. 首题保存并标记“稍后再看”，服务器版本 2。
+2. `context.setOffline(true)` 后答多选 A/C，页面显示未同步，服务器未收到该题。
+3. 点交卷并确认，出现“还不能交卷”；未发出 submit 请求，服务器仍 IN_PROGRESS。
+4. 恢复网络后自动补传，多选答案 A/C、版本 2，页面变为“答案已保存”。
+5. 再次离线答第三题，关闭页面，再恢复网络、新开页面，从“继续考试”返回同一 record；本地待同步答案自动上传，标记仍在，截止时间不变。
+6. 未答一题时交卷提醒可取消，补齐填空后手动交卷，4 对、10/10 分。
+7. 统计页六项分别为累计 4、正确率 100%、今日 4、学习 1 天、连续打卡 0 天、考试 1 次，与 API 一致。
+8. 开一分钟卷只答首题，真实等待到时，浏览器自动发出第二次 submit，成绩 1/10 分、1 对、3 未答。`submittedAt=deadlineAt=2026-11-02T11:28:32.323Z`，页面显示北京时间 19:28。
+9. 统计页变为累计 5、正确率 100%、今日 5、学习 1 天、打卡 0 天、考试 2 次；3 道未答不进入分母。排行榜本人 5 次、排名 10，与接口一致，列表条数一致。无 pageerror。
+
+15 张稳定截图：`/data/crew/qzd-5b1e/shots/qa-run-02-stable/2026-11-02T11-27-23-827Z/app-iphone13/`。已视觉检查未同步状态、交卷拦截弹窗、重开恢复标记、手动成绩、自动成绩和统计页面。关键文件 `05_EX-08_未同步交卷被拦截.png`、`08_EX-12_关页重开恢复原场并补传.png`、`13_EX-06_真实等待截止自动交卷.png`、`14_ST-02_到时交卷后统计再次对账.png`。截图将有限 CSS 动画推进到结束，避免截在弹窗透明/路由过渡帧；没有隐藏或改写产品内容。第一次走查亦通过，原始截图和日志保留在 `qa-run-02/` 与 `ui-initial.log`。
+
+结构化证据 `artifacts/run-02/walk-result.json` 含记录号、版本、两次 submit 路径、统计响应和两个真实成绩单，不含令牌或密码。关页重开是 H5 浏览器上下文内的恢复，不代表真机杀进程或设备重启验证。
+
+### 已知待交付约定与限制
+
+两项均是工头已告知后端、计划随 M3 补齐的新约定，本轮保留未符合证据，不重复分派为新缺陷号。
+
+| 编号 | 程度 / 归属 | 复现 / 期望 | 实际 / 证据 | 状态 |
+| --- | --- | --- | --- | --- |
+| R2-K01 | 轻微 / 后端 | 开练习后提交 `userAnswer:[1]`；api 0.1 要求每项原生字符串，应 400 且不记作答 | 200 `OK`，回传 `userAnswer:["1"]`；`native-string-gap.log`、M1 新用例失败 | 已排期，未修复 |
+| R2-K02 | 轻微 / 后端 | 查看已结算成绩单；api 6 新增 items.blankCount、imageUrl 字段应完整返回 | 两份真实成绩单的 8 个 item 均缺两个字段；`result-field-gap.log`、`walk-result.json`。当前 App 有填空数回退逻辑，主流程没有因此阻断 | 已排期，未交付 |
+
+本轮未测 M3 管理/Excel、已另行交给前后端修复的 PM-M3 问题、跨日/跨周历史边界、原生 App 真机/安装包。没有把这些缺证据项标为通过。清理已确认：后端 PID 238463、App PID 238666 退出，状态文件及临时 H2 删除，8080/4173 可重新绑定；所有测试进程均已结束。此次只改 e2e/ 和本报告。

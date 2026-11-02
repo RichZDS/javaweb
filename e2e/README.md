@@ -41,6 +41,17 @@ QA_SCOPE=m3 sozai-lock light -- npm run test:api
 npm run stack:down
 ```
 
+第二轮可运行 M1＋M2，并用单浏览器脚本走查真实考试（含一分钟自动交卷）：
+
+```bash
+QA_SCOPE=m2 npm run stack:up
+QA_SCOPE=m1+m2 sozai-lock light -- npm run test:api
+QA_SCOPE=m2 QA_STAGE=run-02 QA_MAIN_COMMIT=<产品commit> sozai-lock light -- npm run test:ui
+npm run stack:down
+```
+
+此处 UI 只有一个浏览器/一个脚本，按资源规则走 light；默认全套多用例/多浏览器仍用 heavy。`app-m2.spec.mjs` 使用 `context.setOffline` 真正断开浏览器网络，验证待同步时阻止交卷、恢复补传、关页新开恢复草稿、未答提醒取消、手动与到时交卷，并逐项核对统计页面。H5 关页重开不替代真机杀进程测试。结果附件可交给 `node scripts/check-result-fields.mjs <walk-result.json>` 核对成绩单新增字段；原生字符串类型可用 `node scripts/repro-native-strings.mjs` 单独复现。
+
 M2 在临时种子中加入三份固定/规则验收卷，含一分钟卷，因此不依赖 M3 建卷接口。M3 各场景通过管理接口建立独立分类、题目和试卷。M3 看板增量用例应在隔离栈顺序执行，期间不要同时跑 UI 或其他写入者。
 
 仅做用例收集（不连接后端、不执行用例、不算通过）：
@@ -92,9 +103,10 @@ npm run stack:up
 
 - `api/contract.test.mjs`：账号、分类/搜索、练习、四题型判分和幂等、背题、顺序/每日、错题、RETRY、收藏、考试/版本/快照/截止、统计、权限、管理 CRUD、纠错、Excel 部分成功。Excel 文件由用例现场生成，无需手工附件。
 - `api/m1.test.mjs`：M1 独立用户 + 临时种子夹具；账号、分类/搜索、判分、练习/RETRY、错题、收藏、设置、权限、纠错，不依赖管理接口。
-- `api/m2.test.mjs`：12 个考试、断网补发、版本、截止、自动结算、统计、排行榜场景。
+- `api/m2.test.mjs`：13 个考试、断网补发、版本、截止、自动结算、统计、排行榜和参数边界场景。
 - `api/m3.test.mjs`：15 个管理权限/CRUD、试卷限制/缺口、快照、纠错、禁用、Excel、看板场景。
 - `ui/app-m1.spec.mjs`：M1 真实页面操作和逐步截图；答案通过题目详情校验，注册、选择、答题、提交、跳页全部经 UI 操作，不用 API 代替操作。
+- `ui/app-m2.spec.mjs`：考试断网拦截/恢复、关页重开、手动/自动交卷、统计六项和排行榜本人数据对账。
 - `ui/app.spec.mjs`：注册 → 选考试 → 随机十题（故意错一道）→ 结果 → 错题本重练 → 固定卷 → 成绩单 → 统计。
 - `ui/admin.spec.mjs`：登录 → 新建分类 → 新建题目 → 新建固定卷并上架。
 - `scripts/check-harness.mjs`：隔离假构建/假后端仅用于验证启停、端口保护、静态资源与代理，不是业务通过证据。

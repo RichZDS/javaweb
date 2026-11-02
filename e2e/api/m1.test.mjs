@@ -216,6 +216,15 @@ scenario('WR-13 QA-003：错题阈值拒绝数字字符串', async () => {
   assert.equal((await f.api.get('/api/me')).wrongRemoveThreshold, 3);
 });
 
+scenario('API-0.1：userAnswer 每一项必须是原生 JSON 字符串', async () => {
+  const f = await m1Fixture('single'); const s = await startM1(f, { acceptFewer: true });
+  const error = await f.api.post(`/api/practice/sessions/${s.id}/answers`, {
+    questionId: f.questions[0].id, userAnswer: [1], timeSpentSec: 1,
+  }, 400, 'VALIDATION_FAILED');
+  assert.ok(error.fields.some(field => field.field === 'userAnswer[0]'));
+  assert.equal((await f.api.get(`/api/practice/sessions/${s.id}`)).answeredCount, 0);
+});
+
 scenario('WR-09 RETEST-01：未知错题排序值返回 400', async () => {
   const f = await register();
   const error = await f.api.get('/api/wrong-questions?sort=UNKNOWN', 400, 'VALIDATION_FAILED');
@@ -238,6 +247,7 @@ scenario('AD-17：纠错 201 返回对象，空内容和超长内容拒绝', asy
   assert.ok(feedback.id); assert.equal(feedback.questionId, f.questions[0].id); assert.equal(feedback.status, 'PENDING');
 });
 
-for (const area of ['考试接口及考试来源 RETRY（M2）', '统计接口（M2）', '管理 CRUD/禁用/Excel（M3）']) {
-  test(`未实现，非失败：${area}`, { skip: 'QA-RUN-01 指定本轮只验收 M1' }, () => {});
+const deferred = process.env.QA_SCOPE === 'm1+m2' ? ['管理 CRUD/禁用/Excel（M3）'] : ['考试接口及考试来源 RETRY（M2 另跑）', '统计接口（M2 另跑）', '管理 CRUD/禁用/Excel（M3）'];
+for (const area of deferred) {
+  test(`本分组不覆盖，非失败：${area}`, { skip: '阶段范围；未作为业务通过或失败' }, () => {});
 }

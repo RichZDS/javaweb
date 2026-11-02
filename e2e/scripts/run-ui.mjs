@@ -5,7 +5,7 @@ import { available, BASE_URL } from '../lib/http.mjs';
 const endpoints = [
   ['后端', `${BASE_URL}/api/app/version?platform=android`],
   ['H5', process.env.APP_URL || 'http://127.0.0.1:4173'],
-  ...(process.env.QA_SCOPE === 'm1' ? [] : [['管理后台', process.env.ADMIN_URL || 'http://127.0.0.1:4174']]),
+  ...(['m1', 'm2'].includes(process.env.QA_SCOPE) ? [] : [['管理后台', process.env.ADMIN_URL || 'http://127.0.0.1:4174']]),
 ];
 const missing = [];
 for (const [label, url] of endpoints) if (!await available(url)) missing.push(`${label} ${url}`);
