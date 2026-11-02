@@ -199,7 +199,7 @@
 | GET | `/api/exams/{paperId}` | 考前须知：上面字段 + `description` + `scoringRules`（判分规则说明文字） |
 | POST | `/api/exams/{paperId}/start` | 开考。已有进行中的同卷考试则返回它（200），否则新建（201）。规则卷题不够返回 409 `POOL_INSUFFICIENT`，`data.gaps = [{categoryId, categoryPath, type, need, available}]` |
 | GET | `/api/exam-records/{id}` | 进行中返回 `ExamSheet`，已结算返回 `ExamResult` |
-| PUT | `/api/exam-records/{id}/answers/{questionId}` | `{userAnswer, version, marked}`。`version` 由客户端每题递增。服务器只接受比已存版本大的；旧版本返回 `{accepted:false, version:<已存版本>}`。截止后返回 409 `EXAM_EXPIRED`，不保存 |
+| PUT | `/api/exam-records/{id}/answers/{questionId}` | `{userAnswer, version, marked}`。`version` 由客户端每题递增。返回 `{accepted, version}`：版本更大时保存并返回 `{accepted:true, version:<本次版本>}`；不更大时不保存，返回 `{accepted:false, version:<已存版本>}`。截止后返回 409 `EXAM_EXPIRED`，不保存 |
 | POST | `/api/exam-records/{id}/submit` | 交卷并结算，可重复调用，只结算一次，返回 `ExamResult` |
 | GET | `/api/exam-records?paperId=&page=&size=` | 考试记录 `{recordId, paperId, title, status, score, totalScore, passed, startedAt, submittedAt}` |
 
@@ -225,7 +225,7 @@
   "correctCount": 30, "wrongCount": 8, "unansweredCount": 2,
   "byType": [ { "type": "SINGLE", "score": 40, "total": 50, "rate": 0.8 } ],
   "byCategory": [ { "categoryId": 12, "categoryPath": "…", "score": 10, "total": 14, "rate": 0.71 } ],
-  "items": [ { "index": 1, "questionId": 101, "type": "SINGLE", "stemHtml": "…", "options": [], "userAnswer": ["B"], "correctAnswer": ["A"], "acceptedAnswers": null, "correct": false, "score": 0, "maxScore": 2, "analysisHtml": "…" } ]
+  "items": [ { "index": 1, "questionId": 101, "type": "SINGLE", "stemHtml": "…", "options": [], "blankCount": 0, "imageUrl": null, "userAnswer": ["B"], "correctAnswer": ["A"], "acceptedAnswers": null, "correct": false, "score": 0, "maxScore": 2, "analysisHtml": "…" } ]
 }
 ```
 
