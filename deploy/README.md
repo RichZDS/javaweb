@@ -27,8 +27,15 @@
 
 ## 前提
 
-- 服务器：Docker 和 `docker compose`（v2 起支持 `--wait`）、`curl`；SSH 用密钥登录。
+- 服务器：Docker 和 `docker compose`（v2 起支持 `--wait`）、`curl`。
 - 本机：JDK 17、Maven、Node 22、`rsync`、`ssh`。`deploy.sh` 在本机构建，服务器上不编译。
+- 登录方式：用密钥时 `DEPLOY_SSH_PREFIX` 留空。服务器只能密码登录时，本机装 `sshpass`，把密码写进只有自己能读的文件
+  （`chmod 600`），在 `deploy/.env.deploy` 里设 `DEPLOY_SSH_PREFIX="sshpass -f <密码文件路径>"`，ssh 和 rsync 都会带上它。
+  密码不要写进 `.env.deploy` 或仓库。第一次用 sshpass 前先手动 `ssh <user>@<server>` 登录一次、确认主机指纹，
+  否则 sshpass 遇到“是否信任这台主机”的提问会直接失败。
+- 登录用户不在 `docker` 组时，在 `.env.deploy` 里设 `DEPLOY_DOCKER="sudo docker"`，远程的 `docker compose` 都会变成
+  `sudo docker compose`；sudo 要密码时脚本会分配终端让你输入。下文服务器上的 `docker compose …` 命令同理要加 `sudo`，
+  `backup.sh` 用 `DOCKER="sudo docker" ./backup.sh`（放 cron 时要配免密 sudo，或者放进 root 的 crontab）。
 - Caddy（工头负责）要**保留 `/quiz` 前缀**转发，例如 `handle /quiz/* { reverse_proxy 127.0.0.1:18090 }`，
   不要用会去掉前缀的 `handle_path`；并带上 `X-Forwarded-Proto`（Caddy 默认会带）。后端按
   `server.forward-headers-strategy=framework` 读取这些头。

@@ -36,8 +36,29 @@ DEPLOY_SSH_PORT="${DEPLOY_SSH_PORT:-22}"
 DEPLOY_DIR="${DEPLOY_DIR:-quiz-javaweb}"
 HEALTH_URL="${HEALTH_URL:-http://127.0.0.1:18090/quiz/api/app/version?platform=android}"
 APK_PATH="${APK_PATH:-}"
+# 可选：放在 ssh 前面的命令，服务器只能密码登录时用，例如 "sshpass -f /path/to/pwfile"（密码放在文件里，不写在这里）
+DEPLOY_SSH_PREFIX="${DEPLOY_SSH_PREFIX:-}"
+# 服务器上调用 docker 的方式；ubuntu 用户不在 docker 组时设成 "sudo docker"
+DEPLOY_DOCKER="${DEPLOY_DOCKER:-docker}"
 
-SSH=(ssh -p "$DEPLOY_SSH_PORT" -o BatchMode=yes "$DEPLOY_HOST")
+# 有前缀（密码登录）时不能用 BatchMode=yes，否则 ssh 不会接受 sshpass 提供的密码
+SSH_OPTS=(-p "$DEPLOY_SSH_PORT")
+if [ -z "$DEPLOY_SSH_PREFIX" ]; then
+  SSH_OPTS+=(-o BatchMode=yes)
+fi
+# docker 要 sudo 时分配终端，sudo 需要密码就能在这里输入（配置了免密 sudo 则不会提示）
+case "$DEPLOY_DOCKER" in
+  sudo\ *) SSH_OPTS+=(-t) ;;
+esac
+read -r -a SSH_PREFIX <<< "$DEPLOY_SSH_PREFIX"
+SSH=("${SSH_PREFIX[@]}" ssh "${SSH_OPTS[@]}" "$DEPLOY_HOST")
+# rsync 的 -e 只要“怎么连”的命令，不带 -t
+if [ -n "$DEPLOY_SSH_PREFIX" ]; then
+  RSYNC_SSH="$DEPLOY_SSH_PREFIX ssh -p $DEPLOY_SSH_PORT"
+else
+  RSYNC_SSH="ssh -p $DEPLOY_SSH_PORT -o BatchMode=yes"
+fi
+DC="$DEPLOY_DOCKER compose"
 STAGE="$(mktemp -d "${TMPDIR:-/tmp}/quiz-deploy.XXXXXX")"
 trap 'rm -rf "$STAGE"' EXIT
 
@@ -103,7 +124,7 @@ run "${SSH[@]}" "mkdir -p $DEPLOY_DIR/releases $DEPLOY_DIR/backups && cd $DEPLOY
   ls -1t releases/*.tgz 2>/dev/null | tail -n +4 | xargs -r rm --"
 
 step "4/6 同步文件（不碰服务器上的 .env、backups/、releases/）"
-run rsync -az --delete -e "ssh -p $DEPLOY_SSH_PORT -o BatchMode=yes" \
+run rsync -az --delete -e "$RSYNC_SSH" \
   --exclude '.env' --exclude 'backups/' --exclude 'releases/' \
   "$STAGE/" "$DEPLOY_HOST:$DEPLOY_DIR/"
 
@@ -111,12 +132,12 @@ step "5/6 启动"
 # 先等数据库健康，再把 backend 和 web 各重建一次（换上新 jar 和新配置）。
 # 只重建一次，不在 up 之后再 restart：首次启动时 Flyway 正在建表，中途重启会留下半截的库。
 run "${SSH[@]}" "cd $DEPLOY_DIR && test -f .env || { echo '服务器上缺少 ~/$DEPLOY_DIR/.env，先照 .env.example 填写' >&2; exit 1; }; \
-  chmod +x backup.sh && docker compose up -d --wait db && \
-  docker compose up -d --force-recreate --remove-orphans backend web"
+  chmod +x backup.sh && $DC up -d --wait db && \
+  $DC up -d --force-recreate --remove-orphans backend web"
 
 step "6/6 健康检查 $HEALTH_URL"
 run "${SSH[@]}" "for i in \$(seq 1 30); do if curl -fsS '$HEALTH_URL'; then echo; exit 0; fi; sleep 5; done; \
-  echo '健康检查失败，看日志：docker compose logs --tail 200 backend' >&2; exit 1"
+  echo '健康检查失败，看日志：$DC logs --tail 200 backend' >&2; exit 1"
 
 if [ "$DRY_RUN" -eq 1 ]; then
   printf '\n（--dry-run：以上命令都没有执行）\n'
