@@ -13,6 +13,8 @@ public class AggRow {
     private Long totalCount;
     private Long distinctCount;
     private Long correctCount;
+    private Long scoreSum;
+    private Long passedCount;
 
     public Long getGroupId() {
         return groupId;
@@ -64,5 +66,29 @@ public class AggRow {
 
     public void setCorrectCount(Long correctCount) {
         this.correctCount = correctCount;
+    }
+
+    public long scores() {
+        return scoreSum == null ? 0 : scoreSum;
+    }
+
+    public Long getScoreSum() {
+        return scoreSum;
+    }
+
+    public void setScoreSum(Long scoreSum) {
+        this.scoreSum = scoreSum;
+    }
+
+    public long passed() {
+        return passedCount == null ? 0 : passedCount;
+    }
+
+    public Long getPassedCount() {
+        return passedCount;
+    }
+
+    public void setPassedCount(Long passedCount) {
+        this.passedCount = passedCount;
     }
 }

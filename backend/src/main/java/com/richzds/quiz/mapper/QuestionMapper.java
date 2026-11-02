@@ -11,6 +11,15 @@ import com.richzds.quiz.entity.Question;
 
 public interface QuestionMapper extends BaseMapper<Question> {
 
+    /** 每个章节未归档（草稿 + 已发布）的题数，后台分类树用。 */
+    @Select("SELECT category_id AS group_id, COUNT(*) AS total_count FROM question "
+            + "WHERE status <> 'ARCHIVED' GROUP BY category_id")
+    List<AggRow> countActiveByCategory();
+
+    /** 某章节当前最大的 sort，没有题时为 null。 */
+    @Select("SELECT MAX(sort) FROM question WHERE category_id = #{categoryId}")
+    Integer maxSort(@Param("categoryId") long categoryId);
+
     /** 每个章节已发布的题数。 */
     @Select("SELECT category_id AS group_id, COUNT(*) AS total_count FROM question "
             + "WHERE status = 'PUBLISHED' GROUP BY category_id")

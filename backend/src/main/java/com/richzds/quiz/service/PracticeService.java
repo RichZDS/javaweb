@@ -156,7 +156,9 @@ public class PracticeService {
             chapters = tree.chapterIdsUnder(categoryIds);
             rootId = tree.rootOf(categoryIds.get(0));
         } else if (listMode) {
+            // 和错题本 / 收藏列表的默认范围一致：目标考试，没有目标考试时不限（docs/api.md 第 5 节）
             rootId = user.getTargetCategoryId();
+            chapters = wrongBookService.scopeChapters(user.getId(), null, tree);
         } else {
             // 随机和标签练习没给分类时，用本人的目标考试
             if (user.getTargetCategoryId() == null) {

@@ -64,7 +64,7 @@ public final class ExamDtos {
     }
 
     public record ResultItem(int index, Long questionId, String type, String stemHtml, List<OptionView> options,
-                             List<String> userAnswer, List<String> correctAnswer, List<List<String>> acceptedAnswers,
+                             int blankCount, String imageUrl, List<String> userAnswer, List<String> correctAnswer, List<List<String>> acceptedAnswers,
                              boolean correct, int score, int maxScore, String analysisHtml) {
     }
 
