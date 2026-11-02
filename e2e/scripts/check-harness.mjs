@@ -97,20 +97,27 @@ test('栈自检：起服务、SPA/静态资源/API 代理、重复启动拒绝�
   }
 });
 
-test('栈自检：M1 无管理后台也可启动，隔离追加种子并关闭两个进程', { timeout: 30000 }, async t => {
+for (const scope of ['m1', 'm2']) test(`栈自检：${scope} 无管理后台也可启动，隔离追加种子并关闭两个进程`, { timeout: 30000 }, async t => {
   const f = await sandbox(t);
   await rm(path.join(f.root, 'admin'), { recursive: true });
   await mkdir(path.join(f.root, 'backend/src/main/resources/seed'), { recursive: true });
   await writeFile(path.join(f.root, 'backend/src/main/resources/seed/00-original.json'), '{}');
   await mkdir(path.join(f.root, 'e2e/lib'));
-  for (const file of ['m1-fixtures.mjs', 'http.mjs']) await cp(path.join(scripts, '../lib', file), path.join(f.root, 'e2e/lib', file));
-  const result = await exec(f.stack, ['up'], { ...f.env, QA_SCOPE: 'm1' });
+  for (const file of ['m1-fixtures.mjs', 'm2-fixtures.mjs', 'http.mjs']) await cp(path.join(scripts, '../lib', file), path.join(f.root, 'e2e/lib', file));
+  const result = await exec(f.stack, ['up'], { ...f.env, QA_SCOPE: scope });
   assert.equal(result.code, 0, result.output);
   assert.doesNotMatch(result.output, /ADMIN_URL/);
   const state = JSON.parse(await readFile(f.stateFile, 'utf8'));
   assert.equal(state.processes.length, 2);
   assert.ok(await exists(path.join(state.tempDir, 'seed/00-original.json')));
-  assert.equal(JSON.parse(await readFile(path.join(state.tempDir, 'seed/99-qa-m1.json'))).questions.length, 20);
+  const seed = JSON.parse(await readFile(path.join(state.tempDir, 'seed/99-qa-m1.json')));
+  assert.equal(seed.questions.length, 20);
+  if (scope === 'm2') {
+    assert.equal(seed.papers.length, 3);
+    assert.equal(seed.papers.find(p => p.durationMin === 1).questions.length, 4);
+    const refs = new Set(seed.questions.map(q => q.ref));
+    assert.ok(seed.papers.filter(p => p.mode === 'FIXED').every(p => p.questions.every(q => refs.has(q.ref))));
+  }
   await exec(f.stack, ['down'], f.env);
   assert.equal(await exists(state.tempDir), false);
 });

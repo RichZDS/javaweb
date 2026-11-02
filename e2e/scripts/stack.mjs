@@ -12,7 +12,8 @@ const e2e = fileURLToPath(new URL('..', import.meta.url));
 const repo = path.dirname(e2e);
 const statePath = path.join(e2e, '.stack-state.json');
 const logDir = path.join(e2e, 'artifacts', 'stack');
-const m1 = process.env.QA_SCOPE === 'm1';
+const m2 = process.env.QA_SCOPE === 'm2';
+const m1 = process.env.QA_SCOPE === 'm1' || m2; // M1/M2 both run without an admin frontend.
 let state;
 let buildChild;
 let stopping = false;
@@ -125,8 +126,8 @@ async function up() {
     if (m1) {
       const seedDir = path.join(tempDir, 'seed');
       await cp(path.join(repo, 'backend/src/main/resources/seed'), seedDir, { recursive: true });
-      const { m1Seed } = await import('../lib/m1-fixtures.mjs');
-      await writeFile(path.join(seedDir, '99-qa-m1.json'), JSON.stringify(m1Seed()));
+      const seed = m2 ? (await import('../lib/m2-fixtures.mjs')).m2Seed() : (await import('../lib/m1-fixtures.mjs')).m1Seed();
+      await writeFile(path.join(seedDir, '99-qa-m1.json'), JSON.stringify(seed));
       seedArgs.push(`--app.seed.location=file:${seedDir}/`);
     }
     await start('java', ['-Xmx512m', '-jar', path.join(repo, 'backend', 'target', jars[0]),
