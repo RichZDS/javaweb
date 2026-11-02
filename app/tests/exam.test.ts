@@ -58,6 +58,15 @@ describe('回包处理', () => {
     expect(r.draft.entries[101]).toMatchObject({ version: 2, syncedVersion: 1 })
   })
 
+  it('回包丢失后重发同一版本，服务器回 accepted:false 且版本相同：等于已同步，本地更新的版本还要再发', () => {
+    // 版本 2 已经到了服务器但回包丢了；重发 2 的途中用户又改成了 3
+    let d = applyChange(applyChange(emptyDraft(5), 101, { userAnswer: ['A'] }), 101, { userAnswer: ['B'] })
+    d = applyChange(d, 101, { userAnswer: ['C'] })
+    const r = applySaveResult(d, 101, 2, { accepted: false, version: 2 })
+    expect(r.outcome).toBe('resend')
+    expect(r.draft.entries[101]).toMatchObject({ userAnswer: ['C'], version: 3, syncedVersion: 2 })
+  })
+
   it('旧版本回包 accepted:false：以服务器为准，不再重发', () => {
     const d = applyChange(emptyDraft(5), 101, { userAnswer: ['A'] })
     const r = applySaveResult(d, 101, 1, { accepted: false, version: 4 })
@@ -220,6 +229,22 @@ describe('ExamSyncer 同步队列', () => {
     // 之后再改从服务器版本往上加
     syncer.change(101, { userAnswer: ['B'] })
     expect(server.calls[1].entry.version).toBe(10)
+  })
+
+  it('回包丢失：重发途中又改了答案，最新答案不会被服务器旧内容覆盖', async () => {
+    const { syncer, server, fetchServer } = setup()
+    syncer.change(101, { userAnswer: ['A'] })
+    server.calls[0].reject({ code: 'NETWORK' }) // 实际上服务器已经存了版本 1，只是回包丢了
+    await vi.advanceTimersByTimeAsync(1000) // 重试：再发版本 1
+    expect(server.calls[1].entry.version).toBe(1)
+    syncer.change(101, { userAnswer: ['B'] }) // 重试途中用户改成 B（版本 2）
+    server.calls[1].resolve({ accepted: false, version: 1 })
+    await vi.advanceTimersByTimeAsync(0)
+    expect(fetchServer).not.toHaveBeenCalled()
+    expect(server.calls[2].entry).toMatchObject({ version: 2, userAnswer: ['B'] })
+    server.calls[2].resolve({ accepted: true, version: 2 })
+    await vi.advanceTimersByTimeAsync(0)
+    expect(syncer.draft.entries[101]).toMatchObject({ userAnswer: ['B'], version: 2, syncedVersion: 2 })
   })
 
   it('EXAM_EXPIRED：停止同步并通知，之后不再接受作答', async () => {
