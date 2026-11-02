@@ -57,10 +57,13 @@ public class PracticeController {
         return ApiResponse.ok(practiceService.current(user.id(), categoryId));
     }
 
-    @Operation(summary = "练习记录")
+    @Operation(summary = "练习记录：默认目标考试下的（没有目标考试时全部），categoryId 指定一级分类，all=true 全部")
     @GetMapping
-    public ApiResponse<PageResult<SessionListItem>> list(@AuthenticationPrincipal CurrentUser user, PageQuery page) {
-        return ApiResponse.ok(practiceService.list(user.id(), page));
+    public ApiResponse<PageResult<SessionListItem>> list(@AuthenticationPrincipal CurrentUser user,
+                                                         @RequestParam(required = false) Long categoryId,
+                                                         @RequestParam(required = false) Boolean all,
+                                                         PageQuery page) {
+        return ApiResponse.ok(practiceService.list(user.id(), categoryId, Boolean.TRUE.equals(all), page));
     }
 
     @GetMapping("/{id}")

@@ -83,11 +83,13 @@ public class ExamController {
         return ApiResponse.ok(examService.submit(user.id(), id));
     }
 
-    @Operation(summary = "考试记录")
+    @Operation(summary = "考试记录：传 paperId 只按试卷；否则同练习记录的范围（目标考试 / categoryId / all=true）")
     @GetMapping("/api/exam-records")
     public ApiResponse<PageResult<RecordItem>> records(@AuthenticationPrincipal CurrentUser user,
                                                        @RequestParam(required = false) Long paperId,
+                                                       @RequestParam(required = false) Long categoryId,
+                                                       @RequestParam(required = false) Boolean all,
                                                        PageQuery page) {
-        return ApiResponse.ok(examService.records(user.id(), paperId, page));
+        return ApiResponse.ok(examService.records(user.id(), paperId, categoryId, Boolean.TRUE.equals(all), page));
     }
 }

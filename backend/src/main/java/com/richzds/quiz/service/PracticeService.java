@@ -44,7 +44,6 @@ import com.richzds.quiz.dto.PracticeDtos.SubmitResult;
 import com.richzds.quiz.dto.QuestionDtos.AnswerView;
 import com.richzds.quiz.dto.QuestionDtos.QuestionView;
 import com.richzds.quiz.entity.AnswerRecord;
-import com.richzds.quiz.entity.Category;
 import com.richzds.quiz.entity.ExamPaper;
 import com.richzds.quiz.entity.ExamRecord;
 import com.richzds.quiz.entity.Favorite;
@@ -90,6 +89,7 @@ public class PracticeService {
     private final GradingService gradingService;
     private final WrongBookService wrongBookService;
     private final UserService userService;
+    private final RootScope rootScope;
     private final Clock clock;
 
     public PracticeService(PracticeSessionMapper sessionMapper, AnswerRecordMapper answerMapper,
@@ -97,7 +97,7 @@ public class PracticeService {
                            ExamPaperMapper examPaperMapper, QuestionService questionService,
                            CategoryService categoryService, QuestionAssembler assembler,
                            GradingService gradingService, WrongBookService wrongBookService,
-                           UserService userService, Clock clock) {
+                           UserService userService, RootScope rootScope, Clock clock) {
         this.sessionMapper = sessionMapper;
         this.answerMapper = answerMapper;
         this.questionMapper = questionMapper;
@@ -109,6 +109,7 @@ public class PracticeService {
         this.gradingService = gradingService;
         this.wrongBookService = wrongBookService;
         this.userService = userService;
+        this.rootScope = rootScope;
         this.clock = clock;
     }
 
@@ -409,16 +410,7 @@ public class PracticeService {
      * （root_category_id）过滤，没记考试的练习（没有目标时开的错题 / 收藏练习）只在不限时出现。
      */
     public SessionView current(long userId, Long categoryId) {
-        Long root;
-        if (categoryId != null) {
-            Category c = categoryService.tree().get(categoryId);
-            if (c == null || c.getLevel() != CategoryTree.LEVEL_EXAM) {
-                throw BizException.invalid("categoryId", "必须是一级分类（考试）");
-            }
-            root = categoryId;
-        } else {
-            root = userService.requireUser(userId).getTargetCategoryId();
-        }
+        Long root = rootScope.resolve(userId, categoryId);
         PracticeSession s = sessionMapper.selectOne(new LambdaQueryWrapper<PracticeSession>()
                 .eq(PracticeSession::getUserId, userId)
                 .eq(PracticeSession::getStatus, STATUS_IN_PROGRESS)
@@ -430,12 +422,20 @@ public class PracticeService {
         return s == null ? null : view(s, userId);
     }
 
-    public PageResult<SessionListItem> list(long userId, PageQuery pageQuery) {
+    /**
+     * 练习记录，按开始时间倒序。范围（docs/api.md 0.4 节）：all=true 列全部；否则传了 categoryId 按它、
+     * 不传按目标考试，都没有时列全部。按练习开始时记下的 root_category_id 归属，为空的（没有目标考试时开的
+     * 跨考试练习）只在不限范围时列出。
+     */
+    public PageResult<SessionListItem> list(long userId, Long categoryId, boolean all, PageQuery pageQuery) {
+        Long root = all ? null : rootScope.resolve(userId, categoryId);
         Page<PracticeSession> page = pageQuery.toPage();
         sessionMapper.selectPage(page, new LambdaQueryWrapper<PracticeSession>()
                 .select(PracticeSession::getId, PracticeSession::getMode, PracticeSession::getQuestionIds,
-                        PracticeSession::getStartedAt, PracticeSession::getCompletedAt)
+                        PracticeSession::getRootCategoryId, PracticeSession::getStartedAt,
+                        PracticeSession::getCompletedAt)
                 .eq(PracticeSession::getUserId, userId)
+                .eq(root != null, PracticeSession::getRootCategoryId, root)
                 .orderByDesc(PracticeSession::getStartedAt)
                 .orderByDesc(PracticeSession::getId));
         List<Long> ids = page.getRecords().stream().map(PracticeSession::getId).toList();
@@ -445,9 +445,11 @@ public class PracticeService {
                 counts.put(row.getGroupId(), row);
             }
         }
+        CategoryTree tree = categoryService.tree();
         return PageResult.of(page, s -> {
             AggRow c = counts.get(s.getId());
-            return new SessionListItem(s.getId(), s.getMode(), questionIds(s).size(),
+            return new SessionListItem(s.getId(), s.getMode(), s.getRootCategoryId(),
+                    rootScope.nameOf(tree, s.getRootCategoryId()), questionIds(s).size(),
                     c == null ? 0 : (int) c.total(), c == null ? 0 : (int) c.correct(),
                     TimeUtil.toInstant(s.getStartedAt()), TimeUtil.toInstant(s.getCompletedAt()));
         });
