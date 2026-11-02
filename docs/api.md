@@ -106,7 +106,7 @@
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
 | GET | `/api/categories?rootId=` | 分类树。不传 `rootId` 时 `data` 是数组，列出全部一级分类（`children` 为空数组，用于选目标考试）；传了时 `data` 是该考试的根节点对象，`children` 里是整棵树。每个节点：`{id, parentId, name, level, sort, questionCount, doneCount, correctRate, children}`。`doneCount` 是本人做过的不同题数，`correctRate` 是本人在该节点下的正确率，没作答时为 `null` |
-| GET | `/api/questions/search?keyword=&categoryId=&page=&size=` | 按题干关键词搜，返回 `{id, categoryId, categoryPath, type, stemPreview}`，`stemPreview` 是去掉格式的前 80 个字 |
+| GET | `/api/questions/search?keyword=&categoryId=&page=&size=` | 按题干关键词搜，返回 `{id, categoryId, categoryPath, type, stemPreview}`，`stemPreview` 是去掉格式的前 80 个字。`keyword` 必填，去掉首尾空白后 1–50 个字，缺失或为空返回 400 `VALIDATION_FAILED`（`fields` 指向 `keyword`） |
 | GET | `/api/questions/{id}` | 题目 + 答案 + 解析。若本人有进行中的考试包含这道题，返回 403 `EXAM_IN_PROGRESS` |
 | POST | `/api/questions/{id}/feedback` | 纠错 `{type: "ANSWER_WRONG"|"STEM_WRONG"|"ANALYSIS_UNCLEAR"|"OTHER", content}`，content 1–500 字 |
 
