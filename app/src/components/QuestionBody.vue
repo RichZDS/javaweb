@@ -19,7 +19,11 @@
         @tap="choose(opt.key)"
       >
         <view class="qb-key">{{ question.type === 'JUDGE' ? (opt.key === 'T' ? '对' : '错') : opt.key }}</view>
-        <rich-text class="rich qb-opt-text" :nodes="opt.html || escapeText(opt.text)" />
+        <view class="qb-opt-main">
+          <rich-text class="rich qb-opt-text" :nodes="opt.html || escapeText(opt.text)" />
+          <!-- 选项打乱时（只读状态下）注明这个选项在解析里的原字母 -->
+          <text v-if="locked && originalNote(optionMapping, opt.key)" class="qb-orig">{{ originalNote(optionMapping, opt.key) }}</text>
+        </view>
         <text v-if="optionMark(opt.key)" class="qb-mark">{{ optionMark(opt.key) }}</text>
       </view>
       <view v-if="question.type === 'MULTIPLE' && !locked" class="muted qb-hint">多选题：选出全部正确选项后提交</view>
@@ -48,6 +52,7 @@ import { computed } from 'vue'
 import type { QuestionOption, QuestionType } from '@/api/types'
 import { TYPE_LABEL, hasAnyAnswer, setBlank, toggleChoice } from '@/logic/answer'
 import { resolveAssetUrl } from '@/logic/http'
+import { originalNote } from '@/logic/shuffle'
 import { API_BASE } from '@/api/http'
 
 interface ShownQuestion {
@@ -68,8 +73,10 @@ const props = withDefaults(
     /** 有值时在选项上标出正确答案（提交后 / 背题） */
     correctAnswer?: string[] | null
     indexText?: string
+    /** 选项打乱时 新标签 → 原标签 */
+    optionMapping?: Record<string, string> | null
   }>(),
-  { locked: false, correctAnswer: null, indexText: '' },
+  { locked: false, correctAnswer: null, indexText: '', optionMapping: null },
 )
 
 const emit = defineEmits<{ (e: 'update:modelValue', value: string[]): void }>()
@@ -178,10 +185,20 @@ function previewImage() {
   color: var(--c-text-2);
 }
 
-.qb-opt-text {
+.qb-opt-main {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.qb-opt-text {
   font-size: var(--fs-base);
+}
+
+.qb-orig {
+  font-size: var(--fs-xs);
+  color: var(--c-text-3);
 }
 
 .qb-mark {

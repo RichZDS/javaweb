@@ -16,8 +16,11 @@
       </view>
 
       <view v-if="ended" class="ended-bar">这次练习已结束，正在回看，不能再作答</view>
+      <view v-else-if="session.shuffleOptions && !shuffleTipClosed" class="shuffle-bar" @tap="shuffleTipClosed = true">
+        本次练习的选项顺序已打乱，答案和解析会注明原选项 ✕
+      </view>
 
-      <swiper class="swiper" :style="{ height: swiperHeight - (ended ? ENDED_BAR_HEIGHT : 0) + 'px' }" :current="current" :duration="250" @change="onSwipe">
+      <swiper class="swiper" :style="{ height: swiperHeight - (ended || (session.shuffleOptions && !shuffleTipClosed) ? ENDED_BAR_HEIGHT : 0) + 'px' }" :current="current" :duration="250" @change="onSwipe">
         <swiper-item v-for="(q, i) in questions" :key="q.id">
           <scroll-view scroll-y class="scroll">
             <!-- 只渲染当前题和左右两题，题多时也不卡 -->
@@ -27,6 +30,7 @@
                 :model-value="shownAnswer(q)"
                 :locked="isLocked(q)"
                 :correct-answer="isLocked(q) && q.type !== 'FILL' ? q.correctAnswer ?? null : null"
+                :option-mapping="q.optionMapping ?? null"
                 :index-text="`第 ${i + 1} 题`"
                 @update:model-value="(v: string[]) => (drafts[q.id] = v)"
               />
@@ -55,6 +59,7 @@
                 :correct-answer="q.correctAnswer ?? null"
                 :accepted-answers="q.acceptedAnswers ?? null"
                 :analysis-html="q.analysisHtml ?? null"
+                :option-mapping="q.optionMapping ?? null"
                 :recite="session.reciteMode"
               />
 
@@ -193,6 +198,7 @@ const questions = computed<PracticeQuestion[]>(() => session.value?.questions ??
 const currentQ = computed(() => questions.value[current.value])
 const submittedCount = computed(() => questions.value.filter((q) => q.submitted).length)
 /** 练习已结束（主动结束或全部提交后自动完成）：只读回看 */
+const shuffleTipClosed = ref(false)
 const ended = computed(() => !!session.value && session.value.status !== 'IN_PROGRESS')
 const finishLabel = computed(() => {
   if (ended.value) return session.value?.reciteMode ? '退出' : '返回结果'
@@ -298,6 +304,7 @@ async function submit(q: PracticeQuestion) {
     q.correctAnswer = res.correctAnswer
     q.acceptedAnswers = res.acceptedAnswers
     q.analysisHtml = res.analysisHtml
+    if (res.optionMapping !== undefined) q.optionMapping = res.optionMapping
     if (res.alreadySubmitted) uni.showToast({ title: '这题之前已提交，显示第一次的结果', icon: 'none' })
     if (finished.value) uni.showToast({ title: '全部题目已提交', icon: 'none' })
   } catch {
@@ -566,6 +573,17 @@ async function sendFeedback() {
   background: var(--c-warn-weak);
   color: var(--c-warn);
   font-size: var(--fs-sm);
+  text-align: center;
+}
+
+.shuffle-bar {
+  height: 32px;
+  line-height: 32px;
+  box-sizing: border-box;
+  padding: 0 12px;
+  background: var(--c-primary-weak);
+  color: var(--c-primary);
+  font-size: var(--fs-xs);
   text-align: center;
 }
 

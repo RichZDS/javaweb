@@ -17,8 +17,11 @@
     <el-table v-else v-loading="loading" :data="rows" empty-text="还没有试卷">
       <el-table-column prop="title" label="试卷" min-width="220" />
       <el-table-column prop="categoryName" label="考试" width="160" />
-      <el-table-column label="组卷" width="80">
-        <template #default="{ row }">{{ row.mode === 'RULE' ? '规则卷' : '固定卷' }}</template>
+      <el-table-column label="组卷" width="110">
+        <template #default="{ row }">
+          {{ row.mode === 'RULE' ? '规则卷' : '固定卷' }}
+          <el-tag v-if="row.shuffleOptions" size="small" type="info">选项随机</el-tag>
+        </template>
       </el-table-column>
       <el-table-column prop="questionCount" label="题量" width="70" />
       <el-table-column label="总分 / 及格" width="110">
