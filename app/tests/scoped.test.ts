@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { finishLoad, startLoad, viewOf, type Slot } from '@/logic/scoped'
+import { collectCategoryIds, finishLoad, sessionInExam, startLoad, viewOf, type Slot } from '@/logic/scoped'
 
 const ok = <T>(data: T) => ({ ok: true as const, data })
 const fail = (error: unknown) => ({ ok: false as const, error })
@@ -35,5 +35,26 @@ describe('按目标考试分开存的数据', () => {
     const s = finishLoad(startLoad(null, 1), 1, ok(5))
     expect(viewOf(s, null).data).toBeNull()
     expect(viewOf(s, 2).data).toBeNull()
+  })
+})
+
+describe('继续练习只认当前考试的练习', () => {
+  const tree = { id: 1, children: [{ id: 2, children: [{ id: 3 }, { id: 4 }] }] }
+  const ids = collectCategoryIds(tree)
+
+  it('收集整棵树的 id', () => {
+    expect([...ids].sort()).toEqual([1, 2, 3, 4])
+  })
+
+  it('题目都在这个考试里才算', () => {
+    expect(sessionInExam({ questions: [{ categoryId: 3 }, { categoryId: 4 }] }, ids)).toBe(true)
+    expect(sessionInExam({ questions: [{ categoryId: 3 }, { categoryId: 40 }] }, ids)).toBe(false)
+    expect(sessionInExam({ questions: [{ categoryId: 40 }] }, ids)).toBe(false)
+  })
+
+  it('没有练习、没有题、还没拿到分类树：都不显示', () => {
+    expect(sessionInExam(null, ids)).toBe(false)
+    expect(sessionInExam({ questions: [] }, ids)).toBe(false)
+    expect(sessionInExam({ questions: [{ categoryId: 3 }] }, new Set())).toBe(false)
   })
 })
