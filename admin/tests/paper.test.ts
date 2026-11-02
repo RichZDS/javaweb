@@ -52,6 +52,11 @@ describe('试卷表单', () => {
     expect(validatePaperForm(fixed())).toEqual([])
   })
 
+  it('选项打乱：默认关闭，按布尔值发送', () => {
+    expect(buildPaperBody(fixed()).shuffleOptions).toBe(false)
+    expect(buildPaperBody({ ...fixed(), shuffleOptions: true }).shuffleOptions).toBe(true)
+  })
+
   it('有人考过：只校验标题', () => {
     expect(isStructureLocked({ attempts: 3 })).toBe(true)
     expect(isStructureLocked({ attempts: 0 })).toBe(false)

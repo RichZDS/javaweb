@@ -12,7 +12,10 @@
     <view v-for="p in papers ?? []" :key="p.paperId" class="card paper">
       <view class="paper-top">
         <text class="paper-title">{{ p.title }}</text>
-        <text class="tag">{{ p.mode === 'RULE' ? '随机组卷' : '固定卷' }}</text>
+        <view class="tags">
+          <text v-if="p.shuffleOptions" class="tag">选项随机</text>
+          <text class="tag">{{ p.mode === 'RULE' ? '随机组卷' : '固定卷' }}</text>
+        </view>
       </view>
       <text class="muted">{{ p.questionCount }} 题 · 满分 {{ p.totalScore }} · 及格 {{ p.passScore }} · {{ p.durationMin }} 分钟</text>
       <view class="paper-foot">
@@ -96,6 +99,12 @@ function resume(recordId: number) {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+}
+
+.tags {
+  display: flex;
+  gap: 6px;
+  flex: none;
 }
 
 .paper-title {

@@ -62,6 +62,7 @@
               :model-value="item.userAnswer ?? []"
               locked
               :correct-answer="item.type !== 'FILL' ? item.correctAnswer : null"
+              :option-mapping="item.optionMapping ?? null"
             />
             <AnswerReveal
               :type="item.type"
@@ -71,6 +72,7 @@
               :correct-answer="item.correctAnswer"
               :accepted-answers="item.acceptedAnswers"
               :analysis-html="item.analysisHtml"
+              :option-mapping="item.optionMapping ?? null"
             />
           </view>
         </view>
