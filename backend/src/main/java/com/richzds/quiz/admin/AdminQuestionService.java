@@ -35,18 +35,24 @@ import com.richzds.quiz.dto.QuestionDtos.AnswerView;
 import com.richzds.quiz.dto.QuestionDtos.OptionView;
 import com.richzds.quiz.entity.AnswerRecord;
 import com.richzds.quiz.entity.Category;
+import com.richzds.quiz.entity.ExamRecord;
 import com.richzds.quiz.entity.Favorite;
 import com.richzds.quiz.entity.PaperQuestion;
+import com.richzds.quiz.entity.PracticeSession;
 import com.richzds.quiz.entity.Question;
 import com.richzds.quiz.entity.QuestionFeedback;
 import com.richzds.quiz.mapper.AggRow;
+import com.richzds.quiz.exam.ExamSettler;
 import com.richzds.quiz.mapper.AnswerRecordMapper;
+import com.richzds.quiz.mapper.ExamRecordMapper;
 import com.richzds.quiz.mapper.FavoriteMapper;
 import com.richzds.quiz.mapper.PaperQuestionMapper;
+import com.richzds.quiz.mapper.PracticeSessionMapper;
 import com.richzds.quiz.mapper.QuestionFeedbackMapper;
 import com.richzds.quiz.mapper.QuestionMapper;
 import com.richzds.quiz.service.CategoryService;
 import com.richzds.quiz.service.CategoryTree;
+import com.richzds.quiz.service.PracticeService;
 import com.richzds.quiz.service.QuestionAssembler;
 import com.richzds.quiz.service.QuestionService;
 
@@ -67,19 +73,24 @@ public class AdminQuestionService {
     private final PaperQuestionMapper paperQuestionMapper;
     private final FavoriteMapper favoriteMapper;
     private final QuestionFeedbackMapper feedbackMapper;
+    private final PracticeSessionMapper sessionMapper;
+    private final ExamRecordMapper examRecordMapper;
     private final CategoryService categoryService;
     private final QuestionAssembler assembler;
     private final Clock clock;
 
     public AdminQuestionService(QuestionMapper questionMapper, AnswerRecordMapper answerMapper,
                                 PaperQuestionMapper paperQuestionMapper, FavoriteMapper favoriteMapper,
-                                QuestionFeedbackMapper feedbackMapper, CategoryService categoryService,
+                                QuestionFeedbackMapper feedbackMapper, PracticeSessionMapper sessionMapper,
+                                ExamRecordMapper examRecordMapper, CategoryService categoryService,
                                 QuestionAssembler assembler, Clock clock) {
         this.questionMapper = questionMapper;
         this.answerMapper = answerMapper;
         this.paperQuestionMapper = paperQuestionMapper;
         this.favoriteMapper = favoriteMapper;
         this.feedbackMapper = feedbackMapper;
+        this.sessionMapper = sessionMapper;
+        this.examRecordMapper = examRecordMapper;
         this.categoryService = categoryService;
         this.assembler = assembler;
         this.clock = clock;
@@ -172,7 +183,7 @@ public class AdminQuestionService {
         return view(q, tree, answerStats(List.of(id)).get(id));
     }
 
-    /** 没人做过、没被试卷引用、没有纠错记录就真删（连同收藏）；否则改成归档。 */
+    /** 没人做过、没被试卷引用、没有纠错记录、不在没做完的练习或考试里就真删（连同收藏）；否则改成归档。 */
     @Transactional
     public DeleteResult delete(long id) {
         Question q = require(id);
@@ -181,7 +192,8 @@ public class AdminQuestionService {
                 || paperQuestionMapper.selectCount(new LambdaQueryWrapper<PaperQuestion>()
                 .eq(PaperQuestion::getQuestionId, id)) > 0
                 || feedbackMapper.selectCount(new LambdaQueryWrapper<QuestionFeedback>()
-                .eq(QuestionFeedback::getQuestionId, id)) > 0;
+                .eq(QuestionFeedback::getQuestionId, id)) > 0
+                || inOpenSession(id);
         if (used) {
             questionMapper.update(null, new LambdaUpdateWrapper<Question>().eq(Question::getId, q.getId())
                     .set(Question::getStatus, ARCHIVED).set(Question::getUpdatedAt, TimeUtil.nowUtc(clock)));
@@ -190,6 +202,27 @@ public class AdminQuestionService {
         favoriteMapper.delete(new LambdaQueryWrapper<Favorite>().eq(Favorite::getQuestionId, id));
         questionMapper.deleteById(id);
         return new DeleteResult(true, false);
+    }
+
+    /**
+     * 有没做完的练习或考试含这道题。练习的总题数按开始时的题目 id 列表算，题被真删后这一题交不上，
+     * 练习就永远自动完成不了（每日一练写不上 completedAt，连续天数断掉）；考试交卷时还会按快照
+     * 给这道题写作答记录和错题。所以这两种情况也只归档。
+     * 按存的 JSON 文本匹配：question_ids 是 [1,2,3]，快照里每道题是 {"index":1,"questionId":2,…}，
+     * 两边都带上分隔符，12 不会匹配到 123。考试不看截止时间：过了时间还没结算的场次之后照样会结算。
+     */
+    private boolean inOpenSession(long id) {
+        String n = Long.toString(id);
+        return sessionMapper.selectCount(new LambdaQueryWrapper<PracticeSession>()
+                .eq(PracticeSession::getStatus, PracticeService.STATUS_IN_PROGRESS)
+                .and(w -> w.like(PracticeSession::getQuestionIds, "[" + n + "]")
+                        .or().like(PracticeSession::getQuestionIds, "[" + n + ",")
+                        .or().like(PracticeSession::getQuestionIds, "," + n + ",")
+                        .or().like(PracticeSession::getQuestionIds, "," + n + "]"))) > 0
+                || examRecordMapper.selectCount(new LambdaQueryWrapper<ExamRecord>()
+                .eq(ExamRecord::getStatus, ExamSettler.STATUS_IN_PROGRESS)
+                .and(w -> w.like(ExamRecord::getQuestionSnapshot, "\"questionId\":" + n + ",")
+                        .or().like(ExamRecord::getQuestionSnapshot, "\"questionId\":" + n + "}"))) > 0;
     }
 
     /**

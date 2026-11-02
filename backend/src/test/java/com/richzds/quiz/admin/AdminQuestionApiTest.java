@@ -2,19 +2,31 @@ package com.richzds.quiz.admin;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.richzds.quiz.entity.Category;
+import com.richzds.quiz.entity.ExamPaper;
+import com.richzds.quiz.entity.PaperRule;
 import com.richzds.quiz.entity.Question;
+import com.richzds.quiz.mapper.ExamPaperMapper;
+import com.richzds.quiz.mapper.PaperRuleMapper;
 import com.richzds.quiz.support.ApiTestBase;
 
 /** 后台题目增删改查和预览。 */
 class AdminQuestionApiTest extends ApiTestBase {
+
+    @Autowired
+    ExamPaperMapper paperMapper;
+    @Autowired
+    PaperRuleMapper paperRuleMapper;
 
     private static Map<String, Object> multiple(Category chapter, String status) {
         Map<String, Object> m = new HashMap<>();
@@ -209,6 +221,8 @@ class AdminQuestionApiTest extends ApiTestBase {
         long sid = data(call(post("/api/practice/sessions", u,
                 Map.of("mode", "SEQUENTIAL", "categoryIds", List.of(t[2].getId()))))).get("id").asLong();
         call(post("/api/practice/sessions/" + sid + "/answers", u, Map.of("questionId", used.getId(), "userAnswer", List.of("A"))));
+        // 练习结束后，里面没做的题才能真删（还在做的练习里的题只归档，见下一个测试）
+        call(post("/api/practice/sessions/" + sid + "/finish", u, null));
 
         JsonNode d1 = data(call(delete("/api/admin/questions/" + unused.getId(), admin)));
         assertThat(d1.get("deleted").asBoolean()).isTrue();
@@ -225,6 +239,60 @@ class AdminQuestionApiTest extends ApiTestBase {
         assertThat(data(call(get("/api/practice/sessions/" + sid, u))).get("questions")).as("已做过的练习照常显示")
                 .hasSize(1);
         assertThat(call(delete("/api/admin/questions/999999", admin)).status()).isEqualTo(404);
+    }
+
+    @Test
+    void deleteArchivesQuestionsStillInOpenPracticeOrExam() throws Exception {
+        Login admin = admin();
+        Category[] t = tree("Open");
+        Question a = single(t[2], "A");
+        Question b = single(t[2], "A");
+        Login u = register("adm_del_open");
+        long sid = data(call(post("/api/practice/sessions", u,
+                Map.of("mode", "SEQUENTIAL", "categoryIds", List.of(t[2].getId()))))).get("id").asLong();
+
+        // 练习里还没人做的题：只归档；练习照样能做完、自动完成
+        JsonNode d = data(call(delete("/api/admin/questions/" + a.getId(), admin)));
+        assertThat(d.get("deleted").asBoolean()).as("在没做完的练习里，不能真删").isFalse();
+        assertThat(d.get("archived").asBoolean()).isTrue();
+        for (Question q : List.of(a, b)) {
+            call(post("/api/practice/sessions/" + sid + "/answers", u,
+                    Map.of("questionId", q.getId(), "userAnswer", List.of("A"))));
+        }
+        JsonNode s = data(call(get("/api/practice/sessions/" + sid, u)));
+        assertThat(s.get("status").asText()).as("真删的话最后一题交不上，练习永远完成不了").isEqualTo("COMPLETED");
+        assertThat(s.get("questions")).hasSize(2);
+
+        // 规则卷抽进了正在考的场次：只归档，交卷时写的作答记录指向的题还在
+        Category[] e = tree("OpenExam");
+        Question drawn = single(e[2], "A");
+        LocalDateTime now = LocalDateTime.ofInstant(clock.instant(), ZoneOffset.UTC);
+        ExamPaper p = new ExamPaper().setTitle("规则卷").setCategoryId(e[0].getId()).setDescription("说明")
+                .setMode("RULE").setDurationMin(30).setTotalScore(10).setPassScore(6)
+                .setStatus("ONLINE").setCreatedAt(now).setUpdatedAt(now);
+        paperMapper.insert(p);
+        paperRuleMapper.insert(new PaperRule().setPaperId(p.getId()).setCategoryId(e[0].getId()).setType("SINGLE")
+                .setCount(1).setScore(10).setSort(0));
+        long rid = data(call(post("/api/exams/" + p.getId() + "/start", u, null))).get("recordId").asLong();
+        JsonNode de = data(call(delete("/api/admin/questions/" + drawn.getId(), admin)));
+        assertThat(de.get("archived").asBoolean()).as("在没交卷的考试里，不能真删").isTrue();
+        call(post("/api/exam-records/" + rid + "/submit", u, null));
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM answer_record a JOIN question q ON q.id = a.question_id "
+                + "WHERE a.source = 'EXAM' AND a.source_id = ?", Long.class, rid)).isEqualTo(1);
+
+        // 已结束的练习不挡；只是数字开头或结尾相同的 id（如 c0、9c）也不算
+        Category[] done = tree("Done");
+        Question c = single(done[2], "A");
+        long finished = data(call(post("/api/practice/sessions", u,
+                Map.of("mode", "SEQUENTIAL", "categoryIds", List.of(done[2].getId()))))).get("id").asLong();
+        call(post("/api/practice/sessions/" + finished + "/finish", u, null));
+        long open = data(call(post("/api/practice/sessions", u,
+                Map.of("mode", "SEQUENTIAL", "categoryIds", List.of(t[2].getId()))))).get("id").asLong();
+        String n = Long.toString(c.getId());
+        jdbc.update("UPDATE practice_session SET question_ids = ? WHERE id = ?",
+                "[" + n + "0,9" + n + "," + b.getId() + ",1" + n + "]", open);
+        JsonNode dc = data(call(delete("/api/admin/questions/" + c.getId(), admin)));
+        assertThat(dc.get("deleted").asBoolean()).isTrue();
     }
 
     @Test

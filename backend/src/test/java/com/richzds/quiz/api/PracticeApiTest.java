@@ -376,6 +376,33 @@ class PracticeApiTest extends ApiTestBase {
     }
 
     @Test
+    void currentFollowsTargetExam() throws Exception {
+        Login u = register("hist_target");
+        Category[] a = tree("A");
+        Category[] b = tree("B");
+        singles(a[2], 10);
+        singles(b[2], 10);
+        long sa = data(start(u, random(a[2], 10))).get("id").asLong();
+        clock.advance(Duration.ofMinutes(1));
+        long sb = data(start(u, random(b[2], 10))).get("id").asLong();
+        String current = "/api/practice/sessions/current";
+
+        assertThat(data(call(get(current, u))).get("id").asLong()).as("没有目标考试时不限，取最近的").isEqualTo(sb);
+        setTarget(u, a[0]);
+        assertThat(data(call(get(current, u))).get("id").asLong()).as("只看目标考试 A，B 的更近也不取")
+                .isEqualTo(sa);
+        setTarget(u, b[0]);
+        assertThat(data(call(get(current, u))).get("id").asLong()).as("切换目标后跟着变").isEqualTo(sb);
+        assertThat(data(call(get(current + "?categoryId=" + a[0].getId(), u))).get("id").asLong())
+                .as("可指定一级分类").isEqualTo(sa);
+        assertThat(call(get(current + "?categoryId=" + a[2].getId(), u)).status()).as("只能是一级分类").isEqualTo(400);
+        assertThat(call(get(current + "?categoryId=999999", u)).status()).isEqualTo(400);
+
+        call(post("/api/practice/sessions/" + sb + "/finish", u, null));
+        assertThat(call(get(current, u)).data().isNull()).as("目标考试下没有了就是 null，不退到别的考试").isTrue();
+    }
+
+    @Test
     void currentAndHistory() throws Exception {
         Login u = register("hist1");
         Category[] t = tree("T");
