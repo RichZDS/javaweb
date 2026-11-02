@@ -4,6 +4,7 @@
       <text class="ac-title">答题卡</text>
       <view class="ac-legend">
         <text v-for="s in legend" :key="s" class="ac-legend-item" :class="`st-${s}`">{{ label(s) }}</text>
+        <text v-if="marked?.some(Boolean)" class="ac-legend-item st-flag">再看</text>
       </view>
     </view>
     <scroll-view scroll-y class="ac-scroll">
@@ -17,6 +18,7 @@
         >
           <text class="ac-no">{{ i + 1 }}</text>
           <text class="ac-word">{{ label(status) }}</text>
+          <text v-if="marked?.[i]" class="ac-flag">再看</text>
         </view>
       </view>
     </scroll-view>
@@ -33,6 +35,8 @@ const props = defineProps<{
   current: number
   /** 覆盖默认文字，如背题模式的「已看 / 未看」 */
   labels?: Partial<Record<CardStatus, string>>
+  /** 考试里标了「稍后再看」的题 */
+  marked?: boolean[]
 }>()
 const emit = defineEmits<{ (e: 'jump', index: number): void }>()
 
@@ -90,6 +94,7 @@ const legend = computed(() => {
 }
 
 .ac-cell {
+  position: relative;
   height: 48px;
   border-radius: 8px;
   display: flex;
@@ -111,6 +116,23 @@ const legend = computed(() => {
 
 .ac-word {
   font-size: 10px;
+}
+
+.ac-flag {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  padding: 0 4px;
+  border-radius: 6px;
+  background: var(--c-warn);
+  color: #fff;
+  font-size: 9px;
+  line-height: 14px;
+}
+
+.st-flag {
+  background: var(--c-warn-weak);
+  color: var(--c-warn);
 }
 
 .st-correct {

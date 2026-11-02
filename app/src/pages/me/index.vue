@@ -24,8 +24,8 @@
     </view>
 
     <view class="card list">
-      <view class="row" @tap="go(PAGES.wrong)">
-        <text class="row-name">错题本</text>
+      <view v-for="e in ENTRIES" :key="e.url" class="row" @tap="go(e.url)">
+        <text class="row-name">{{ e.name }}</text>
         <text class="row-value" />
         <uni-icons type="right" size="16" color="#98a0ad" />
       </view>
@@ -47,6 +47,13 @@ import { validateNickname } from '@/logic/auth'
 import { PAGES, ensureReady } from '@/utils/nav'
 
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024
+const ENTRIES = [
+  { name: '错题本', url: PAGES.wrong },
+  { name: '收藏夹', url: PAGES.favorites },
+  { name: '练习记录', url: PAGES.practiceRecords },
+  { name: '考试记录', url: PAGES.examRecords },
+  { name: '本周排行榜', url: PAGES.leaderboard },
+]
 
 const { themeClass } = useTheme()
 const user = useUserStore()

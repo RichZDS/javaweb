@@ -36,7 +36,7 @@
       <text class="stem">{{ item.stemPreview }}</text>
       <view class="meta">
         <text class="bad">错 {{ item.wrongCount }} 次</text>
-        <text class="muted">错题练习连对 {{ item.correctStreak }}/3</text>
+        <text class="muted">错题练习连对 {{ item.correctStreak }}/{{ threshold }}</text>
         <text class="muted">{{ formatDateTime(item.lastWrongAt) }}</text>
       </view>
       <view class="last">
@@ -77,6 +77,8 @@ const total = ref(0)
 const state = ref<'loading' | 'ready' | 'error'>('loading')
 let firstShow = true
 
+/** 连续答对几次自动移出，按本人设置（默认 3） */
+const threshold = computed(() => user.user?.wrongRemoveThreshold ?? 3)
 const totalCount = computed(() => groups.value.reduce((s, g) => s + g.count, 0))
 const hasMore = computed(() => list.value.length < total.value)
 

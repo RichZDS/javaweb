@@ -119,9 +119,7 @@ async function load() {
   if (!rootId) return
   state.value = 'loading'
   try {
-    const data = (await categoryApi.tree(rootId)) as CategoryNode[] | CategoryNode
-    const root = Array.isArray(data) ? data.find((n) => n.id === rootId) ?? data[0] : data
-    subjects.value = root?.children ?? []
+    subjects.value = (await categoryApi.tree(rootId)).children ?? []
     applyPreselect()
     state.value = 'ready'
   } catch {
