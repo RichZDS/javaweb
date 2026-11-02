@@ -1,0 +1,136 @@
+{
+  "categories": [
+    { "key": "sample-java", "name": "Java 程序设计（示例）", "children": [
+      { "key": "sample-java-basic", "name": "基础语法", "children": [
+        { "key": "sample-java-types", "name": "数据类型与运算" }
+      ] }
+    ] }
+  ],
+  "questions": [
+    {
+      "ref": "sample-s1",
+      "category": "sample-java-types",
+      "type": "SINGLE",
+      "stem": "Java 中 `int` 类型的变量占用多少个字节？",
+      "options": ["1", "2", "4", "8"],
+      "answer": ["C"],
+      "analysis": "`int` 是 32 位有符号整数，32 ÷ 8 = 4 个字节，和运行平台无关。容易和 `long`（8 字节）、`short`（2 字节）记混。",
+      "difficulty": 1,
+      "tags": ["基本类型"]
+    },
+    {
+      "ref": "sample-s2",
+      "category": "sample-java-types",
+      "type": "SINGLE",
+      "stem": "用哪个关键字修饰的类不能再被继承？",
+      "options": ["static", "final", "abstract", "private"],
+      "answer": ["B"],
+      "analysis": "`final` 修饰类表示这个类不能有子类，例如 `String`。`abstract` 恰好相反，要求有子类来实现；顶层类不能用 `static` 或 `private` 修饰。",
+      "difficulty": 2,
+      "tags": ["关键字"]
+    },
+    {
+      "ref": "sample-m1",
+      "category": "sample-java-types",
+      "type": "MULTIPLE",
+      "stem": "下列哪些是 Java 的基本数据类型？",
+      "options": ["int", "String", "boolean", "Integer", "char"],
+      "answer": ["A", "C", "E"],
+      "analysis": "Java 有 8 种基本类型：`byte`、`short`、`int`、`long`、`float`、`double`、`char`、`boolean`。`String` 是类，`Integer` 是 `int` 的包装类，都属于引用类型。",
+      "difficulty": 1,
+      "tags": ["基本类型"]
+    },
+    {
+      "ref": "sample-m2",
+      "category": "sample-java-types",
+      "type": "MULTIPLE",
+      "stem": "关于 `==` 和 `equals()`，下列说法正确的有：",
+      "options": [
+        "`==` 用于基本类型时比较的是值",
+        "`==` 用于引用类型时比较两个引用是否指向同一个对象",
+        "`String` 重写了 `equals()`，比较的是字符串内容",
+        "`Object` 默认的 `equals()` 比较的是两个对象的字段是否相等"
+      ],
+      "answer": ["A", "B", "C"],
+      "analysis": "`Object.equals()` 的默认实现就是 `this == obj`，只比较引用；要按内容比较必须像 `String` 那样重写。所以 D 错，A、B、C 对。",
+      "difficulty": 2,
+      "tags": ["对象比较"]
+    },
+    {
+      "ref": "sample-j1",
+      "category": "sample-java-types",
+      "type": "JUDGE",
+      "stem": "Java 中一个类可以用 `extends` 同时继承多个父类。",
+      "answer": ["F"],
+      "analysis": "Java 的类只支持单继承，`extends` 后面只能跟一个类；想要多种能力可以实现多个接口。",
+      "difficulty": 1,
+      "tags": ["继承"]
+    },
+    {
+      "ref": "sample-j2",
+      "category": "sample-java-types",
+      "type": "JUDGE",
+      "stem": "`.java` 源文件经过 `javac` 编译后得到的是 `.class` 字节码文件。",
+      "answer": ["T"],
+      "analysis": "`javac` 把源代码编译成平台无关的字节码（`.class`），再由 JVM 解释或即时编译执行。",
+      "difficulty": 1,
+      "tags": ["编译运行"]
+    },
+    {
+      "ref": "sample-f1",
+      "category": "sample-java-types",
+      "type": "FILL",
+      "stem": "下面代码的输出是 ____。\n\n```java\nint[] a = {3, 1, 4, 1, 5};\nint sum = 0;\nfor (int i = 0; i < a.length; i += 2) {\n    sum += a[i];\n}\nSystem.out.println(sum);\n```",
+      "answer": [["12"]],
+      "fillOptions": { "ignoreCase": false, "ignoreSpaces": true },
+      "analysis": "循环变量每次加 2，只取下标 0、2、4 的元素：3 + 4 + 5 = 12。常见错误是把所有元素都加上得到 14。",
+      "difficulty": 2,
+      "tags": ["数组", "看代码写输出"]
+    },
+    {
+      "ref": "sample-f2",
+      "category": "sample-java-types",
+      "type": "FILL",
+      "stem": "Java 中所有类的共同父类是 ____ 类。",
+      "answer": [["Object", "java.lang.Object"]],
+      "fillOptions": { "ignoreCase": false, "ignoreSpaces": true },
+      "analysis": "没有写 `extends` 的类默认继承 `java.lang.Object`，所以每个对象都有 `toString()`、`equals()`、`hashCode()` 等方法。",
+      "difficulty": 1,
+      "tags": ["继承"]
+    }
+  ],
+  "papers": [
+    {
+      "title": "Java 基础示例卷（固定卷）",
+      "category": "sample-java",
+      "mode": "FIXED",
+      "durationMin": 20,
+      "passScore": 60,
+      "description": "开发和测试用的示例试卷，覆盖四种题型。",
+      "questions": [
+        { "ref": "sample-s1", "score": 10 },
+        { "ref": "sample-s2", "score": 10 },
+        { "ref": "sample-m1", "score": 15 },
+        { "ref": "sample-m2", "score": 15 },
+        { "ref": "sample-j1", "score": 10 },
+        { "ref": "sample-j2", "score": 10 },
+        { "ref": "sample-f1", "score": 15 },
+        { "ref": "sample-f2", "score": 15 }
+      ]
+    },
+    {
+      "title": "Java 基础示例卷（规则卷）",
+      "category": "sample-java",
+      "mode": "RULE",
+      "durationMin": 15,
+      "passScore": 54,
+      "description": "开发和测试用的示例规则卷，每次开考随机抽题。",
+      "rules": [
+        { "category": "sample-java-basic", "type": "SINGLE", "count": 2, "score": 10 },
+        { "category": "sample-java-basic", "type": "MULTIPLE", "count": 2, "score": 15 },
+        { "category": "sample-java-basic", "type": "JUDGE", "count": 2, "score": 10 },
+        { "category": "sample-java-types", "type": "FILL", "count": 1, "score": 20 }
+      ]
+    }
+  ]
+}
