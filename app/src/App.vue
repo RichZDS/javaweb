@@ -46,6 +46,8 @@ page {
 
   min-height: 100vh;
   box-sizing: border-box;
+  /* 包住第一个卡片的外边距，避免它穿出去露出浅色的 page 背景（夜间模式下会看到一条白边） */
+  display: flow-root;
   background: var(--c-bg);
   color: var(--c-text);
   font-size: var(--fs-base);
@@ -83,6 +85,29 @@ page {
   --c-wrong-weak: #3a1c24;
   --c-warn: #f2b84b;
   --c-warn-weak: #3a2f17;
+}
+
+/* H5 夜间模式：覆盖 uni 渲染的导航栏和底部页签栏（App 端由 setNavigationBarColor / setTabBarStyle 处理） */
+.quiz-dark uni-page-head .uni-page-head {
+  background-color: #1c2029 !important;
+  color: #ffffff !important;
+}
+
+.quiz-dark uni-page-head .uni-page-head .uni-btn-icon {
+  color: #ffffff !important;
+}
+
+.quiz-dark .uni-tabbar {
+  background-color: #1c2029 !important;
+}
+
+.quiz-dark .uni-tabbar-border {
+  background-color: #2b303b !important;
+}
+
+.quiz-dark uni-page-body,
+.quiz-dark body {
+  background-color: #12151c;
 }
 
 /* 通用小部件 */
