@@ -1,0 +1,40 @@
+{
+  "papers": [
+    {
+      "title": "408 小测（一）",
+      "exam": "计算机考研 408",
+      "createdOn": "2026-07-02",
+      "online": true,
+      "durationMin": 20,
+      "passScore": 12,
+      "shuffleOptions": true,
+      "description": "小样本测试卷",
+      "rules": [
+        {
+          "category": "计算机考研 408 / 数据结构",
+          "type": "SINGLE",
+          "count": 5,
+          "score": 4
+        }
+      ]
+    },
+    {
+      "title": "Java 旧卷",
+      "exam": "Java 程序设计",
+      "createdOn": "2026-07-03",
+      "online": false,
+      "durationMin": 15,
+      "passScore": 6,
+      "shuffleOptions": false,
+      "description": "已下架",
+      "rules": [
+        {
+          "category": "Java 程序设计",
+          "type": "JUDGE",
+          "count": 3,
+          "score": 4
+        }
+      ]
+    }
+  ]
+}

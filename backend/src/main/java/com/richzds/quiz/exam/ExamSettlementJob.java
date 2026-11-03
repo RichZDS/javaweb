@@ -20,9 +20,11 @@ public class ExamSettlementJob {
     private final ExamSettler settler;
     private final boolean enabled;
 
-    public ExamSettlementJob(ExamSettler settler, @Value("${app.exam.auto-settle:true}") boolean enabled) {
+    /** 演示数据模拟器运行时（app.mock.enabled）关掉定时触发：过期考试由模拟器推进时钟后调 {@link #run()} 结算。 */
+    public ExamSettlementJob(ExamSettler settler, @Value("${app.exam.auto-settle:true}") boolean enabled,
+                             @Value("${app.mock.enabled:false}") boolean mock) {
         this.settler = settler;
-        this.enabled = enabled;
+        this.enabled = enabled && !mock;
     }
 
     @Scheduled(fixedDelay = 30_000, initialDelay = 30_000)

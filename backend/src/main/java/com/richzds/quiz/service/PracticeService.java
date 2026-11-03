@@ -13,7 +13,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ThreadLocalRandom;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -28,6 +27,7 @@ import com.richzds.quiz.common.ErrorCode;
 import com.richzds.quiz.common.JsonUtil;
 import com.richzds.quiz.common.PageQuery;
 import com.richzds.quiz.common.PageResult;
+import com.richzds.quiz.common.RandomSource;
 import com.richzds.quiz.common.Rates;
 import com.richzds.quiz.common.TimeUtil;
 import com.richzds.quiz.domain.AnswerKey;
@@ -90,6 +90,7 @@ public class PracticeService {
     private final WrongBookService wrongBookService;
     private final UserService userService;
     private final RootScope rootScope;
+    private final RandomSource randomSource;
     private final Clock clock;
 
     public PracticeService(PracticeSessionMapper sessionMapper, AnswerRecordMapper answerMapper,
@@ -97,7 +98,8 @@ public class PracticeService {
                            ExamPaperMapper examPaperMapper, QuestionService questionService,
                            CategoryService categoryService, QuestionAssembler assembler,
                            GradingService gradingService, WrongBookService wrongBookService,
-                           UserService userService, RootScope rootScope, Clock clock) {
+                           UserService userService, RootScope rootScope, RandomSource randomSource,
+                           Clock clock) {
         this.sessionMapper = sessionMapper;
         this.answerMapper = answerMapper;
         this.questionMapper = questionMapper;
@@ -110,6 +112,7 @@ public class PracticeService {
         this.wrongBookService = wrongBookService;
         this.userService = userService;
         this.rootScope = rootScope;
+        this.randomSource = randomSource;
         this.clock = clock;
     }
 
@@ -179,7 +182,7 @@ public class PracticeService {
         List<Long> pool = chapters != null && chapters.isEmpty() ? new ArrayList<>()
                 : new ArrayList<>(questionMapper.selectPoolIds(user.getId(),
                         listMode ? mode.name() : null, chapters, req.types(), tagLike, scopeOf(req)));
-        Collections.shuffle(pool, ThreadLocalRandom.current());
+        Collections.shuffle(pool, randomSource.current());
         int wanted = count != null ? count : Math.min(pool.size(), MAX_LIST_COUNT);
         List<Long> picked = take(pool, wanted, Boolean.TRUE.equals(req.acceptFewer()));
         PracticeSession s = newSession(user.getId(), mode, isRecite(req), req, picked, rootId);
@@ -248,8 +251,8 @@ public class PracticeService {
             List<Long> others = new ArrayList<>(
                     questionMapper.selectPoolIds(user.getId(), null, chapters, null, null, "ALL"));
             others.removeAll(new LinkedHashSet<>(undone));
-            Collections.shuffle(undone, ThreadLocalRandom.current());
-            Collections.shuffle(others, ThreadLocalRandom.current());
+            Collections.shuffle(undone, randomSource.current());
+            Collections.shuffle(others, randomSource.current());
             for (List<Long> source : List.of(undone, others)) {
                 for (Long id : source) {
                     if (picked.size() < DAILY_COUNT) {
@@ -376,7 +379,7 @@ public class PracticeService {
         for (Long id : questionIds) {
             Question q = questions.get(id);
             if (q != null && QuestionType.valueOf(q.getType()).isChoice()) {
-                orders.put(id.toString(), OptionShuffle.randomOrder(assembler.optionItems(q), ThreadLocalRandom.current()));
+                orders.put(id.toString(), OptionShuffle.randomOrder(assembler.optionItems(q), randomSource.current()));
             }
         }
         return JsonUtil.write(orders);
