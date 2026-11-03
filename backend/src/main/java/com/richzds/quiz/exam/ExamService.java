@@ -10,7 +10,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ThreadLocalRandom;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -25,6 +24,7 @@ import com.richzds.quiz.common.ErrorCode;
 import com.richzds.quiz.common.JsonUtil;
 import com.richzds.quiz.common.PageQuery;
 import com.richzds.quiz.common.PageResult;
+import com.richzds.quiz.common.RandomSource;
 import com.richzds.quiz.common.Rates;
 import com.richzds.quiz.common.TimeUtil;
 import com.richzds.quiz.domain.AnswerKey;
@@ -99,13 +99,15 @@ public class ExamService {
     private final GradingService gradingService;
     private final ExamSettler settler;
     private final RootScope rootScope;
+    private final RandomSource randomSource;
     private final Clock clock;
 
     public ExamService(ExamPaperMapper paperMapper, PaperQuestionMapper paperQuestionMapper,
                        PaperRuleMapper paperRuleMapper, ExamRecordMapper recordMapper, ExamAnswerMapper answerMapper,
                        QuestionMapper questionMapper, UserService userService,
                        QuestionService questionService, CategoryService categoryService, QuestionAssembler assembler,
-                       GradingService gradingService, ExamSettler settler, RootScope rootScope, Clock clock) {
+                       GradingService gradingService, ExamSettler settler, RootScope rootScope,
+                       RandomSource randomSource, Clock clock) {
         this.paperMapper = paperMapper;
         this.paperQuestionMapper = paperQuestionMapper;
         this.paperRuleMapper = paperRuleMapper;
@@ -119,6 +121,7 @@ public class ExamService {
         this.gradingService = gradingService;
         this.settler = settler;
         this.rootScope = rootScope;
+        this.randomSource = randomSource;
         this.clock = clock;
     }
 
@@ -262,7 +265,7 @@ public class ExamService {
         if (!gaps.isEmpty()) {
             throw poolInsufficient(gaps, tree);
         }
-        Map<Integer, List<Long>> picked = RuleDrawer.draw(drawRules, ThreadLocalRandom.current());
+        Map<Integer, List<Long>> picked = RuleDrawer.draw(drawRules, randomSource.current());
         Set<Long> allIds = new LinkedHashSet<>();
         picked.values().forEach(allIds::addAll);
         Map<Long, Question> questions = questionService.loadByIds(allIds);
@@ -315,7 +318,7 @@ public class ExamService {
         boolean fill = key.type() == QuestionType.FILL;
         List<OptionItem> options = assembler.optionItems(q);
         List<String> order = shuffle && key.type().isChoice()
-                ? OptionShuffle.randomOrder(options, ThreadLocalRandom.current()) : null;
+                ? OptionShuffle.randomOrder(options, randomSource.current()) : null;
         return new ExamSnapshot.Item(index, q.getId(), q.getCategoryId(), tree.path(q.getCategoryId()), q.getType(),
                 q.getStem(), options, key.blankCount(), q.getImageUrl(), score,
                 fill ? null : key.correctAnswer(), fill ? key.acceptedAnswers() : null,
