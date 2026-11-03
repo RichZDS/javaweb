@@ -1,0 +1,34 @@
+{
+  "favoriteNotes": {
+    "数据结构": [
+      "栈：后进先出",
+      "再看一遍"
+    ],
+    "*": [
+      "易错，考前再看",
+      "记口诀"
+    ]
+  },
+  "feedback": {
+    "ANSWER_WRONG": [
+      "答案是不是应该选 {option}？"
+    ],
+    "STEM_WRONG": [
+      "{chapter} 这题题干有错字"
+    ],
+    "ANALYSIS_UNCLEAR": [
+      "解析没看懂"
+    ],
+    "OTHER": [
+      "希望多出几道类似的题"
+    ]
+  },
+  "adminReplies": {
+    "RESOLVED": [
+      "已修改，谢谢反馈"
+    ],
+    "REJECTED": [
+      "核对过，原答案正确"
+    ]
+  }
+}

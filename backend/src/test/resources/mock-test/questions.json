@@ -1,0 +1,51 @@
+{
+  "questions": [
+    {
+      "chapter": "Java 程序设计 / 集合与泛型 / List 与迭代",
+      "createdOn": "2026-07-02",
+      "status": "PUBLISHED",
+      "type": "SINGLE",
+      "stem": "ArrayList 默认按什么顺序遍历元素？",
+      "options": [
+        "插入顺序",
+        "字典序",
+        "随机",
+        "按哈希值"
+      ],
+      "answer": [
+        "A"
+      ],
+      "analysis": "ArrayList 按下标存放，迭代按插入顺序。",
+      "difficulty": 1,
+      "tags": [
+        "ArrayList"
+      ]
+    },
+    {
+      "chapter": "数据库原理与 MySQL / SQL 查询 / 筛选、NULL 与排序",
+      "createdOn": "2026-07-03",
+      "status": "DRAFT",
+      "type": "JUDGE",
+      "stem": "WHERE x = NULL 能筛出 x 为空的行。",
+      "answer": [
+        "F"
+      ],
+      "analysis": "判断空值要用 IS NULL。",
+      "difficulty": 2
+    },
+    {
+      "chapter": "计算机考研 408 / 数据结构 / 线性表、栈与队列",
+      "createdOn": "2026-07-01",
+      "status": "ARCHIVED",
+      "type": "FILL",
+      "stem": "栈的特点是后进____。",
+      "answer": [
+        [
+          "先出"
+        ]
+      ],
+      "analysis": "栈是后进先出。",
+      "difficulty": 1
+    }
+  ]
+}

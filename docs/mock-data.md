@@ -153,3 +153,66 @@
 - 按天推进可替换的时钟；每个学员当天的行为按 `hours` 排开时间，所有记录的时间都是模拟时间，不晚于运行时的“现在”。
 - 管理员的动作（加题、出卷、上下架、处理纠错、禁用账号）用库里已有的管理员账号做。
 - 结束时打印汇总：每张表的行数、作答条数、日期范围、每个考试的人数，并按画像列出平均正确率。
+
+## 7. 怎么运行（后端）
+
+模拟器打包在后端 jar 里（`com.richzds.quiz.mock`），数据文件随 jar 一起打进 `classpath:mock/`。平时不加载，只有带 `--app.mock.enabled=true` 启动时才跑一次，跑完打印汇总并退出（成功退出码 0，出错 1）。
+
+### 7.1 参数
+
+| 参数 / 环境变量 | 说明 |
+| --- | --- |
+| `--app.mock.enabled=true` | 打开模拟器 |
+| `--app.mock.dry-run=true` | 只校验数据、打印计划（人数、每天学习人数、按月曲线、预计作答条数、考试场数），不写库，不需要密码 |
+| `MOCK_USER_PASSWORD` | 学员统一密码（6–32 位），只从环境变量读，不进仓库 |
+| `--app.mock.location=…` | 数据目录，默认 `classpath:mock/`；本机改了数据想不重新打包时用 `file:/路径/mock/` |
+| `--app.mock.until=…` | 只在本机试跑用：模拟到这个时间为止（ISO 时间，如 `2026-08-21T00:00:00Z`），不能晚于现在。不写就是运行时的“现在” |
+
+要求和行为：
+
+- 库里必须已经有示例题库（第一次部署时 `APP_SEED_ENABLED=true` 导入过）和管理员账号，并且**没有管理员以外的账号**，否则直接报错退出、不写任何数据。
+- 开始前把示例题库、管理员账号的创建时间改到 `startDate` 前 14 天，免得它们比学员的记录还“新”。
+- 每个动作都调用真实的业务代码、各自一个事务提交。中途失败时，库里会留下已经完成的部分，而防重复检查会拒绝在这样的库上再跑：要整库重建后重跑。
+- 随机数都来自 `randomSeed`（包括抽题、选项打乱、规则卷抽题），同一份数据、同一个种子生成的记录一样；头像文件名和密码哈希的盐除外。
+- 运行期间关闭定时结算；中途离开的考试，由模拟器把时钟推到截止时间之后再触发结算。
+- 本机实测（MySQL 8.0.44，`-Xmx384m`）：每秒约 130 条作答；最大常驻内存约 400 MB，GC 后堆占用不到 40 MB。全量（约 19 万条作答）预计 25 分钟左右，服务器可能更慢。
+
+### 7.2 本机
+
+```bash
+cd backend && mvn -B -ntp package -DskipTests
+# 预演（不写库）
+java -jar target/quiz-backend.jar --spring.profiles.active=dev --server.port=0 \
+  --app.mock.enabled=true --app.mock.dry-run=true
+# 整库跑：先建一个空库（这里用本机 MySQL 13306 的 quiz_mock），第一次启动会建表、导入示例题库和管理员
+MOCK_USER_PASSWORD='自己定' java -Xmx384m -jar target/quiz-backend.jar --spring.profiles.active=dev --server.port=0 \
+  --spring.datasource.url='jdbc:mysql://127.0.0.1:13306/quiz_mock?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC' \
+  --spring.datasource.username=root --spring.datasource.password= \
+  --spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver \
+  --app.mock.enabled=true
+```
+
+`--server.port=0` 让它随便挑一个空闲端口，不和本机别的服务抢 8080。
+
+### 7.3 服务器（docker compose，一次性运行）
+
+在服务器的部署目录（`deploy.sh` 用的 `DEPLOY_DIR`）里，用和平时同一个后端镜像、同一套环境变量、同一个上传目录，起一个跑完就删的容器。服务器上的 docker 需要 sudo 时，下面的 `docker` 换成 `sudo docker`。
+
+```bash
+# 1. 先确认库是新的：只有示例题库和管理员（否则模拟器会拒绝运行）。要重灌，先用 deploy/backup.sh 备份，再按 deploy/README.md 重建库。
+# 2. 停掉正在运行的后端，免得它的定时结算用真实时间去结算模拟里的考试
+docker compose stop backend
+# 3. 预演
+docker compose run --rm --no-deps backend java -Xmx384m -XX:+UseSerialGC -Duser.timezone=UTC \
+  -jar /app/quiz-backend.jar --app.mock.enabled=true --app.mock.dry-run=true
+# 4. 正式跑（密码只放在这一条命令的环境变量里）
+MOCK_USER_PASSWORD='…' docker compose run --rm --no-deps -e MOCK_USER_PASSWORD backend \
+  java -Xms128m -Xmx384m -XX:MaxMetaspaceSize=128m -XX:+UseSerialGC -Xss512k -XX:+ExitOnOutOfMemoryError \
+  -Duser.timezone=UTC -jar /app/quiz-backend.jar --app.mock.enabled=true
+# 5. 跑完（看到“演示数据汇总”、容器退出码 0）再把后端起来
+docker compose start backend
+```
+
+- `docker compose run` 会替换 compose 里的 `command`，所以要把整条 `java …` 写全；环境变量、上传目录卷、内存限制（640 MB）、网络都和平时的后端一样，头像会写进同一个上传目录。
+- `--no-deps`：数据库已经在跑，不用再拉起依赖。
+- 汇总打印在容器的标准输出里，建议加 `| tee mock-run.log` 留一份。

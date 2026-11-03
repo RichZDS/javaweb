@@ -1,0 +1,209 @@
+{
+  "randomSeed": 7,
+  "startDate": "2026-07-01",
+  "users": [
+    {
+      "username": "lin_steady",
+      "nickname": "林晓",
+      "target": "计算机考研 408",
+      "registeredOn": "2026-07-01",
+      "lastActiveOn": null,
+      "persona": "STEADY",
+      "activeDaysPerWeek": 6,
+      "questionsPerDay": [
+        25,
+        40
+      ],
+      "hours": [
+        9,
+        20,
+        21
+      ],
+      "accuracy": {
+        "start": 0.5,
+        "end": 0.7,
+        "subjects": {
+          "数据结构": 0.05,
+          "计算机网络": -0.05
+        }
+      },
+      "habits": {
+        "daily": 0.9,
+        "random": 0.5,
+        "sequential": 0.3,
+        "wrongReview": 0.4,
+        "recite": 0.1,
+        "shuffleOptions": 0.3,
+        "favorite": 0.05,
+        "feedback": 0.03,
+        "examsPerMonth": 10
+      },
+      "switchTarget": null,
+      "wrongRemoveThreshold": 2,
+      "avatar": true,
+      "disabled": false
+    },
+    {
+      "username": "wu_weekend",
+      "nickname": "Wu",
+      "target": "Java 程序设计",
+      "registeredOn": "2026-07-01",
+      "lastActiveOn": null,
+      "persona": "WEEKEND",
+      "activeDaysPerWeek": 2,
+      "questionsPerDay": [
+        10,
+        20
+      ],
+      "hours": [
+        14,
+        15
+      ],
+      "accuracy": {
+        "start": 0.6,
+        "end": 0.7,
+        "subjects": {}
+      },
+      "habits": {
+        "daily": 0.5,
+        "random": 0.7,
+        "sequential": 0.3,
+        "wrongReview": 0.0,
+        "recite": 0.05,
+        "shuffleOptions": 0.3,
+        "favorite": 0.05,
+        "feedback": 0.02,
+        "examsPerMonth": 3
+      },
+      "switchTarget": null,
+      "wrongRemoveThreshold": 3,
+      "avatar": false,
+      "disabled": false,
+      "weekdayWeights": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1
+      ]
+    },
+    {
+      "username": "zhao_drop",
+      "nickname": "赵同学",
+      "target": "数据库原理与 MySQL",
+      "registeredOn": "2026-07-02",
+      "lastActiveOn": "2026-07-05",
+      "persona": "DROPOUT",
+      "activeDaysPerWeek": 5,
+      "questionsPerDay": [
+        10,
+        20
+      ],
+      "hours": [
+        21,
+        22
+      ],
+      "accuracy": {
+        "start": 0.45,
+        "end": 0.5,
+        "subjects": {}
+      },
+      "habits": {
+        "daily": 0.6,
+        "random": 0.6,
+        "sequential": 0.2,
+        "wrongReview": 0.2,
+        "recite": 0.05,
+        "shuffleOptions": 0.3,
+        "favorite": 0.05,
+        "feedback": 0.02,
+        "examsPerMonth": 3
+      },
+      "switchTarget": null,
+      "wrongRemoveThreshold": 3,
+      "avatar": true,
+      "disabled": true
+    },
+    {
+      "username": "qian_switch",
+      "nickname": "钱多多",
+      "target": "计算机考研 408",
+      "registeredOn": "2026-07-01",
+      "lastActiveOn": null,
+      "persona": "STEADY",
+      "activeDaysPerWeek": 5,
+      "questionsPerDay": [
+        15,
+        30
+      ],
+      "hours": [
+        12,
+        19
+      ],
+      "accuracy": {
+        "start": 0.5,
+        "end": 0.65,
+        "subjects": {}
+      },
+      "habits": {
+        "daily": 0.8,
+        "random": 0.5,
+        "sequential": 0.5,
+        "wrongReview": 0.3,
+        "recite": 0.05,
+        "shuffleOptions": 0.3,
+        "favorite": 0.05,
+        "feedback": 0.02,
+        "examsPerMonth": 6
+      },
+      "switchTarget": {
+        "on": "2026-07-06",
+        "to": "Java 程序设计"
+      },
+      "wrongRemoveThreshold": 3,
+      "avatar": false,
+      "disabled": false
+    },
+    {
+      "username": "sun_new",
+      "nickname": "小孙",
+      "target": "数据库原理与 MySQL",
+      "registeredOn": "2026-07-09",
+      "lastActiveOn": null,
+      "persona": "NEWBIE",
+      "activeDaysPerWeek": 6,
+      "questionsPerDay": [
+        15,
+        25
+      ],
+      "hours": [
+        8,
+        22
+      ],
+      "accuracy": {
+        "start": 0.55,
+        "end": 0.6,
+        "subjects": {
+          "SQL 查询": 0.05
+        }
+      },
+      "habits": {
+        "daily": 0.7,
+        "random": 0.6,
+        "sequential": 0.2,
+        "wrongReview": 0.2,
+        "recite": 0.05,
+        "shuffleOptions": 0.3,
+        "favorite": 0.05,
+        "feedback": 0.02,
+        "examsPerMonth": 15
+      },
+      "switchTarget": null,
+      "wrongRemoveThreshold": 3,
+      "avatar": true,
+      "disabled": false
+    }
+  ]
+}
