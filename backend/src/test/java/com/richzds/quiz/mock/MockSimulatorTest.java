@@ -27,7 +27,7 @@ import com.richzds.quiz.dto.StatsDtos.Overview;
 import com.richzds.quiz.service.StatsService;
 
 /**
- * H2 上的小样本：5 个学员、2026-07-01 到 07-11（北京时间），启动时跑完整个模拟（docs/mock-data.md 第 6 节），
+ * H2 上的小样本：6 个学员（其中一个每天两段学习时间挨着、题量大，专门测时段不重叠）、2026-07-01 到 07-11（北京时间），启动时跑完整个模拟（docs/mock-data.md 第 6 节），
  * 然后只读核对：没有未来时间、没有早于注册的记录、统计接口和表里聚合一致、错题本和作答记录一致、
  * 考试分数等于每题得分之和、打卡天数合理、weekdayWeights 决定学习日、禁用和换目标、管理员的时间线。
  * 用单独的内存库，和其他测试类的库互不影响（模拟器只肯在只有管理员的库上跑）。
@@ -74,7 +74,7 @@ class MockSimulatorTest {
 
     @Test
     void everyoneRegisteredWithProfileSettings() {
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM app_user WHERE role = 'USER'", Long.class)).isEqualTo(5);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM app_user WHERE role = 'USER'", Long.class)).isEqualTo(6);
         assertThat(jdbc.queryForObject("SELECT wrong_remove_threshold FROM app_user WHERE username = 'lin_steady'",
                 Integer.class)).isEqualTo(2);
         for (String u : List.of("lin_steady", "zhao_drop", "sun_new")) {
@@ -191,6 +191,20 @@ class MockSimulatorTest {
         long lin = userId("lin_steady");
         assertThat(statsService.overview(lin, null).streakDays()).as("每天学、每日一练概率 0.9 的人有连续打卡")
                 .isGreaterThanOrEqualTo(1);
+    }
+
+    @Test
+    void aStudentDoesOneThingAtATime() {
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM (SELECT a.source_id AS s, a.graded_at AS t, "
+                + "LAG(a.source_id) OVER (PARTITION BY a.user_id ORDER BY a.graded_at, a.id) AS prev_s, "
+                + "LAG(a.graded_at) OVER (PARTITION BY a.user_id ORDER BY a.graded_at, a.id) AS prev_t, "
+                + "LEAD(a.source_id) OVER (PARTITION BY a.user_id ORDER BY a.graded_at, a.id) AS next_s "
+                + "FROM answer_record a WHERE a.source = 'PRACTICE') z WHERE z.prev_s <> z.s AND z.next_s = z.prev_s "
+                + "AND TIMESTAMPDIFF(MINUTE, z.prev_t, z.t) < 10", Long.class))
+                .as("几分钟内在两套练习之间来回切换（两段学习重叠）").isZero();
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM exam_record r JOIN answer_record a ON a.user_id = r.user_id "
+                + "AND a.source = 'PRACTICE' AND a.graded_at > r.started_at "
+                + "AND a.graded_at < COALESCE(r.submitted_at, r.deadline_at)", Long.class)).as("考试期间没有练习").isZero();
     }
 
     @Test
