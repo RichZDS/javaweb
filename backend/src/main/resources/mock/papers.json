@@ -1,0 +1,472 @@
+{
+  "papers": [
+    {
+      "title": "408 暑期阶段测评",
+      "exam": "计算机考研 408",
+      "createdOn": "2026-07-26",
+      "online": true,
+      "mode": "RULE",
+      "durationMin": 55,
+      "passScore": 60,
+      "shuffleOptions": false,
+      "description": "覆盖四科基础与常见计算，28题。建议先完成各科第一轮复习。 共100分，60分及格。多选、填空均须整题全对才得分。",
+      "rules": [
+        {
+          "category": "计算机考研 408 / 数据结构",
+          "type": "SINGLE",
+          "count": 5,
+          "score": 3
+        },
+        {
+          "category": "计算机考研 408 / 数据结构",
+          "type": "MULTIPLE",
+          "count": 2,
+          "score": 5
+        },
+        {
+          "category": "计算机考研 408 / 计算机组成原理",
+          "type": "SINGLE",
+          "count": 5,
+          "score": 3
+        },
+        {
+          "category": "计算机考研 408 / 计算机组成原理",
+          "type": "MULTIPLE",
+          "count": 2,
+          "score": 5
+        },
+        {
+          "category": "计算机考研 408 / 操作系统",
+          "type": "SINGLE",
+          "count": 5,
+          "score": 3
+        },
+        {
+          "category": "计算机考研 408 / 操作系统",
+          "type": "MULTIPLE",
+          "count": 2,
+          "score": 5
+        },
+        {
+          "category": "计算机考研 408 / 计算机网络",
+          "type": "SINGLE",
+          "count": 5,
+          "score": 3
+        },
+        {
+          "category": "计算机考研 408 / 计算机网络",
+          "type": "MULTIPLE",
+          "count": 2,
+          "score": 5
+        }
+      ]
+    },
+    {
+      "title": "408 秋季冲刺检验",
+      "exam": "计算机考研 408",
+      "createdOn": "2026-10-24",
+      "online": true,
+      "mode": "RULE",
+      "durationMin": 60,
+      "passScore": 60,
+      "shuffleOptions": true,
+      "description": "四科各7题，共28题；选择项随机，复核时留意原选项。 共100分，60分及格。多选、填空均须整题全对才得分。",
+      "rules": [
+        {
+          "category": "计算机考研 408 / 数据结构",
+          "type": "SINGLE",
+          "count": 4,
+          "score": 4
+        },
+        {
+          "category": "计算机考研 408 / 数据结构",
+          "type": "MULTIPLE",
+          "count": 1,
+          "score": 5
+        },
+        {
+          "category": "计算机考研 408 / 数据结构",
+          "type": "JUDGE",
+          "count": 2,
+          "score": 2
+        },
+        {
+          "category": "计算机考研 408 / 计算机组成原理",
+          "type": "SINGLE",
+          "count": 4,
+          "score": 4
+        },
+        {
+          "category": "计算机考研 408 / 计算机组成原理",
+          "type": "MULTIPLE",
+          "count": 1,
+          "score": 5
+        },
+        {
+          "category": "计算机考研 408 / 计算机组成原理",
+          "type": "JUDGE",
+          "count": 2,
+          "score": 2
+        },
+        {
+          "category": "计算机考研 408 / 操作系统",
+          "type": "SINGLE",
+          "count": 4,
+          "score": 4
+        },
+        {
+          "category": "计算机考研 408 / 操作系统",
+          "type": "MULTIPLE",
+          "count": 1,
+          "score": 5
+        },
+        {
+          "category": "计算机考研 408 / 操作系统",
+          "type": "JUDGE",
+          "count": 2,
+          "score": 2
+        },
+        {
+          "category": "计算机考研 408 / 计算机网络",
+          "type": "SINGLE",
+          "count": 4,
+          "score": 4
+        },
+        {
+          "category": "计算机考研 408 / 计算机网络",
+          "type": "MULTIPLE",
+          "count": 1,
+          "score": 5
+        },
+        {
+          "category": "计算机考研 408 / 计算机网络",
+          "type": "JUDGE",
+          "count": 2,
+          "score": 2
+        }
+      ]
+    },
+    {
+      "title": "Java 开学基础摸底",
+      "exam": "Java 程序设计",
+      "createdOn": "2026-08-28",
+      "online": true,
+      "mode": "RULE",
+      "durationMin": 45,
+      "passScore": 60,
+      "shuffleOptions": false,
+      "description": "五科各5题，共25题，用于查找进入新学期前的知识空缺。 共100分，60分及格。多选、填空均须整题全对才得分。",
+      "rules": [
+        {
+          "category": "Java 程序设计 / 基础语法",
+          "type": "SINGLE",
+          "count": 3,
+          "score": 4
+        },
+        {
+          "category": "Java 程序设计 / 基础语法",
+          "type": "MULTIPLE",
+          "count": 2,
+          "score": 4
+        },
+        {
+          "category": "Java 程序设计 / 面向对象",
+          "type": "SINGLE",
+          "count": 3,
+          "score": 4
+        },
+        {
+          "category": "Java 程序设计 / 面向对象",
+          "type": "MULTIPLE",
+          "count": 2,
+          "score": 4
+        },
+        {
+          "category": "Java 程序设计 / 集合与泛型",
+          "type": "SINGLE",
+          "count": 3,
+          "score": 4
+        },
+        {
+          "category": "Java 程序设计 / 集合与泛型",
+          "type": "MULTIPLE",
+          "count": 2,
+          "score": 4
+        },
+        {
+          "category": "Java 程序设计 / 异常与 IO",
+          "type": "SINGLE",
+          "count": 3,
+          "score": 4
+        },
+        {
+          "category": "Java 程序设计 / 异常与 IO",
+          "type": "MULTIPLE",
+          "count": 2,
+          "score": 4
+        },
+        {
+          "category": "Java 程序设计 / 多线程",
+          "type": "SINGLE",
+          "count": 3,
+          "score": 4
+        },
+        {
+          "category": "Java 程序设计 / 多线程",
+          "type": "MULTIPLE",
+          "count": 2,
+          "score": 4
+        }
+      ]
+    },
+    {
+      "title": "Java 代码阅读与应用复测",
+      "exam": "Java 程序设计",
+      "createdOn": "2026-10-16",
+      "online": true,
+      "mode": "RULE",
+      "durationMin": 50,
+      "passScore": 60,
+      "shuffleOptions": true,
+      "description": "五科各5题，共25题，包含输出填空与判断；先独立推演再查看解析。 共100分，60分及格。多选、填空均须整题全对才得分。",
+      "rules": [
+        {
+          "category": "Java 程序设计 / 基础语法",
+          "type": "SINGLE",
+          "count": 2,
+          "score": 5
+        },
+        {
+          "category": "Java 程序设计 / 基础语法",
+          "type": "FILL",
+          "count": 1,
+          "score": 6
+        },
+        {
+          "category": "Java 程序设计 / 基础语法",
+          "type": "JUDGE",
+          "count": 2,
+          "score": 2
+        },
+        {
+          "category": "Java 程序设计 / 面向对象",
+          "type": "SINGLE",
+          "count": 2,
+          "score": 5
+        },
+        {
+          "category": "Java 程序设计 / 面向对象",
+          "type": "FILL",
+          "count": 1,
+          "score": 6
+        },
+        {
+          "category": "Java 程序设计 / 面向对象",
+          "type": "JUDGE",
+          "count": 2,
+          "score": 2
+        },
+        {
+          "category": "Java 程序设计 / 集合与泛型",
+          "type": "SINGLE",
+          "count": 2,
+          "score": 5
+        },
+        {
+          "category": "Java 程序设计 / 集合与泛型",
+          "type": "FILL",
+          "count": 1,
+          "score": 6
+        },
+        {
+          "category": "Java 程序设计 / 集合与泛型",
+          "type": "JUDGE",
+          "count": 2,
+          "score": 2
+        },
+        {
+          "category": "Java 程序设计 / 异常与 IO",
+          "type": "SINGLE",
+          "count": 2,
+          "score": 5
+        },
+        {
+          "category": "Java 程序设计 / 异常与 IO",
+          "type": "FILL",
+          "count": 1,
+          "score": 6
+        },
+        {
+          "category": "Java 程序设计 / 异常与 IO",
+          "type": "JUDGE",
+          "count": 2,
+          "score": 2
+        },
+        {
+          "category": "Java 程序设计 / 多线程",
+          "type": "SINGLE",
+          "count": 2,
+          "score": 5
+        },
+        {
+          "category": "Java 程序设计 / 多线程",
+          "type": "FILL",
+          "count": 1,
+          "score": 6
+        },
+        {
+          "category": "Java 程序设计 / 多线程",
+          "type": "JUDGE",
+          "count": 2,
+          "score": 2
+        }
+      ]
+    },
+    {
+      "title": "数据库暑期自测旧版",
+      "exam": "数据库原理与 MySQL",
+      "createdOn": "2026-08-09",
+      "online": false,
+      "mode": "RULE",
+      "durationMin": 40,
+      "passScore": 60,
+      "shuffleOptions": false,
+      "description": "旧版分章自测，当前下架留档；四科各7题，共28题。 共100分，60分及格。多选、填空均须整题全对才得分。",
+      "rules": [
+        {
+          "category": "数据库原理与 MySQL / 关系模型",
+          "type": "SINGLE",
+          "count": 5,
+          "score": 3
+        },
+        {
+          "category": "数据库原理与 MySQL / 关系模型",
+          "type": "MULTIPLE",
+          "count": 2,
+          "score": 5
+        },
+        {
+          "category": "数据库原理与 MySQL / SQL 查询",
+          "type": "SINGLE",
+          "count": 5,
+          "score": 3
+        },
+        {
+          "category": "数据库原理与 MySQL / SQL 查询",
+          "type": "MULTIPLE",
+          "count": 2,
+          "score": 5
+        },
+        {
+          "category": "数据库原理与 MySQL / 事务与并发",
+          "type": "SINGLE",
+          "count": 5,
+          "score": 3
+        },
+        {
+          "category": "数据库原理与 MySQL / 事务与并发",
+          "type": "MULTIPLE",
+          "count": 2,
+          "score": 5
+        },
+        {
+          "category": "数据库原理与 MySQL / 索引与优化",
+          "type": "SINGLE",
+          "count": 5,
+          "score": 3
+        },
+        {
+          "category": "数据库原理与 MySQL / 索引与优化",
+          "type": "MULTIPLE",
+          "count": 2,
+          "score": 5
+        }
+      ]
+    },
+    {
+      "title": "数据库期中综合练习",
+      "exam": "数据库原理与 MySQL",
+      "createdOn": "2026-10-09",
+      "online": true,
+      "mode": "RULE",
+      "durationMin": 50,
+      "passScore": 60,
+      "shuffleOptions": true,
+      "description": "关系模型、SQL、事务和索引各7题，共28题。 共100分，60分及格。多选、填空均须整题全对才得分。",
+      "rules": [
+        {
+          "category": "数据库原理与 MySQL / 关系模型",
+          "type": "SINGLE",
+          "count": 4,
+          "score": 4
+        },
+        {
+          "category": "数据库原理与 MySQL / 关系模型",
+          "type": "MULTIPLE",
+          "count": 1,
+          "score": 5
+        },
+        {
+          "category": "数据库原理与 MySQL / 关系模型",
+          "type": "JUDGE",
+          "count": 2,
+          "score": 2
+        },
+        {
+          "category": "数据库原理与 MySQL / SQL 查询",
+          "type": "SINGLE",
+          "count": 4,
+          "score": 4
+        },
+        {
+          "category": "数据库原理与 MySQL / SQL 查询",
+          "type": "MULTIPLE",
+          "count": 1,
+          "score": 5
+        },
+        {
+          "category": "数据库原理与 MySQL / SQL 查询",
+          "type": "JUDGE",
+          "count": 2,
+          "score": 2
+        },
+        {
+          "category": "数据库原理与 MySQL / 事务与并发",
+          "type": "SINGLE",
+          "count": 4,
+          "score": 4
+        },
+        {
+          "category": "数据库原理与 MySQL / 事务与并发",
+          "type": "MULTIPLE",
+          "count": 1,
+          "score": 5
+        },
+        {
+          "category": "数据库原理与 MySQL / 事务与并发",
+          "type": "JUDGE",
+          "count": 2,
+          "score": 2
+        },
+        {
+          "category": "数据库原理与 MySQL / 索引与优化",
+          "type": "SINGLE",
+          "count": 4,
+          "score": 4
+        },
+        {
+          "category": "数据库原理与 MySQL / 索引与优化",
+          "type": "MULTIPLE",
+          "count": 1,
+          "score": 5
+        },
+        {
+          "category": "数据库原理与 MySQL / 索引与优化",
+          "type": "JUDGE",
+          "count": 2,
+          "score": 2
+        }
+      ]
+    }
+  ]
+}
