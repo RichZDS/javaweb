@@ -124,8 +124,11 @@ run "${SSH[@]}" "mkdir -p $DEPLOY_DIR/releases $DEPLOY_DIR/backups && cd $DEPLOY
   ls -1t releases/*.tgz 2>/dev/null | tail -n +4 | xargs -r rm --"
 
 step "4/6 同步文件（不碰服务器上的 .env、backups/、releases/）"
+# 这次没给 APK_PATH 时，保留服务器上已有的安装包，不让 --delete 删掉它
+KEEP_APK=()
+[ -n "$APK_PATH" ] || KEEP_APK=(--exclude 'www/download/*.apk')
 run rsync -az --delete -e "$RSYNC_SSH" \
-  --exclude '.env' --exclude 'backups/' --exclude 'releases/' \
+  --exclude '.env' --exclude 'backups/' --exclude 'releases/' "${KEEP_APK[@]}" \
   "$STAGE/" "$DEPLOY_HOST:$DEPLOY_DIR/"
 
 step "5/6 启动"
