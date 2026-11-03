@@ -12,6 +12,10 @@ import org.springframework.test.context.ActiveProfiles;
 @SpringBootTest(properties = {
         "spring.datasource.url=jdbc:h2:mem:quiz_mock_dry;MODE=MySQL;DATABASE_TO_LOWER=TRUE;"
                 + "CASE_INSENSITIVE_IDENTIFIERS=TRUE;DB_CLOSE_DELAY=-1",
+        // 数据源四项一起钉死：CI 的 MySQL 任务用环境变量 SPRING_DATASOURCE_* 指向 MySQL，只改 url 会让 H2 地址配上 MySQL 驱动
+        "spring.datasource.driver-class-name=org.h2.Driver",
+        "spring.datasource.username=sa",
+        "spring.datasource.password=",
         "app.seed.enabled=true",
         "app.seed.location=classpath:seed/",
         "app.mock.enabled=true",
