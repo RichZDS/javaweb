@@ -188,7 +188,7 @@ sozai-lock light -- python3 scripts/mock-checklist-sql.py quiz_mock artifacts/mo
 sozai-lock light -- python3 scripts/mock-realism.py artifacts/mock-v1
 ```
 
-`mock-snapshot.py` 在一个只读事务中导出13张业务表，排除密码散列；`mock-audit.py` 对全库做时间、引用、独立判分、错题状态重放和日练检查；`mock-checklist-sql.py` 实跑清单中的10组SQL；`mock-realism.py` 输出画像、时段、学习进步及相邻练习A-B-A交替证据。SQL语句与实际结果均留在对应artifact目录。
+`mock-snapshot.py` 在一个只读事务中导出13张业务表，排除密码散列；`mock-audit.py` 对全库做时间、引用、独立判分、错题状态重放和日练检查；`mock-checklist-sql.py` 实跑清单中的10组SQL；`mock-realism.py` 输出画像、时段、学习进步及相邻练习A-B-A交替证据。SQL语句与实际结果均留在对应artifact目录。A-B-A同时输出不限时间计数和首次切换间隔小于10分钟的计数，后者与后端 `aStudentDoesOneThingAtATime` 测试一致；保留三条作答时间，区分短时来回切换与合法跨天续练，不把不限时间计数直接当作重叠数。
 
 副本与接口脚本在项目根目录运行：`mock-copy.py` 固定从quiz_mock导入quiz_mock_check，已有副本时拒绝覆盖。按本轮工头明确授权，只改副本USER的password_hash，凭证/BCrypt从0600的board/mock-local-creds.txt内部读取；原库不改，临时dump删除。先从当前main构建自己的jar（按资源规则走heavy闸门），再 `sozai-lock light -- node e2e/scripts/mock-stack.mjs up`。该服务只连副本，关闭mock/seed/自动结算，PID/cwd/启动时间登记在artifacts/mock-v1。
 
