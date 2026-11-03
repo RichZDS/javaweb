@@ -18,7 +18,7 @@
   - 没网或打不开：显示本地的错误页和「重试」。证书出错一律不继续加载。
   - User-Agent 末尾加 `MaShangShuaTiApp/<版本号>`。网页版认出这个标记后会隐藏「学习提醒」（壳里没有本机通知），设置页「检查更新」比的是安装包的版本，「去更新」交给系统浏览器下载。
   - 登录状态存在 WebView 的 localStorage 里，关掉 App 再开还在。
-- 包名 `com.richzds.quiz`，minSdk 26（Android 8，认 Let's Encrypt 证书），targetSdk 37。权限只有 `INTERNET`。
+- 包名 `com.richzds.quiz`，minSdk 26（Android 8，认 Let's Encrypt 证书），targetSdk 37。申请的权限只有 `INTERNET`；另外 androidx.core 自带一个 signature 级的内部权限 `com.richzds.quiz.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`，用户看不到，保留它是为了 Android 8–12 上依赖库注册不导出的广播时不抛异常。
 - 图标是自适应矢量图标（主色底，白色「< ✓ >」），启动图是主色底加同一个图案，状态栏是网页主色 `#3A6CF4`。
 
 ### 前提（本机已装好）

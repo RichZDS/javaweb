@@ -1,17 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- 只要联网。拍照用系统相机应用（ACTION_IMAGE_CAPTURE），本应用不声明 CAMERA 就不需要相机权限 -->
+    <!-- 只要联网。拍照用系统相机应用（ACTION_IMAGE_CAPTURE），本应用不声明 CAMERA 就不需要相机权限。
+         合并后还会有 androidx.core 自带的 <包名>.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION：signature 级的内部权限，
+         用户看不到。保留它：Android 8–12 上依赖库用 ContextCompat.registerReceiver(…NOT_EXPORTED) 时缺了它会直接抛异常。 -->
     <uses-permission android:name="android.permission.INTERNET" />
-
-    <!-- androidx.core 自带的内部权限（给 Android 13 以下注册不导出的广播用），套壳用不到，去掉 -->
-    <permission
-        android:name="${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
-        tools:node="remove" />
-    <uses-permission
-        android:name="${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
-        tools:node="remove" />
 
     <!-- Android 11+ 要声明才能看到系统相机应用 -->
     <queries>
