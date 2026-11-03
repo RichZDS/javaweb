@@ -1,6 +1,7 @@
 {
   "papers": [
     {
+      "mode": "RULE",
       "title": "408 小测（一）",
       "exam": "计算机考研 408",
       "createdOn": "2026-07-02",
@@ -19,6 +20,7 @@
       ]
     },
     {
+      "mode": "RULE",
       "title": "Java 旧卷",
       "exam": "Java 程序设计",
       "createdOn": "2026-07-03",

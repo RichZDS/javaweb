@@ -63,7 +63,8 @@ public final class MockData {
     public record QuestionsFile(List<MockQuestion> questions) {
     }
 
-    public record MockQuestion(String chapter, LocalDate createdOn, String status, String type, String stem,
+    /** 格式同 docs/seed-format.md 的 questions（ref 可选，只用来查重），多 createdOn、status，分类用 chapter 名称路径。 */
+    public record MockQuestion(String ref, String chapter, LocalDate createdOn, String status, String type, String stem,
                                List<String> options, JsonNode answer, FillOptions fillOptions, String analysis,
                                Integer difficulty, List<String> tags, String source, String imageUrl) {
     }
@@ -71,8 +72,10 @@ public final class MockData {
     public record PapersFile(List<MockPaper> papers) {
     }
 
-    public record MockPaper(String title, String exam, LocalDate createdOn, Boolean online, Integer durationMin,
-                            Integer passScore, Boolean shuffleOptions, String description, List<MockRule> rules) {
+    /** 格式同 docs/seed-format.md 的 papers，只用 RULE（mode 可省略），多 createdOn、online，考试用 exam 名称。 */
+    public record MockPaper(String title, String exam, LocalDate createdOn, Boolean online, String mode,
+                            Integer durationMin, Integer passScore, Boolean shuffleOptions, String description,
+                            List<MockRule> rules) {
     }
 
     public record MockRule(String category, String type, Integer count, Integer score) {
@@ -254,9 +257,13 @@ public final class MockData {
             }
         }
         i = 0;
+        Set<String> refs = new HashSet<>();
         for (MockQuestion q : questions) {
             i++;
-            String at = "questions[" + i + "]：";
+            String at = "questions[" + i + "]" + (q.ref() == null ? "" : "（" + q.ref() + "）") + "：";
+            if (q.ref() != null && !refs.add(q.ref())) {
+                errors.add(at + "ref 重复");
+            }
             Category c = q.chapter() == null ? null : paths.get(q.chapter());
             if (c == null || c.getLevel() != CategoryTree.LEVEL_CHAPTER) {
                 errors.add(at + "chapter 不是示例题库里的三级分类：" + q.chapter());
@@ -279,6 +286,9 @@ public final class MockData {
             Category exam = checkExam(paths, p.exam(), at + "exam", errors);
             if (p.title() == null || p.title().isBlank()) {
                 errors.add(at + "title 不能为空");
+            }
+            if (p.mode() != null && !"RULE".equals(p.mode())) {
+                errors.add(at + "mode 只能是 RULE（演示数据只用规则卷）");
             }
             if (p.createdOn() == null || p.createdOn().isBefore(start) || p.createdOn().isAfter(until)) {
                 errors.add(at + "createdOn 必须在 " + start + " 到 " + until + " 之间");
