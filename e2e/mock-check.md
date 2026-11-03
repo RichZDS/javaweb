@@ -228,7 +228,7 @@ WITH done AS (
    AND (@root IS NULL OR root_category_id=@root)
 ), anchor AS (
  SELECT CASE WHEN EXISTS(SELECT 1 FROM done WHERE d=@api_today)
-             THEN @api_today ELSE DATE_SUB(@api_today,INTERVAL 1 DAY) END d
+             THEN CAST(@api_today AS DATE) ELSE DATE_SUB(CAST(@api_today AS DATE),INTERVAL 1 DAY) END d
 ), ordered AS (
  SELECT x.d,ROW_NUMBER() OVER(ORDER BY x.d DESC) n
  FROM done x CROSS JOIN anchor a WHERE x.d<=a.d
@@ -346,7 +346,7 @@ hours的“附近”和画像比例没有约定严格偏差阈值；出实测分
 | A04 | `/api/exam-records?all=true&page=&size=100`、已FINISHED的`/{id}`、`/api/stats/exams?paperId=` | S10对账；各考试、四题型、手动/超时、有未答、打乱卷、不同分数档至少各有样本；若某类不存在单列，不假造覆盖。成绩单逐题合计、统计场次/均分/最好成绩与SQL一致。 |
 | A05 | `/api/practice/sessions?all=true&page=&size=100`、DAILY详情、overview.streakDays | S11；历史列表范围与当前目标/显式根/all=true分别核对，返回所有考试的历史，不通过PUT切目标制造检查条件。 |
 | A06 | `/api/stats/leaderboard?period=WEEK&categoryId=` | S12，三个根各核对Top20和本人；覆盖榜首、并列、榜外本人、无当周作答（按现有样本）。 |
-| A07 | `/api/admin/dashboard`、用户/题目/试卷/纠错分页列表 | S13五项、14日曲线和每卷统计逐字段一致。用户列表300学员与画像相符；查看收藏笔记、纠错/回复的真实文本，非空且无占位符未替换。 |
+| A07 | `/api/admin/dashboard`、用户/题目/试卷/纠错分页列表 | S13五项、14日曲线和每卷统计逐字段一致。用户列表含300学员和1管理员，看板userCount才只数300学员；学员与画像相符；查看收藏笔记、纠错/回复的真实文本，非空且无占位符未替换。 |
 
 完整SQL一致性扫描覆盖全库；接口抽样范围、用户名数量、覆盖组合和无样本项在报告中写明，不能把部分字段/抽样通过说成300人每个接口全量通过。误差规则：计数/日期/布尔/标签精确一致，四位比率比较到0.0001，均分两位；不使用宽松百分比容忍数据错误。
 
