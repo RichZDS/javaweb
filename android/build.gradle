@@ -1,0 +1,4 @@
+// 码上刷题 Android 第一版：WebView 套壳，打开线上网页版。说明见 docs/release.md「第一版：网页套壳安装包」。
+plugins {
+    id 'com.android.application' version '9.5.0' apply false
+}

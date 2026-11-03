@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 错误页图标：断开的信号（三段弧 + 斜线），颜色跟随深浅色 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="72dp"
+    android:height="72dp"
+    android:viewportWidth="72"
+    android:viewportHeight="72">
+    <path
+        android:pathData="M10,30 A36,36 0 0,1 62,30"
+        android:strokeWidth="5"
+        android:strokeColor="@color/text_sub"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M19,39 A24,24 0 0,1 53,39"
+        android:strokeWidth="5"
+        android:strokeColor="@color/text_sub"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M28,48 A12,12 0 0,1 44,48"
+        android:strokeWidth="5"
+        android:strokeColor="@color/text_sub"
+        android:strokeLineCap="round" />
+    <path
+        android:fillColor="@color/text_sub"
+        android:pathData="M36,58 m-4,0 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0" />
+    <path
+        android:pathData="M14,14 L58,62"
+        android:strokeWidth="5"
+        android:strokeColor="@color/brand"
+        android:strokeLineCap="round" />
+</vector>

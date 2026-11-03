@@ -9,7 +9,7 @@ onLaunch(() => {
   const user = useUserStore()
   if (user.loggedIn) user.refresh().catch(() => {})
 
-  // 以下只在 App 端生效：重排接下来 7 天的学习提醒；检查新版本
+  // 重排接下来 7 天的学习提醒（只在 App 端）；检查新版本（App 端和 Android 套壳）
   const settings = useSettingsStore()
   scheduleReminders(settings.reminderOn, settings.reminderTime)
   checkUpdate(false)

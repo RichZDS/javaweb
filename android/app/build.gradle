@@ -1,0 +1,71 @@
+plugins {
+    id 'com.android.application'
+}
+
+def homeUrl = providers.gradleProperty('quizHomeUrl').get()
+
+// 正式包的签名只从环境变量读（build-apk.sh 从本机 keystore.env 导入），仓库里没有任何密码。
+// 没有这些变量时 release 不签名；CI 只打 debug 包，用不到。
+def keystorePath = System.getenv('QUIZ_KEYSTORE')
+
+android {
+    namespace = 'com.richzds.quiz'
+    compileSdk = 37
+
+    defaultConfig {
+        // 以后换成 uni-app 原生版也用这个包名和同一个证书，用户可以直接覆盖升级
+        applicationId = 'com.richzds.quiz'
+        minSdk = 26
+        targetSdk = 37
+        versionCode = providers.gradleProperty('quizVersionCode').get().toInteger()
+        versionName = providers.gradleProperty('quizVersionName').get()
+        buildConfigField 'String', 'HOME_URL', "\"${homeUrl}\""
+    }
+
+    buildFeatures {
+        buildConfig = true
+    }
+
+    signingConfigs {
+        release {
+            if (keystorePath) {
+                storeFile = file(keystorePath)
+                storePassword = System.getenv('QUIZ_STORE_PASSWORD')
+                keyAlias = System.getenv('QUIZ_KEY_ALIAS')
+                keyPassword = System.getenv('QUIZ_KEY_PASSWORD')
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled = true
+            shrinkResources = true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (keystorePath) {
+                signingConfig = signingConfigs.release
+            }
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    packaging {
+        resources {
+            // 依赖顺带进来的 Kotlin 元数据、协程调试文件和库版本号文件，Java 写的套壳用不到
+            excludes += ['DebugProbesKt.bin', 'kotlin/**', 'META-INF/*.version']
+        }
+    }
+}
+
+dependencies {
+    // 返回键（含 Android 13+ 预测性返回）、选图结果、全面屏边距
+    implementation 'androidx.activity:activity:1.13.0'
+    // FileProvider（拍照的输出文件）、WindowInsets 兼容
+    implementation 'androidx.core:core:1.19.1'
+
+    testImplementation 'junit:junit:4.13.2'
+}

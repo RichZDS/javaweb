@@ -5,38 +5,70 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>下载码上刷题</title>
 <style>
-  :root { color-scheme: light dark; --fg: #1f2328; --muted: #656d76; --bg: #f6f8fa; --card: #fff; --accent: #2f6feb; }
-  @media (prefers-color-scheme: dark) { :root { --fg: #e6edf3; --muted: #8d96a0; --bg: #0d1117; --card: #161b22; --accent: #4493f8; } }
+  :root { color-scheme: light dark; --fg: #1f2328; --muted: #656d76; --bg: #f6f8fa; --card: #fff; --accent: #3a6cf4; --off: #d0d7de; }
+  @media (prefers-color-scheme: dark) { :root { --fg: #e6edf3; --muted: #8d96a0; --bg: #0d1117; --card: #161b22; --accent: #4f80f8; --off: #30363d; } }
   body { margin: 0; font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--fg); }
   main { max-width: 420px; margin: 48px auto; padding: 0 16px; }
   .card { background: var(--card); border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
   h1 { font-size: 22px; margin: 0 0 8px; }
   p { color: var(--muted); line-height: 1.6; margin: 8px 0; }
   a.btn { display: block; text-align: center; margin-top: 20px; padding: 12px; border-radius: 8px; background: var(--accent); color: #fff; text-decoration: none; font-weight: 600; }
+  /* 安装包还没放上来：灰色、点不了，不给一个 404 的链接 */
+  a.btn.off { background: var(--off); color: var(--muted); pointer-events: none; cursor: default; }
   #notes { white-space: pre-line; }
 </style>
 </head>
 <body>
 <main>
   <div class="card">
-    <h1>码上刷题 · Android</h1>
+    <h1>码上刷题 · Android 安装包</h1>
     <p id="version">最新版本：读取中…</p>
     <p id="notes"></p>
-    <a class="btn" id="apk" href="quiz.apk">下载安装包</a>
-    <p>iPhone 用户请使用网页版：<a href="../">打开网页版</a></p>
+    <a class="btn off" id="apk" aria-disabled="true">正在检查安装包…</a>
+    <p>安装时如果提示「未知来源」，按提示允许本次安装即可。</p>
+    <p>iPhone 暂时没有安装包，请直接用网页版：<a href="../">打开网页版</a>（可以在 Safari 里「添加到主屏幕」）。</p>
   </div>
 </main>
 <script>
-  // 版本信息来自后端 GET /api/app/version（配置项 APP_RELEASE_ANDROID_*）
+  var btn = document.getElementById('apk');
+
+  function ready(url) {
+    btn.href = url;
+    btn.textContent = '下载 Android 安装包';
+    btn.className = 'btn';
+    btn.removeAttribute('aria-disabled');
+  }
+
+  function pending() {
+    btn.removeAttribute('href');
+    btn.textContent = '安装包准备中';
+    btn.className = 'btn off';
+    btn.setAttribute('aria-disabled', 'true');
+  }
+
+  // 先用 HEAD 确认安装包真的在：不在（404）或查不到就显示「安装包准备中」。
+  // 别的网站上的地址浏览器不让查（跨域），只能按配置给链接。
+  function check(url) {
+    var target = new URL(url, location.href);
+    if (target.origin !== location.origin) { ready(target.href); return; }
+    fetch(target.href, { method: 'HEAD', cache: 'no-store' })
+      .then(function (r) { if (r.ok) { ready(target.href); } else { pending(); } })
+      .catch(pending);
+  }
+
+  // 版本信息来自后端 GET /api/app/version（配置项 APP_RELEASE_ANDROID_*）；没配下载地址时用同目录的 quiz.apk
   fetch('../api/app/version?platform=android')
     .then(function (r) { return r.json(); })
     .then(function (res) {
       if (res.code !== 'OK') { throw new Error(res.message); }
-      document.getElementById('version').textContent = '最新版本：' + res.data.latestVersion;
+      document.getElementById('version').textContent = '最新版本：' + (res.data.latestVersion || '—');
       document.getElementById('notes').textContent = res.data.notes || '';
-      if (res.data.downloadUrl) { document.getElementById('apk').href = res.data.downloadUrl; }
+      check(res.data.downloadUrl || 'quiz.apk');
     })
-    .catch(function () { document.getElementById('version').textContent = '最新版本：暂时读取不到'; });
+    .catch(function () {
+      document.getElementById('version').textContent = '最新版本：暂时读取不到';
+      check('quiz.apk');
+    });
 </script>
 </body>
 </html>
