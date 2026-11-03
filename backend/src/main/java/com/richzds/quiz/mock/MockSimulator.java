@@ -497,6 +497,19 @@ public class MockSimulator {
 
             @Override
             Instant run() {
+                if (s.busy != null && s.busy != this) {
+                    // 同一个人的上一段学习还没结束（两段时间挨着）：等它结束再开始，不会同时做两件事
+                    return now().plusSeconds(600 + rnd.nextInt(600));
+                }
+                s.busy = this;
+                Instant next = step();
+                if (next == null) {
+                    s.busy = null;
+                }
+                return next;
+            }
+
+            Instant step() {
                 if (s.disabled || (s.id == null && !(todo.peek() instanceof Register) && current == null)) {
                     return null;
                 }
@@ -962,6 +975,8 @@ public class MockSimulator {
             Instant lastTouch;
             boolean switched;
             boolean disabled;
+            /** 正在进行的那一段学习；一个人同一时间只做一段。 */
+            Event busy;
             int sequentialIndex;
             final Set<Long> correctOnce = new HashSet<>();
 

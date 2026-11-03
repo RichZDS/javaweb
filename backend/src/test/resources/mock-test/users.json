@@ -204,6 +204,43 @@
       "wrongRemoveThreshold": 3,
       "avatar": true,
       "disabled": false
+    },
+    {
+      "username": "zhou_overlap",
+      "nickname": "周末夜读",
+      "target": "Java 程序设计",
+      "registeredOn": "2026-07-01",
+      "lastActiveOn": null,
+      "persona": "TOP",
+      "activeDaysPerWeek": 7,
+      "questionsPerDay": [
+        60,
+        80
+      ],
+      "hours": [
+        20,
+        21
+      ],
+      "accuracy": {
+        "start": 0.6,
+        "end": 0.75,
+        "subjects": {}
+      },
+      "habits": {
+        "daily": 0.9,
+        "random": 0.6,
+        "sequential": 0.3,
+        "wrongReview": 0.3,
+        "recite": 0.0,
+        "shuffleOptions": 0.2,
+        "favorite": 0.02,
+        "feedback": 0.0,
+        "examsPerMonth": 0
+      },
+      "switchTarget": null,
+      "wrongRemoveThreshold": 3,
+      "avatar": false,
+      "disabled": false
     }
   ]
 }
