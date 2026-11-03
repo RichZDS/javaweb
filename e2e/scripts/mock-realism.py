@@ -26,12 +26,19 @@ for uid,user in u.items():
     first=[a for a in rows if start<=bj(a['graded_at']).date()<start+D.timedelta(days=14)]; last=[a for a in rows if end-D.timedelta(days=13)<=bj(a['graded_at']).date()<=end]
     if (end-start).days>=28 and len(first)>=50 and len(last)>=50:
         f=sum(a['is_correct'] for a in first)/len(first);l=sum(a['is_correct'] for a in last)/len(last);gains.append({'userId':uid,'persona':p['persona'],'firstN':len(first),'lastN':len(last),'firstRate':round(f,4),'lastRate':round(l,4),'gain':round(l-f,4)})
-# Exact A-B-A alternations in consecutive practice answer rows for the same user.
+# Keep unbounded A-B-A for comparison; the first-gap < 10 minute count matches
+# MockSimulatorTest.aStudentDoesOneThingAtATime and excludes cross-day resumption.
 interleaving=[]
 for uid,rows in byu.items():
     seq=sorted([a for a in rows if a['source']=='PRACTICE'],key=lambda a:(a['graded_at'],a['id']))
     for a,b,c in zip(seq,seq[1:],seq[2:]):
-        if a['source_id']==c['source_id']!=b['source_id']:interleaving.append({'userId':uid,'answerIds':[a['id'],b['id'],c['id']],'sessionIds':[a['source_id'],b['source_id'],c['source_id']]})
+        if a['source_id']==c['source_id']!=b['source_id']:
+            interleaving.append({
+                'userId':uid, 'answerIds':[a['id'],b['id'],c['id']],
+                'sessionIds':[a['source_id'],b['source_id'],c['source_id']],
+                'answerTimes':[a['graded_at'],b['graded_at'],c['graded_at']],
+                'firstGapSeconds':(dt(b['graded_at'])-dt(a['graded_at'])).total_seconds(),
+            })
 notes=[x for x in data['favorite'] if x['note']]; fbs=data['question_feedback']; placeholders=[]
 for table,rows,fields in [('favorite',data['favorite'],['note']),('question_feedback',fbs,['content','reply'])]:
     for r in rows:
@@ -41,5 +48,5 @@ new_questions=json.loads((root/'backend/src/main/resources/mock/questions.json')
 for q in new_questions:
     db=bystem.get(q['stem'])
     if not db or str(bj(db['created_at']).date())!=q['createdOn'] or db['status']!=q['status']:new_question_bad.append(q['stem'][:60])
-result={'registrationsByMonth':dict(sorted(regmonth.items())),'usernameNoTrailingDigit':sum(not p['username'][-1].isdigit() for p in pm.values()),'distinctHourSets':len({tuple(p['hours']) for p in pm.values()}),'distinctWeekdayWeights':len({tuple(p.get('weekdayWeights',[1]*7)) for p in pm.values()}),'switchTargets':sum(bool(p.get('switchTarget')) for p in pm.values()),'noAvatars':sum(not x['avatar_url'] for x in u.values() if x['role']=='USER'),'accuracyBins20Pct':dict(hist),'dailyAnswerCountPercentiles':percentiles(list(daycounts.values())), 'practiceHours':dict(sorted(hours.items())),'distanceFromProfileHour':dict(sorted(dist.items())), 'weekendLearningDayShare':{p:{'days':len(days),'weekendDays':sum(w>=5 for uid,d,w in days),'share':round(sum(w>=5 for uid,d,w in days)/len(days),4)} for p,days in profile_days.items()},'gains':gains,'gainPercentiles':percentiles([x['gain'] for x in gains]),'personaSamples':dict(samples),'practiceABAAlternations':len(interleaving),'alternationExamples':interleaving[:20],'favorites':len(data['favorite']),'withNotes':len(notes),'feedbackStatuses':dict(C.Counter(x['status'] for x in fbs)),'handlingCalendarDays':dict(handling),'unreplacedPlaceholders':placeholders,'newQuestionDateOrStatusMismatch':new_question_bad,'jsonSha256':{f:hashlib.sha256((root/f'backend/src/main/resources/mock/{f}.json').read_bytes()).hexdigest() for f in ['users','texts','questions','papers']}}
+result={'registrationsByMonth':dict(sorted(regmonth.items())),'usernameNoTrailingDigit':sum(not p['username'][-1].isdigit() for p in pm.values()),'distinctHourSets':len({tuple(p['hours']) for p in pm.values()}),'distinctWeekdayWeights':len({tuple(p.get('weekdayWeights',[1]*7)) for p in pm.values()}),'switchTargets':sum(bool(p.get('switchTarget')) for p in pm.values()),'noAvatars':sum(not x['avatar_url'] for x in u.values() if x['role']=='USER'),'accuracyBins20Pct':dict(hist),'dailyAnswerCountPercentiles':percentiles(list(daycounts.values())), 'practiceHours':dict(sorted(hours.items())),'distanceFromProfileHour':dict(sorted(dist.items())), 'weekendLearningDayShare':{p:{'days':len(days),'weekendDays':sum(w>=5 for uid,d,w in days),'share':round(sum(w>=5 for uid,d,w in days)/len(days),4)} for p,days in profile_days.items()},'gains':gains,'gainPercentiles':percentiles([x['gain'] for x in gains]),'personaSamples':dict(samples),'practiceABAAlternations':len(interleaving),'practiceABAFirstGapUnder10Minutes':sum(x['firstGapSeconds']<600 for x in interleaving),'alternationExamples':interleaving[:20],'favorites':len(data['favorite']),'withNotes':len(notes),'feedbackStatuses':dict(C.Counter(x['status'] for x in fbs)),'handlingCalendarDays':dict(handling),'unreplacedPlaceholders':placeholders,'newQuestionDateOrStatusMismatch':new_question_bad,'jsonSha256':{f:hashlib.sha256((root/f'backend/src/main/resources/mock/{f}.json').read_bytes()).hexdigest() for f in ['users','texts','questions','papers']}}
 (out/'realism.json').write_text(json.dumps(result,ensure_ascii=False,indent=2));print(json.dumps({k:v for k,v in result.items() if k not in ['gains','personaSamples','alternationExamples','jsonSha256']},ensure_ascii=False))
