@@ -175,3 +175,23 @@ node node_modules/@playwright/test/cli.js test --list
 `npm run test:api` / `npm run test:ui` 在依赖服务未启动时给出一条中文提示，退出 **2**，不假报通过。也可直接指定 `node --test api/m1.test.mjs`：服务缺失时只报告一个失败的前置条件，退出 **1**，无成片请求堆栈。M1 推荐设置 `QA_SCOPE=m1` 使用 npm 脚本，以免把尚未实现的全范围用例一起收集。
 
 M1 接口和页面执行证据以 `docs/test-report.md` 为准。默认全范围的考试/后台场景仍待 M2/M3 合入校准，不能把 M1 结果作为全功能验收结果。
+
+## 演示数据库核对（MOCK-QA）
+
+仅在工头通知生成完成后执行，范围和判定见 [mock-check.md](mock-check.md)。原库 `quiz_mock` / `quiz_mock_v2` 只读；接口固定在自己的副本 `quiz_mock_check`，不使用预发布网址。脚本依赖本机 `/data/tools/mysql-8.0/bin/{mysql,mysqldump}` 和 Python 标准库，无额外依赖。
+
+```bash
+# cutoff 使用本次生成日志对应的UTC边界，不用验收时的当前时间。
+sozai-lock light -- python3 scripts/mock-snapshot.py quiz_mock artifacts/mock-v1
+sozai-lock light -- python3 scripts/mock-audit.py artifacts/mock-v1 <cutoff-UTC>
+sozai-lock light -- python3 scripts/mock-checklist-sql.py quiz_mock artifacts/mock-v1 <cutoff-UTC>
+sozai-lock light -- python3 scripts/mock-realism.py artifacts/mock-v1
+```
+
+`mock-snapshot.py` 在一个只读事务中导出13张业务表，排除密码散列；`mock-audit.py` 对全库做时间、引用、独立判分、错题状态重放和日练检查；`mock-checklist-sql.py` 实跑清单中的10组SQL；`mock-realism.py` 输出画像、时段、学习进步及相邻练习A-B-A交替证据。SQL语句与实际结果均留在对应artifact目录。
+
+副本与接口脚本在项目根目录运行：`mock-copy.py` 固定从quiz_mock导入quiz_mock_check，已有副本时拒绝覆盖。按本轮工头明确授权，只改副本USER的password_hash，凭证/BCrypt从0600的board/mock-local-creds.txt内部读取；原库不改，临时dump删除。先从当前main构建自己的jar（按资源规则走heavy闸门），再 `sozai-lock light -- node e2e/scripts/mock-stack.mjs up`。该服务只连副本，关闭mock/seed/自动结算，PID/cwd/启动时间登记在artifacts/mock-v1。
+
+接口核对：`mock-api.py e2e/artifacts/mock-v1`；后台定点范围加 `--admin-only`。补充详情用 `mock-api-details.py e2e/artifacts/mock-v1`，它读取保留的 `api-audit-initial.json` 里的样本集合。使用light锁；不自动重试。日志不保存令牌、密码或管理员登录响应。首轮与定点复测结果分开保存，不能用后者覆盖报告里的首轮失败。
+
+结束时分别将原库、副本只读导出到 `artifacts/mock-source-after` / `artifacts/mock-copy-after`，运行 `mock-integrity.py e2e/artifacts/mock-v1` 比较：源表不变；副本仅允许授权密码字段及鉴权last_active_at变化。`mock-stack.mjs down` 只停止登记的自己的后端，副本保留到工头要求清理。v2仅重跑前述只读导出/SQL/一致性/真实感脚本，输出改用artifacts/mock-v2，原v1证据不覆盖。
