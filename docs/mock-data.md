@@ -37,6 +37,7 @@
       "lastActiveOn": null,
       "persona": "STEADY",
       "activeDaysPerWeek": 5.5,
+      "weekdayWeights": [1, 1, 1, 1, 0.8, 1.2, 1.2],
       "questionsPerDay": [20, 45],
       "hours": [8, 12, 21, 22],
       "accuracy": { "start": 0.48, "end": 0.71, "subjects": { "计算机网络": -0.06, "数据结构": 0.05 } },
@@ -64,6 +65,7 @@
 | `lastActiveOn` | 最后活跃日；`null` 表示一直用到今天。流失用户填一个过去的日期 |
 | `persona` | `TOP`（尖子）、`STEADY`（稳定）、`CRAMMER`（考前突击）、`WEEKEND`（周末党）、`CASUAL`（偶尔）、`DROPOUT`（流失）、`NEWBIE`（近两周新来）；只用于统计和核对，行为由下面的数值决定 |
 | `activeDaysPerWeek` | 平均每周学习几天，0.3–7 |
+| `weekdayWeights` | 可选，周一到周日 7 个非负数，表示哪几天更常学；不写等于全是 1。模拟器按它分配学习日，总量仍由 `activeDaysPerWeek` 决定。周末党写成类似 `[0.2, 0.2, 0.2, 0.2, 0.4, 3, 3]` |
 | `questionsPerDay` | 学习的那天做多少题 `[最少, 最多]` |
 | `hours` | 常在哪几个小时学习（北京时间 0–23），模拟器在这些小时附近取时间 |
 | `accuracy` | 正确率从 `start`（注册时）线性涨到 `end`（今天或最后活跃日）；`subjects` 按科目名称加减。模拟器再按题目难度修正（难度 1 约 +0.15，难度 5 约 −0.2），答对过的题再做更容易对 |
