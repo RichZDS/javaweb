@@ -1,0 +1,2074 @@
+{
+  "questions": [
+    {
+      "ref": "mock-os-process-03",
+      "chapter": "计算机考研 408 / 操作系统 / 进程、线程与同步",
+      "type": "MULTIPLE",
+      "stem": "消费者从有界缓冲区取数据，empty计空位、full计已有项、mutex互斥。容量有限且初始为空，哪些做法正确？",
+      "answer": [
+        "B",
+        "C",
+        "D"
+      ],
+      "analysis": "先等有数据再持互斥锁，避免空缓冲时抱着mutex等待、使生产者无法放入。初始无数据故full=0，取走一项释放一个空位许可。",
+      "difficulty": 4,
+      "tags": [
+        "进程、线程与同步"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "消费者先P(mutex)再P(full)在空缓冲时不会阻塞生产者",
+        "先P(full)再P(mutex)，取出后V(mutex)、V(empty)",
+        "每成功取走一项后归还一个empty许可",
+        "full初值应为0"
+      ],
+      "createdOn": "2026-07-03",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-dt-lock-02",
+      "chapter": "数据库原理与 MySQL / 事务与并发 / 锁、死锁与并发更新",
+      "type": "SINGLE",
+      "stem": "调度为w1(A)、r2(A)、w2(B)、r3(B)，未列其他操作。若只考虑这些读写冲突，优先图给出的串行约束是什么？",
+      "answer": [
+        "A"
+      ],
+      "analysis": "A上的w1先于r2，形成T1→T2；B上的w2先于r3，形成T2→T3，图无环，对应顺序T1,T2,T3。这里未给提交信息，不能进一步断言可恢复性。",
+      "difficulty": 4,
+      "tags": [
+        "锁、死锁与并发更新"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "T1先于T2，T2先于T3",
+        "三个事务间没有冲突边",
+        "T3先于T2，T2先于T1",
+        "T1与T3必须形成环"
+      ],
+      "createdOn": "2026-07-11",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-jb-strings-02",
+      "chapter": "Java 程序设计 / 基础语法 / 字符串与数组",
+      "type": "SINGLE",
+      "stem": "有一个长度为4的int数组，另一个变量直接接收这个数组引用。通过第二个变量修改下标1后，第一个变量再读取同一下标会怎样？",
+      "answer": [
+        "D"
+      ],
+      "analysis": "直接引用赋值使两个变量指向同一数组对象，修改同一个元素会被双方看到。复制引用不复制数组；clone反而创建另一个数组。",
+      "difficulty": 1,
+      "tags": [
+        "字符串与数组"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "仅当调用clone后才读到修改",
+        "发生编译错误，因为数组不可变",
+        "仍读到原值，因为赋值复制整个数组",
+        "读到修改后的值"
+      ],
+      "createdOn": "2026-07-11",
+      "status": "ARCHIVED"
+    },
+    {
+      "ref": "mock-dm-normal-02",
+      "chapter": "数据库原理与 MySQL / 关系模型 / 函数依赖与规范化",
+      "type": "SINGLE",
+      "stem": "明细表(订单号,商品号,数量,商品名)的唯一候选键是(订单号,商品号)，且商品号→商品名成立，所有属性原子。仅看此依赖，违反第二范式的原因是什么？",
+      "answer": [
+        "C"
+      ],
+      "analysis": "商品名是非主属性，却由复合候选键的一部分商品号决定，构成部分函数依赖。复合键本身并非错误；可把商品描述拆到以商品号为键的表中。",
+      "difficulty": 3,
+      "tags": [
+        "函数依赖与规范化"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "数量字段必须换成字符串",
+        "任何复合候选键都会违反第二范式",
+        "非主属性商品名依赖于候选键的真子集",
+        "同一个订单可能有多个商品"
+      ],
+      "createdOn": "2026-07-15",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-jb-control-02",
+      "chapter": "Java 程序设计 / 基础语法 / 条件、循环与方法",
+      "type": "MULTIPLE",
+      "stem": "某Java方法遍历数组寻找第一个满足条件的元素。关于控制流，哪些判断正确？",
+      "answer": [
+        "A",
+        "B",
+        "D"
+      ],
+      "analysis": "return退出当前方法，break退出最近适用结构；continue跳到下一次循环迭代，不会递归调用方法。未找到分支也必须遵守返回类型与异常契约。",
+      "difficulty": 2,
+      "tags": [
+        "条件、循环与方法"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "return可以直接结束该方法",
+        "无标签break只能离开最近的循环或switch",
+        "continue等价于重新调用整个方法",
+        "没有找到元素时应按方法契约返回明确结果或抛异常"
+      ],
+      "createdOn": "2026-07-16",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-dq-join-01",
+      "chapter": "数据库原理与 MySQL / SQL 查询 / 连接、更新与结果集",
+      "type": "FILL",
+      "stem": "在空数据库中执行下列 SQL，最后 SELECT 返回的唯一数值是 ____。\n\n```sql\nCREATE TABLE left_demo(k INT);\nCREATE TABLE right_demo(k INT);\nINSERT INTO left_demo VALUES (1),(1),(2);\nINSERT INTO right_demo VALUES (1),(1),(1),(3);\nSELECT COUNT(*) FROM left_demo l JOIN right_demo r ON l.k = r.k;\n```",
+      "answer": [
+        [
+          "6"
+        ]
+      ],
+      "analysis": "左表两个k=1各匹配右表三个k=1，得到2×3=6行；左表2无匹配，右表3也无匹配。内连接不是对连接键先去重再配对。",
+      "difficulty": 3,
+      "tags": [
+        "连接、更新与结果集",
+        "看代码写输出"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "fillOptions": {
+        "ignoreCase": false,
+        "ignoreSpaces": false
+      },
+      "createdOn": "2026-07-17",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-ds-tree-02",
+      "chapter": "计算机考研 408 / 数据结构 / 树与图",
+      "type": "MULTIPLE",
+      "stem": "有向无环图的边只有A→C、B→C、B→D、C→E、D→E。哪些是合法的拓扑序？",
+      "answer": [
+        "C",
+        "D"
+      ],
+      "analysis": "A、B都必须在C之前，B在D之前，C与D均在E之前。前两序列满足全部约束；第三把C放在B前，第四把E放在C/D前。",
+      "difficulty": 4,
+      "tags": [
+        "树与图"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "B,A,E,C,D",
+        "A,C,B,D,E",
+        "A,B,C,D,E",
+        "B,D,A,C,E"
+      ],
+      "createdOn": "2026-07-19",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-cn-link-03",
+      "chapter": "计算机考研 408 / 计算机网络 / 分层、链路与以太网",
+      "type": "SINGLE",
+      "stem": "通信链路速率80 Mbit/s，端到端往返时间25 ms。忽略协议开销，带宽时延积换算成字节是多少？",
+      "answer": [
+        "B"
+      ],
+      "analysis": "80×10^6 bit/s×0.025 s=2000000 bit，再除8得到250000字节。2000000是比特数，不能直接当字节；也不能把毫秒当秒。",
+      "difficulty": 3,
+      "tags": [
+        "分层、链路与以太网"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "2000000",
+        "250000",
+        "25000",
+        "2500000"
+      ],
+      "createdOn": "2026-07-22",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-di-design-02",
+      "chapter": "数据库原理与 MySQL / 索引与优化 / 索引设计与性能权衡",
+      "type": "MULTIPLE",
+      "stem": "一张写入频繁的表准备新增多个索引，哪些因素应一起评估？",
+      "answer": [
+        "A",
+        "B",
+        "D"
+      ],
+      "analysis": "索引通过额外结构改善某些访问路径，也消耗存储、缓存与写入维护成本。应针对实际查询和写入负载取舍，不能认为增加索引对所有操作都无代价。",
+      "difficulty": 2,
+      "tags": [
+        "索引设计与性能权衡"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "插入更新删除的索引维护成本",
+        "读取查询能否从索引受益",
+        "只要多建索引，所有读写都会更快",
+        "索引占用空间与缓存压力"
+      ],
+      "createdOn": "2026-07-24",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-os-memory-02",
+      "chapter": "计算机考研 408 / 操作系统 / 内存管理与虚拟存储",
+      "type": "SINGLE",
+      "stem": "TLB查询10 ns，访问主存100 ns，命中率90%；TLB与主存串行，未命中要读一次主存页表再访问数据，无缺页。平均时间是多少？",
+      "answer": [
+        "A"
+      ],
+      "analysis": "命中耗10+100=110 ns；未命中耗10+100+100=210 ns。平均0.9×110+0.1×210=120 ns；漏掉查TLB的开销会算成110。",
+      "difficulty": 3,
+      "tags": [
+        "内存管理与虚拟存储"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "120 ns",
+        "100 ns",
+        "210 ns",
+        "110 ns"
+      ],
+      "createdOn": "2026-07-25",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-os-process-01",
+      "chapter": "计算机考研 408 / 操作系统 / 进程、线程与同步",
+      "type": "SINGLE",
+      "stem": "两个进程顺序申请锁L、M。P先持L再等M，Q先持M再等L；锁不可抢占，双方只在获得两锁并完成操作后释放。此时发生了什么？",
+      "answer": [
+        "A"
+      ],
+      "analysis": "P持有Q所需的L并等待M，Q持M并等待L，形成等待环，且不可抢占和未完成不释放使双方无法前进。换时间片不改变锁依赖。",
+      "difficulty": 3,
+      "tags": [
+        "进程、线程与同步"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "循环等待造成死锁",
+        "两个进程都会自动释放第一把锁",
+        "只要把时间片缩短就一定能恢复",
+        "仅仅是CPU调度饥饿"
+      ],
+      "createdOn": "2026-07-29",
+      "status": "ARCHIVED"
+    },
+    {
+      "ref": "mock-cn-app-03",
+      "chapter": "计算机考研 408 / 计算机网络 / 传输层与应用协议",
+      "type": "SINGLE",
+      "stem": "同一个DNS缓存项TTL初值300秒，在时刻0缓存。无刷新且按秒递减，时刻190秒查询到缓存时剩余TTL为多少？",
+      "answer": [
+        "B"
+      ],
+      "analysis": "剩余TTL=300−190=110秒。普通命中不会把已有项的剩余TTL自动重置到初值；到期后的重新解析是另一件事。",
+      "difficulty": 1,
+      "tags": [
+        "传输层与应用协议"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "490秒",
+        "110秒",
+        "300秒",
+        "190秒"
+      ],
+      "createdOn": "2026-07-31",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-co-data-03",
+      "chapter": "计算机考研 408 / 计算机组成原理 / 数据表示与运算",
+      "type": "MULTIPLE",
+      "stem": "对固定宽度的二进制整数运算，哪些描述成立？",
+      "answer": [
+        "A",
+        "B",
+        "D"
+      ],
+      "analysis": "截断保留低w位，即取模。两个同号数相加却得到异号结果表示有符号溢出；进位标志与有符号溢出标志判断不同。补码0只有全零这一种。",
+      "difficulty": 3,
+      "tags": [
+        "数据表示与运算"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "无符号运算结果截断到w位等价于模2^w",
+        "两个负的补码数相加得到非负符号位可能意味着溢出",
+        "最高位进位为1就必然发生有符号溢出",
+        "补码只有一种零的编码"
+      ],
+      "createdOn": "2026-08-01",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-jt-sync-02",
+      "chapter": "Java 程序设计 / 多线程 / 锁、可见性与原子性",
+      "type": "MULTIPLE",
+      "stem": "共享状态需要线程安全，哪些方案在相应前提下合理？",
+      "answer": [
+        "A",
+        "C",
+        "D"
+      ],
+      "analysis": "互斥锁、适用的原子操作以及线程封闭都是常用手段。volatile提供可见性等语义，但不会把多步业务组合自动变为一个原子事务。",
+      "difficulty": 3,
+      "tags": [
+        "锁、可见性与原子性"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "避免共享可变状态，把每个任务数据限定在线程内",
+        "仅将变量设volatile就能让任意复合业务步骤自动原子化",
+        "所有读写遵守同一把锁保护",
+        "只需独立计数时使用AtomicInteger的原子递增"
+      ],
+      "createdOn": "2026-08-02",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-ji-stream-01",
+      "chapter": "Java 程序设计 / 异常与 IO / 字节流与缓冲",
+      "type": "FILL",
+      "stem": "执行下面的完整程序，标准输出是什么？填写一行，不写末尾换行：____。\n\n```java\nimport java.io.*;\nclass Main {\n    public static void main(String[] args) throws Exception {\n        ByteArrayInputStream in = new ByteArrayInputStream(new byte[]{10,20,30,40,50});\n        byte[] buf = new byte[4];\n        int n = in.read(buf, 1, 2);\n        long skipped = in.skip(1);\n        System.out.println(n + \":\" + buf[0] + \":\" + buf[2] + \":\" + skipped + \":\" + in.read());\n    }\n}\n```",
+      "answer": [
+        [
+          "2:0:20:1:40"
+        ]
+      ],
+      "analysis": "把前两个字节10、20读入buf下标1、2，下标0仍是默认0；返回读取数2。接着跳过30，下一次read得到40，skip实际跳过1字节。",
+      "difficulty": 3,
+      "tags": [
+        "字节流与缓冲",
+        "看代码写输出"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "fillOptions": {
+        "ignoreCase": false,
+        "ignoreSpaces": false
+      },
+      "createdOn": "2026-08-05",
+      "status": "ARCHIVED"
+    },
+    {
+      "ref": "mock-ds-search-03",
+      "chapter": "计算机考研 408 / 数据结构 / 查找、排序与散列",
+      "type": "FILL",
+      "stem": "执行下面的完整程序，标准输出是什么？填写一行，不写末尾换行：____。\n\n```python\nfrom bisect import bisect_left, bisect_right\nvalues = [2, 2, 5, 5, 5, 8]\na = bisect_left(values, 5)\nb = bisect_right(values, 5)\nprint(a, b, b-a, sep=\":\")\n```",
+      "answer": [
+        [
+          "2:5:3"
+        ]
+      ],
+      "analysis": "第一个5在下标2，第一个严格大于5的插入点是下标5；半开区间[2,5)长度3。右边界不是最后一个5的下标4。",
+      "difficulty": 3,
+      "tags": [
+        "查找、排序与散列",
+        "看代码写输出"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "fillOptions": {
+        "ignoreCase": false,
+        "ignoreSpaces": false
+      },
+      "createdOn": "2026-08-06",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-co-memory-01",
+      "chapter": "计算机考研 408 / 计算机组成原理 / 存储层次与缓存",
+      "type": "SINGLE",
+      "stem": "某2路组相联Cache只有1组，每路放1块，初始为空，按LRU替换。访问块号1,2,1,3,2,3，缺失几次？",
+      "answer": [
+        "B"
+      ],
+      "analysis": "1、2首次缺失，随后命中1使2最久未用；访问3换出2，访问2再换出1，最后3命中。共在第1、2、4、5次访问缺失，即4次。",
+      "difficulty": 4,
+      "tags": [
+        "存储层次与缓存"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "3",
+        "4",
+        "5",
+        "6"
+      ],
+      "createdOn": "2026-08-07",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-jc-generic-02",
+      "chapter": "Java 程序设计 / 集合与泛型 / 泛型与比较规则",
+      "type": "SINGLE",
+      "stem": "TreeSet使用比较器仅按姓名长度比较字符串。依次加入\"Li\"和\"Wu\"，比较器对二者返回0。集合中会有几个元素？",
+      "answer": [
+        "B"
+      ],
+      "analysis": "TreeSet把比较结果为0视为同一个排序键，因此第二个元素不会新增，只有1个。这里由比较器决定等价，不以HashMap式散列来去重。",
+      "difficulty": 3,
+      "tags": [
+        "泛型与比较规则"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "由hashCode是否相同决定",
+        "1",
+        "2",
+        "0"
+      ],
+      "createdOn": "2026-08-11",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-dq-join-02",
+      "chapter": "数据库原理与 MySQL / SQL 查询 / 连接、更新与结果集",
+      "type": "MULTIPLE",
+      "stem": "左表客户含无订单客户，想用LEFT JOIN保留他们。哪些说法正确？",
+      "answer": [
+        "B",
+        "C",
+        "D"
+      ],
+      "analysis": "LEFT JOIN保留未匹配左行，但后续WHERE仍可把补NULL的行排除。连接不会自动对键去重，多条匹配会扩展结果行数。",
+      "difficulty": 3,
+      "tags": [
+        "连接、更新与结果集"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "LEFT JOIN会自动删除左表内所有重复键",
+        "对同一左行存在多条右表匹配时可能产生多行",
+        "未匹配客户的右表列以NULL补齐",
+        "在WHERE中要求右表某列等于常量，可能把未匹配客户过滤掉"
+      ],
+      "createdOn": "2026-08-12",
+      "status": "ARCHIVED"
+    },
+    {
+      "ref": "mock-dt-isolation-02",
+      "chapter": "数据库原理与 MySQL / 事务与并发 / 隔离级别与读取现象",
+      "type": "MULTIPLE",
+      "stem": "要分析某数据库并发读取结果，哪些信息需要明确？",
+      "answer": [
+        "A",
+        "B",
+        "C"
+      ],
+      "analysis": "读取语义受隔离级别、读方式及事务时序共同影响。相同SQL在不同可见性边界或不同时间执行，结果可能不同；仅比较文本不足以判断。",
+      "difficulty": 3,
+      "tags": [
+        "隔离级别与读取现象"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "事务隔离级别",
+        "普通快照读还是锁定读",
+        "相关事务何时开始、何时提交",
+        "只要两个查询SQL文本相同就一定看到同一数据"
+      ],
+      "createdOn": "2026-08-15",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-jo-interface-02",
+      "chapter": "Java 程序设计 / 面向对象 / 接口、抽象与组合",
+      "type": "MULTIPLE",
+      "stem": "为了让订单服务可替换短信发送实现，哪些设计更合适？",
+      "answer": [
+        "A",
+        "C",
+        "D"
+      ],
+      "analysis": "通过小而明确的接口注入实现，可以替换厂商或使用测试替身，降低业务与具体SDK耦合。硬编码构造具体客户端会让替换和测试更困难。",
+      "difficulty": 2,
+      "tags": [
+        "接口、抽象与组合"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "在测试中传入记录调用内容的实现",
+        "订单服务每次发送都硬编码new某个具体短信客户端",
+        "订单服务依赖发送接口，通过构造器接收实现",
+        "让业务逻辑不依赖具体厂商返回对象的内部字段"
+      ],
+      "createdOn": "2026-08-15",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-cn-app-02",
+      "chapter": "计算机考研 408 / 计算机网络 / 传输层与应用协议",
+      "type": "MULTIPLE",
+      "stem": "浏览器访问HTTPS站点时，哪些说法正确？",
+      "answer": [
+        "A",
+        "B",
+        "D"
+      ],
+      "analysis": "HTTPS加密和校验通信身份，并不自动判断某用户可读取哪些业务数据；主机名需与证书匹配。DNS解析地址只是建立连接前的一步。",
+      "difficulty": 2,
+      "tags": [
+        "传输层与应用协议"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "TLS保护的是通信过程，不能代替应用层权限检查",
+        "证书校验需要核对访问的主机名",
+        "只要使用HTTPS，服务端就不必校验用户身份",
+        "DNS得到地址后仍需建立相应传输与安全连接"
+      ],
+      "createdOn": "2026-08-19",
+      "status": "ARCHIVED"
+    },
+    {
+      "ref": "mock-dq-group-02",
+      "chapter": "数据库原理与 MySQL / SQL 查询 / 聚合、分组与子查询",
+      "type": "MULTIPLE",
+      "stem": "关于SQL分组查询，哪些说法正确？",
+      "answer": [
+        "B",
+        "C",
+        "D"
+      ],
+      "analysis": "WHERE先筛行，GROUP BY形成组，HAVING筛组；COUNT(列)跳过该列NULL，而COUNT(*)统计组内所有行。二者在有NULL时可能不同。",
+      "difficulty": 2,
+      "tags": [
+        "聚合、分组与子查询"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "COUNT(列)会把该列所有NULL都计为1",
+        "COUNT(*)统计行数，不要求某一列非NULL",
+        "HAVING可根据聚合结果筛选组",
+        "WHERE在分组聚合前筛选输入行"
+      ],
+      "createdOn": "2026-08-19",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-ji-exception-01",
+      "chapter": "Java 程序设计 / 异常与 IO / 异常处理与资源关闭",
+      "type": "FILL",
+      "stem": "执行下面的完整程序，标准输出是什么？填写一行，不写末尾换行：____。\n\n```java\nclass Main {\n    static class R implements AutoCloseable {\n        private final String name;\n        R(String name) { this.name = name; }\n        public void close() { System.out.print(name); }\n    }\n    public static void main(String[] args) {\n        try (R a = new R(\"A\"); R b = new R(\"B\")) {\n            System.out.print(\"body\");\n        }\n    }\n}\n```",
+      "answer": [
+        [
+          "bodyBA"
+        ]
+      ],
+      "analysis": "先执行try体打印body；资源按声明的逆序关闭，先b打印B，再a打印A。输出没有额外分隔符，资源声明顺序不能直接当关闭顺序。",
+      "difficulty": 3,
+      "tags": [
+        "异常处理与资源关闭",
+        "看代码写输出"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "fillOptions": {
+        "ignoreCase": false,
+        "ignoreSpaces": false
+      },
+      "createdOn": "2026-08-20",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-dm-normal-01",
+      "chapter": "数据库原理与 MySQL / 关系模型 / 函数依赖与规范化",
+      "type": "SINGLE",
+      "stem": "关系R(P,Q,R,S,T)，函数依赖为P→QR、R→S、QS→T。P的属性闭包是什么？",
+      "answer": [
+        "C"
+      ],
+      "analysis": "从{P}开始，经P→QR加入Q、R，再由R→S加入S，已有Q和S后用QS→T加入T，所以包含全部五属性。闭包一定包括起始属性P。",
+      "difficulty": 3,
+      "tags": [
+        "函数依赖与规范化"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "{Q,R,S,T}",
+        "{P,Q,R,S}",
+        "{P,Q,R,S,T}",
+        "{P,Q,R}"
+      ],
+      "createdOn": "2026-08-21",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-dq-group-01",
+      "chapter": "数据库原理与 MySQL / SQL 查询 / 聚合、分组与子查询",
+      "type": "FILL",
+      "stem": "在空数据库中执行下列 SQL，最后 SELECT 返回的唯一数值是 ____。\n\n```sql\nCREATE TABLE team_demo(team VARCHAR(4), score INT);\nINSERT INTO team_demo VALUES ('A',6),('A',4),('B',8),('B',NULL),('C',3);\nSELECT SUM(s) FROM (\n    SELECT team, SUM(score) AS s\n    FROM team_demo GROUP BY team HAVING COUNT(score) >= 2\n) AS eligible;\n```",
+      "answer": [
+        [
+          "10"
+        ]
+      ],
+      "analysis": "COUNT(score)忽略NULL：A组有2个有效分数、总分10；B组只有1个有效分数，C组也只有1个，均不满足HAVING。外层只对A的10求和，结果10。",
+      "difficulty": 4,
+      "tags": [
+        "聚合、分组与子查询",
+        "看代码写输出"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "fillOptions": {
+        "ignoreCase": false,
+        "ignoreSpaces": false
+      },
+      "createdOn": "2026-08-22",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-dt-acid-01",
+      "chapter": "数据库原理与 MySQL / 事务与并发 / 事务、提交与回滚",
+      "type": "SINGLE",
+      "stem": "转账事务先扣甲账户再加乙账户，两步都在同一个尚未提交的事务里。第二步失败且整个事务回滚，原子性主要要求什么？",
+      "answer": [
+        "A"
+      ],
+      "analysis": "原子性要求该事务的修改作为整体成功或整体撤销；显式回滚后不能只留下扣款。现实事务外副作用需要另外设计，题目限定两步都在同一事务中。",
+      "difficulty": 2,
+      "tags": [
+        "事务、提交与回滚"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "两步对事务外持久状态都不生效",
+        "回滚等同于立刻提交第一步",
+        "把乙账户改成任意值补偿即可",
+        "只保留成功的扣款步骤"
+      ],
+      "createdOn": "2026-08-23",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-jt-pool-01",
+      "chapter": "Java 程序设计 / 多线程 / 执行器、Future 与任务",
+      "type": "FILL",
+      "stem": "执行下面的完整程序，标准输出是什么？填写一行，不写末尾换行：____。\n\n```java\nimport java.util.concurrent.*;\nclass Main {\n    public static void main(String[] args) throws Exception {\n        ExecutorService pool = Executors.newSingleThreadExecutor();\n        try {\n            Future<Integer> a = pool.submit(() -> 7);\n            Future<Integer> b = pool.submit(() -> a.get() * 3);\n            System.out.println(b.get());\n        } finally {\n            pool.shutdown();\n        }\n    }\n}\n```",
+      "answer": [
+        [
+          "21"
+        ]
+      ],
+      "analysis": "单线程执行器按提交顺序执行这两个任务，a先完成为7，b再取a结果乘3为21；主线程b.get等待结果。不存在把依赖任务排在后面导致的等待环，finally关闭执行器。",
+      "difficulty": 4,
+      "tags": [
+        "执行器、Future 与任务",
+        "看代码写输出"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "fillOptions": {
+        "ignoreCase": false,
+        "ignoreSpaces": false
+      },
+      "createdOn": "2026-08-24",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-jo-class-01",
+      "chapter": "Java 程序设计 / 面向对象 / 封装、构造与对象",
+      "type": "FILL",
+      "stem": "执行下面的完整程序，标准输出是什么？填写一行，不写末尾换行：____。\n\n```java\nclass Main {\n    static class Meter {\n        int value;\n        Meter(int value) { this.value = value; }\n        Meter(Meter other) { this(other.value + 1); }\n    }\n    public static void main(String[] args) {\n        Meter a = new Meter(4);\n        Meter b = new Meter(a);\n        b.value += 4;\n        System.out.println(a.value + \":\" + b.value);\n    }\n}\n```",
+      "answer": [
+        [
+          "4:9"
+        ]
+      ],
+      "analysis": "新对象b通过构造器拿到a.value+1，即5，再加4成9；a、b不是同一个对象，a.value保留4。构造器参数传入引用并不意味着新建对象与源对象相同。",
+      "difficulty": 3,
+      "tags": [
+        "封装、构造与对象",
+        "看代码写输出"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "fillOptions": {
+        "ignoreCase": false,
+        "ignoreSpaces": false
+      },
+      "createdOn": "2026-08-27",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-jb-strings-01",
+      "chapter": "Java 程序设计 / 基础语法 / 字符串与数组",
+      "type": "FILL",
+      "stem": "执行下面的完整程序，标准输出是什么？填写一行，不写末尾换行：____。\n\n```java\nclass Main {\n    public static void main(String[] args) {\n        String s = \"a,,b,\";\n        String[] x = s.split(\",\");\n        String[] y = s.split(\",\", -1);\n        System.out.println(x.length + \":\" + y.length + \":\" + y[1].isEmpty());\n    }\n}\n```",
+      "answer": [
+        [
+          "3:4:true"
+        ]
+      ],
+      "analysis": "默认split会丢掉末尾的空项，所以x为[a,空串,b]共3项；limit=-1保留末尾空项，y共4项。中间连续两个逗号之间的空串会保留，y[1].isEmpty为true。",
+      "difficulty": 3,
+      "tags": [
+        "字符串与数组",
+        "看代码写输出"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "fillOptions": {
+        "ignoreCase": false,
+        "ignoreSpaces": false
+      },
+      "createdOn": "2026-08-30",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-os-files-03",
+      "chapter": "计算机考研 408 / 操作系统 / 文件、调度与 IO",
+      "type": "SINGLE",
+      "stem": "磁头当前在40，所有请求10、45、70、20已经到达。按LOOK先向磁道号增大方向，服务完该方向最后请求即反向，服务完就停止。总移动多少磁道？",
+      "answer": [
+        "B"
+      ],
+      "analysis": "路径40→45→70→20→10，总距离5+25+50+10=90。LOOK到70这个最远请求即反向，不走到磁盘物理端点；只算首尾差会漏掉去程。",
+      "difficulty": 3,
+      "tags": [
+        "文件、调度与 IO"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "130",
+        "90",
+        "100",
+        "60"
+      ],
+      "createdOn": "2026-08-30",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-di-plan-01",
+      "chapter": "数据库原理与 MySQL / 索引与优化 / 执行计划与查询诊断",
+      "type": "MULTIPLE",
+      "stem": "检查SQL执行计划时，哪些认识正确？",
+      "answer": [
+        "B",
+        "C",
+        "D"
+      ],
+      "analysis": "执行计划提供访问路径和估算信息，实际性能还依赖选择性、回表代价、缓存等因素。使用索引不是性能充分条件，应以相应负载下的实测配合判断。",
+      "difficulty": 3,
+      "tags": [
+        "执行计划与查询诊断"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "看到使用索引即可保证比全表扫描更快",
+        "可结合实际耗时和实际扫描量判断优化效果",
+        "是否使用某索引还受数据分布和代价估计影响",
+        "估算扫描行数不等于实际返回行数"
+      ],
+      "createdOn": "2026-08-31",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-cn-ip-03",
+      "chapter": "计算机考研 408 / 计算机网络 / 网络层与路由",
+      "type": "JUDGE",
+      "stem": "IPv4路由转发时，目的IP地址一般用于选路，而同一分组每一跳使用的链路层帧头可能不同。",
+      "answer": [
+        "T"
+      ],
+      "analysis": "网络层分组由目的IP指导逐跳选路；跨不同链路时会重新封装本跳帧头，MAC等链路地址不要求端到端保持不变。这里不讨论NAT改写。",
+      "difficulty": 2,
+      "tags": [
+        "网络层与路由"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "createdOn": "2026-09-04",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-jo-inherit-02",
+      "chapter": "Java 程序设计 / 面向对象 / 继承、多态与重写",
+      "type": "JUDGE",
+      "stem": "父类引用指向子类对象时，调用被子类重写的非static实例方法，通常按对象实际类型选择实现。",
+      "answer": [
+        "T"
+      ],
+      "analysis": "这是实例方法的动态分派；重载的选择、字段访问以及static方法不是这条规则的同一个问题。题目明确限定非static且确实重写。",
+      "difficulty": 2,
+      "tags": [
+        "继承、多态与重写"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "createdOn": "2026-09-04",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-jo-class-02",
+      "chapter": "Java 程序设计 / 面向对象 / 封装、构造与对象",
+      "type": "MULTIPLE",
+      "stem": "一个类用private字段保存余额，并提供公开方法修改。哪些做法有助于维持“不允许负余额”的不变式？",
+      "answer": [
+        "A",
+        "B",
+        "C"
+      ],
+      "analysis": "private限制访问位置，不会自动验证业务值。构造和后续修改都要守住约束，暴露内部可变状态可能绕过校验；封装需要访问控制和行为约束配合。",
+      "difficulty": 2,
+      "tags": [
+        "封装、构造与对象"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "在所有可能修改余额的方法中统一校验",
+        "避免把可直接修改余额的内部可变对象暴露出去",
+        "构造对象时也拒绝负初值",
+        "仅把字段改为private就自动禁止负数"
+      ],
+      "createdOn": "2026-09-05",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-cn-ip-02",
+      "chapter": "计算机考研 408 / 计算机网络 / 网络层与路由",
+      "type": "SINGLE",
+      "stem": "路由表含10.0.0.0/8→A、10.4.0.0/16→B、10.4.8.0/21→C、默认→D。目的10.4.13.9应走哪个下一跳？",
+      "answer": [
+        "A"
+      ],
+      "analysis": "/21的10.4.8.0网络覆盖第三字节8–15，因此13命中；它比/16和/8更长，选择C。默认路由只在没有更具体匹配时使用。",
+      "difficulty": 3,
+      "tags": [
+        "网络层与路由"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "C",
+        "D",
+        "B",
+        "A"
+      ],
+      "createdOn": "2026-09-07",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-dt-lock-01",
+      "chapter": "数据库原理与 MySQL / 事务与并发 / 锁、死锁与并发更新",
+      "type": "SINGLE",
+      "stem": "两个事务都需要更新账户行1和行2，业务允许调整加锁顺序。下面哪项更有助于减少因反向加锁产生的死锁？",
+      "answer": [
+        "B"
+      ],
+      "analysis": "统一获取资源的顺序能消除这类相反顺序形成的循环等待。延长等待不会消除依赖环，业务仍需正确处理数据库报告的死锁并有限重试。",
+      "difficulty": 2,
+      "tags": [
+        "锁、死锁与并发更新"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "一个正序、另一个倒序",
+        "都按账户id从小到大锁定",
+        "任何事务都不检查执行是否失败",
+        "先无限延长锁等待时间"
+      ],
+      "createdOn": "2026-09-07",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-dq-select-02",
+      "chapter": "数据库原理与 MySQL / SQL 查询 / 筛选、NULL 与排序",
+      "type": "SINGLE",
+      "stem": "查询需要按分数降序分页，同分时按唯一id升序。为什么应把id也写进ORDER BY？",
+      "answer": [
+        "A"
+      ],
+      "analysis": "同分时增加唯一id可形成确定的总排序，避免同分行无稳定次序。它不保证并发修改后的页面内容不变，也不自动减少扫描到一行。",
+      "difficulty": 2,
+      "tags": [
+        "筛选、NULL 与排序"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "为同分行提供确定的相对次序",
+        "保证任何数据变化后旧页永远不变",
+        "使所有查询自动只扫描一行",
+        "让分数列不再需要参与排序"
+      ],
+      "createdOn": "2026-09-10",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-jc-set-02",
+      "chapter": "Java 程序设计 / 集合与泛型 / Set、Map 与散列约定",
+      "type": "SINGLE",
+      "stem": "资源编号按B、A、B、C、A的顺序加入一个初始为空、按插入顺序迭代的LinkedHashSet。随后遍历得到什么顺序？",
+      "answer": [
+        "A"
+      ],
+      "analysis": "第一次遇到B、A、C时依次加入；再次加入已有B或A不会新增元素，也不会改变它们首次插入的位置，所以遍历为B、A、C。TreeSet的排序语义和允许重复的列表语义均不适用。",
+      "difficulty": 3,
+      "tags": [
+        "Set、Map 与散列约定"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "B、A、C",
+        "A、B、C",
+        "B、C、A",
+        "B、A、B、C、A"
+      ],
+      "createdOn": "2026-09-10",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-ji-text-02",
+      "chapter": "Java 程序设计 / 异常与 IO / 字符编码与文本文件",
+      "type": "MULTIPLE",
+      "stem": "将UTF-8文本文件读取为Java字符串时，哪些做法正确？",
+      "answer": [
+        "A",
+        "B",
+        "D"
+      ],
+      "analysis": "字符集负责字节与字符的映射。UTF-8是变长编码，逐字节强转char不能正确恢复多字节字符；读写两端都应明确编码约定。",
+      "difficulty": 2,
+      "tags": [
+        "字符编码与文本文件"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "将读取的字节按UTF-8解码",
+        "显式指定UTF-8，避免依赖默认字符集",
+        "无论原编码是什么，每个字节都直接转char即可",
+        "保存时使用预期的输出字符集重新编码"
+      ],
+      "createdOn": "2026-09-12",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-dt-acid-02",
+      "chapter": "数据库原理与 MySQL / 事务与并发 / 事务、提交与回滚",
+      "type": "JUDGE",
+      "stem": "客户端没有收到提交成功响应，就可以断定服务端一定没有提交成功。",
+      "answer": [
+        "F"
+      ],
+      "analysis": "网络可能在服务端提交完成后、响应到达客户端前中断。客户端看到失败不等于业务未发生，重试需考虑幂等性或查询确认，不能盲目重复扣款。",
+      "difficulty": 3,
+      "tags": [
+        "事务、提交与回滚"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "createdOn": "2026-09-15",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-jb-control-01",
+      "chapter": "Java 程序设计 / 基础语法 / 条件、循环与方法",
+      "type": "FILL",
+      "stem": "执行下面的完整程序，标准输出是什么？填写一行，不写末尾换行：____。\n\n```java\nclass Main {\n    public static void main(String[] args) {\n        int sum = 0;\n        for (int x : new int[]{1, 2, 3}) {\n            switch (x) {\n                case 1: sum += 2;\n                case 2: sum += 3; break;\n                default: sum += 5;\n            }\n        }\n        System.out.println(sum);\n    }\n}\n```",
+      "answer": [
+        [
+          "13"
+        ]
+      ],
+      "analysis": "x=1进入case 1加2，没有break所以继续case 2加3，共5；x=2加3；x=3走default加5。总5+3+5=13，break离开switch，不会结束外层for。",
+      "difficulty": 3,
+      "tags": [
+        "条件、循环与方法",
+        "看代码写输出"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "fillOptions": {
+        "ignoreCase": false,
+        "ignoreSpaces": false
+      },
+      "createdOn": "2026-09-16",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-dt-isolation-01",
+      "chapter": "数据库原理与 MySQL / 事务与并发 / 隔离级别与读取现象",
+      "type": "SINGLE",
+      "stem": "事务T1在READ COMMITTED下普通读取某行得10；T2随后把该行改为15并提交。T1再次执行普通读取可能看到15。这体现了哪种现象？",
+      "answer": [
+        "D"
+      ],
+      "analysis": "T2已经提交，T1第二次读取可能看到新版本，同一行前后值不同是不可重复读；不是脏读，也不能从这个交错推出死锁。",
+      "difficulty": 3,
+      "tags": [
+        "隔离级别与读取现象"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "读取了T2尚未提交的脏数据",
+        "主键约束失效",
+        "两事务必然发生死锁",
+        "不可重复读"
+      ],
+      "createdOn": "2026-09-19",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-jc-generic-01",
+      "chapter": "Java 程序设计 / 集合与泛型 / 泛型与比较规则",
+      "type": "MULTIPLE",
+      "stem": "方法接收List<? extends Number>，只通过这个引用操作。哪些说法正确？",
+      "answer": [
+        "A",
+        "C",
+        "D"
+      ],
+      "analysis": "extends上界保证读取的元素可视作Number，但实际元素类型可能是某一个具体子类，不能任意写入其他子类。写入限制与整个对象是否可变是两回事。",
+      "difficulty": 3,
+      "tags": [
+        "泛型与比较规则"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "不能向其中任意加入Integer或Double实例",
+        "可以安全地把任意String加入其中",
+        "读取出的元素可以作为Number使用",
+        "该通配符并不表示列表必然不可修改"
+      ],
+      "createdOn": "2026-09-19",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-ji-stream-02",
+      "chapter": "Java 程序设计 / 异常与 IO / 字节流与缓冲",
+      "type": "SINGLE",
+      "stem": "把输入流复制到输出流，缓冲区容量4096，某次read返回317。此轮应写出缓冲区哪一段？",
+      "answer": [
+        "B"
+      ],
+      "analysis": "read返回的是本轮有效字节数，应该write(buf,0,317)。写满缓冲区会把上一次残留字节也写出去；流复制不要求最后一块填满。",
+      "difficulty": 2,
+      "tags": [
+        "字节流与缓冲"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "从317开始写到4095",
+        "从0开始的317字节",
+        "固定写4096字节",
+        "什么都不写，等待凑满一块"
+      ],
+      "createdOn": "2026-09-20",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-dm-rel-02",
+      "chapter": "数据库原理与 MySQL / 关系模型 / 关系、元组与关系运算",
+      "type": "JUDGE",
+      "stem": "在关系模型中，只改变表中元组的展示顺序，不改变其属性值，不会改变该关系所表示的元组集合。",
+      "answer": [
+        "T"
+      ],
+      "analysis": "关系按集合理解，没有固有的行顺序；展示或查询时排序与关系本身的逻辑内容分开。重复次数在SQL多重集里另有语义，这里明确是关系模型。",
+      "difficulty": 1,
+      "tags": [
+        "关系、元组与关系运算"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "createdOn": "2026-09-21",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-ds-search-01",
+      "chapter": "计算机考研 408 / 数据结构 / 查找、排序与散列",
+      "type": "SINGLE",
+      "stem": "对[18,11,16,7,14]采用步长2的希尔插入排序，只完成这一轮，不再缩小步长。结果是什么？",
+      "answer": [
+        "B"
+      ],
+      "analysis": "下标0/2/4一组为18,16,14，排成14,16,18；下标1/3一组为11,7，排成7,11。交错放回得到14,7,16,11,18，尚未整体有序。",
+      "difficulty": 4,
+      "tags": [
+        "查找、排序与散列"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "[11,18,7,16,14]",
+        "[14,7,16,11,18]",
+        "[7,11,14,16,18]",
+        "[14,11,16,7,18]"
+      ],
+      "createdOn": "2026-09-21",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-ji-text-01",
+      "chapter": "Java 程序设计 / 异常与 IO / 字符编码与文本文件",
+      "type": "FILL",
+      "stem": "执行下面的完整程序，标准输出是什么？填写一行，不写末尾换行：____。\n\n```java\nimport java.nio.charset.StandardCharsets;\nclass Main {\n    public static void main(String[] args) {\n        byte[] raw = {0, 65, 78, 45};\n        String text = new String(raw, StandardCharsets.UTF_16BE);\n        System.out.println(text + \":\" + text.getBytes(StandardCharsets.UTF_8).length);\n    }\n}\n```",
+      "answer": [
+        [
+          "A中:4"
+        ]
+      ],
+      "analysis": "UTF-16BE按每两个字节的大端顺序解码：0x0041是A，0x4E2D是中。得到A中后用UTF-8重新编码，A占1字节、中占3字节，共4。解码方式与重新编码方式是两个独立步骤。",
+      "difficulty": 4,
+      "tags": [
+        "字符编码与文本文件",
+        "看代码写输出"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "fillOptions": {
+        "ignoreCase": false,
+        "ignoreSpaces": false
+      },
+      "createdOn": "2026-09-21",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-jo-interface-01",
+      "chapter": "Java 程序设计 / 面向对象 / 接口、抽象与组合",
+      "type": "FILL",
+      "stem": "执行下面的完整程序，标准输出是什么？填写一行，不写末尾换行：____。\n\n```java\nclass Main {\n    interface Scale { default int apply(int x) { return x * 2; } }\n    static class Triple implements Scale {\n        public int apply(int x) { return Scale.super.apply(x) + x; }\n    }\n    public static void main(String[] args) {\n        Scale s = new Triple();\n        System.out.println(s.apply(6));\n    }\n}\n```",
+      "answer": [
+        [
+          "18"
+        ]
+      ],
+      "analysis": "调用分派到Triple.apply；其中显式调用接口默认实现先得到12，再加6为18。引用类型Scale不阻止子类实现的动态分派。",
+      "difficulty": 3,
+      "tags": [
+        "接口、抽象与组合",
+        "看代码写输出"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "fillOptions": {
+        "ignoreCase": false,
+        "ignoreSpaces": false
+      },
+      "createdOn": "2026-09-21",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-jt-pool-02",
+      "chapter": "Java 程序设计 / 多线程 / 执行器、Future 与任务",
+      "type": "SINGLE",
+      "stem": "向线程池submit一个会抛出异常的Callable后，调用返回Future的get，通常如何得知任务失败？",
+      "answer": [
+        "B"
+      ],
+      "analysis": "submit会把任务执行结果封装进Future；任务失败在get时通过ExecutionException报告，其cause可追溯原异常。不能把任务执行与提交动作视为同一个同步调用。",
+      "difficulty": 3,
+      "tags": [
+        "执行器、Future 与任务"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "submit必然在调用线程同步抛出同一个任务异常",
+        "get抛ExecutionException，其cause包含任务异常",
+        "get永远返回null且没有异常信息",
+        "任务异常会自动删除整个应用进程"
+      ],
+      "createdOn": "2026-09-23",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-ds-linear-02",
+      "chapter": "计算机考研 408 / 数据结构 / 线性表、栈与队列",
+      "type": "SINGLE",
+      "stem": "有序输入1,2,3,4,5依次入同一个栈，允许在任意时刻出栈。下面哪个序列不可能是完整出栈序列？",
+      "answer": [
+        "B"
+      ],
+      "analysis": "若先弹4、3，则栈顶是2，1在2下面，不能先弹1再弹2。其余序列都能按输入次序穿插入栈和出栈实现。",
+      "difficulty": 4,
+      "tags": [
+        "线性表、栈与队列"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "3,2,5,4,1",
+        "4,3,1,2,5",
+        "2,4,3,5,1",
+        "5,4,3,2,1"
+      ],
+      "createdOn": "2026-09-24",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-ds-search-02",
+      "chapter": "计算机考研 408 / 数据结构 / 查找、排序与散列",
+      "type": "MULTIPLE",
+      "stem": "一张升序顺序表含大量重复键，要找目标键第一次出现的位置。哪些做法正确？",
+      "answer": [
+        "B",
+        "C"
+      ],
+      "analysis": "第一次命中的相等键可能位于重复段中部；保留候选并向左，或寻找“不小于目标”的左边界后验证，才能确定首位置。只向右是在寻找另一端边界。",
+      "difficulty": 3,
+      "tags": [
+        "查找、排序与散列"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "遇到相等键只向右半区继续找",
+        "记录相等位置后继续向左缩小二分区间",
+        "用lower_bound语义找第一个不小于目标的位置，再核对是否相等",
+        "二分第一次碰到相等键就一定是最左位置"
+      ],
+      "createdOn": "2026-09-25",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-co-memory-03",
+      "chapter": "计算机考研 408 / 计算机组成原理 / 存储层次与缓存",
+      "type": "JUDGE",
+      "stem": "采用写回策略时，某脏Cache块被替换前，需要把尚未反映到下级存储的修改写回。",
+      "answer": [
+        "T"
+      ],
+      "analysis": "脏位表示Cache内容与下级存储不一致，替换前必须保存修改；干净块通常无需这一步。该结论不等于每次写命中都立刻访问主存。",
+      "difficulty": 2,
+      "tags": [
+        "存储层次与缓存"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "createdOn": "2026-09-26",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-di-plan-02",
+      "chapter": "数据库原理与 MySQL / 索引与优化 / 执行计划与查询诊断",
+      "type": "SINGLE",
+      "stem": "同一查询加索引后，执行计划估算访问行数下降，但总耗时反而增加。下一步哪种做法更合理？",
+      "answer": [
+        "B"
+      ],
+      "analysis": "估算行数是诊断线索，不等于完整执行成本。需要结合实际执行与访问路径找到增加的开销，避免用单一估算指标代替真实性能。",
+      "difficulty": 2,
+      "tags": [
+        "执行计划与查询诊断"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "只凭估算行数下降宣布优化成功",
+        "检查实际扫描、回表、排序及缓存等开销",
+        "删除所有其他索引且不再测量",
+        "把执行计划当成真实耗时本身"
+      ],
+      "createdOn": "2026-09-26",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-dm-keys-02",
+      "chapter": "数据库原理与 MySQL / 关系模型 / 主键、外键与约束",
+      "type": "MULTIPLE",
+      "stem": "订单表的客户编号引用客户表的主键，外键约束正常启用。哪些判断正确？",
+      "answer": [
+        "A",
+        "B",
+        "C"
+      ],
+      "analysis": "外键保证引用完整性，不替代订单自身的主键设计。删除被引用行可能拒绝、级联或设置空值，取决于约束定义，不能一概而论。",
+      "difficulty": 2,
+      "tags": [
+        "主键、外键与约束"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "删除被引用客户能否成功还要看约定的引用动作",
+        "非空客户编号应引用存在的客户",
+        "客户主键的唯一性和订单外键的引用关系是两类约束",
+        "加了外键就不需要在订单表定义自己的行标识"
+      ],
+      "createdOn": "2026-09-26",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-cn-link-01",
+      "chapter": "计算机考研 408 / 计算机网络 / 分层、链路与以太网",
+      "type": "SINGLE",
+      "stem": "一个1500字节分组经过两条存储转发链路，速率分别6 Mbit/s和3 Mbit/s，每条传播时延都是1 ms，无排队处理开销。从开始发送到最后一位到达要多久？",
+      "answer": [
+        "C"
+      ],
+      "analysis": "分组12000 bit，两次发送耗2 ms和4 ms，加两段传播共2 ms，合计8 ms。存储转发要求完整收下后才能向下一跳发送，不能只取较慢链路的发送时间。",
+      "difficulty": 3,
+      "tags": [
+        "分层、链路与以太网"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "10 ms",
+        "4 ms",
+        "8 ms",
+        "6 ms"
+      ],
+      "createdOn": "2026-09-29",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-ds-linear-01",
+      "chapter": "计算机考研 408 / 数据结构 / 线性表、栈与队列",
+      "type": "SINGLE",
+      "stem": "长度为10的循环队列保留一个空位，front指向队头、rear指向下一次插入位置。当前front=7、rear=2，依次出队2次、入队3次后，队内有几个元素？",
+      "answer": [
+        "A"
+      ],
+      "analysis": "原有(2−7+10) mod 10=5个；两次出队后3个，再入队3个为6。front变9、rear变5，再算(5−9+10) mod 10仍为6；不能直接用rear减front。",
+      "difficulty": 3,
+      "tags": [
+        "线性表、栈与队列"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "6",
+        "4",
+        "7",
+        "5"
+      ],
+      "createdOn": "2026-09-29",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-ds-tree-01",
+      "chapter": "计算机考研 408 / 数据结构 / 树与图",
+      "type": "SINGLE",
+      "stem": "一棵非空二叉树中，恰有两个孩子的结点有7个，恰有一个孩子的结点有5个。叶子结点数是多少？",
+      "answer": [
+        "D"
+      ],
+      "analysis": "设叶子数n0，结点总数n0+5+7；边数既为总数减1，也为5+2×7。相等得n0=8。单孩子结点会同时增加一个结点和一条边，不改变n0=n2+1。",
+      "difficulty": 3,
+      "tags": [
+        "树与图"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "7",
+        "13",
+        "12",
+        "8"
+      ],
+      "createdOn": "2026-10-02",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-co-data-01",
+      "chapter": "计算机考研 408 / 计算机组成原理 / 数据表示与运算",
+      "type": "SINGLE",
+      "stem": "用8位无符号数存储十进制211与70的和，仅保留低8位。存储结果是多少？",
+      "answer": [
+        "C"
+      ],
+      "analysis": "211+70=281，8位无符号存储对256取模，281−256=25。255是最大可表示值，但截断不是饱和运算；281则没有截断。",
+      "difficulty": 3,
+      "tags": [
+        "数据表示与运算"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "281",
+        "255",
+        "25",
+        "24"
+      ],
+      "createdOn": "2026-10-03",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-os-memory-03",
+      "chapter": "计算机考研 408 / 操作系统 / 内存管理与虚拟存储",
+      "type": "JUDGE",
+      "stem": "请求分页中，发现所需页不在内存意味着这次访问一定违反了地址空间保护。",
+      "answer": [
+        "F"
+      ],
+      "analysis": "合法虚拟页也可能尚未装入内存，此时发生可处理的缺页；保护异常是访问权限或地址有效性的问题，二者不能混为一谈。",
+      "difficulty": 2,
+      "tags": [
+        "内存管理与虚拟存储"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "createdOn": "2026-10-04",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-jt-sync-01",
+      "chapter": "Java 程序设计 / 多线程 / 锁、可见性与原子性",
+      "type": "SINGLE",
+      "stem": "两个线程各循环1000次递增同一个普通int计数器，没有同步。为什么最后结果可能小于2000？",
+      "answer": [
+        "D"
+      ],
+      "analysis": "一次++不是一个不可分割的读改写整体：两线程可能读到同一旧值，再写回同一个新值，造成丢更新。应使用适当锁或原子类，而不是依赖优先级。",
+      "difficulty": 2,
+      "tags": [
+        "锁、可见性与原子性"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "线程优先级相同会把一半操作丢弃",
+        "每个线程一定自动得到完全独立的计数器对象",
+        "int只能保存1000以内的整数",
+        "递增包含读、改、写，交错执行可能覆盖对方的更新"
+      ],
+      "createdOn": "2026-10-05",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-co-data-02",
+      "chapter": "计算机考研 408 / 计算机组成原理 / 数据表示与运算",
+      "type": "SINGLE",
+      "stem": "16位字0x5A3C从地址0x2000起按小端存放，每地址存1字节。地址0x2000和0x2001分别是什么？",
+      "answer": [
+        "A"
+      ],
+      "analysis": "小端把低有效字节放低地址，因此先3C后5A；字节内部的位顺序不翻转，不能把3C写成C3。",
+      "difficulty": 2,
+      "tags": [
+        "数据表示与运算"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "0x3C、0x5A",
+        "0xC3、0xA5",
+        "0x5A、0x3C",
+        "0xA5、0xC3"
+      ],
+      "createdOn": "2026-10-06",
+      "status": "DRAFT"
+    },
+    {
+      "ref": "mock-co-memory-02",
+      "chapter": "计算机考研 408 / 计算机组成原理 / 存储层次与缓存",
+      "type": "SINGLE",
+      "stem": "按字节编址，地址长24位；Cache数据区8 KiB，2路组相联，块大小32字节。不计元数据，地址中组号占几位？",
+      "answer": [
+        "B"
+      ],
+      "analysis": "总块数8192/32=256，2路所以128组，组号需log2(128)=7位。把总块数当组数会误算成8位；块内偏移另占5位。",
+      "difficulty": 3,
+      "tags": [
+        "存储层次与缓存"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "6",
+        "7",
+        "8",
+        "5"
+      ],
+      "createdOn": "2026-10-09",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-dm-rel-01",
+      "chapter": "数据库原理与 MySQL / 关系模型 / 关系、元组与关系运算",
+      "type": "SINGLE",
+      "stem": "关系R(A,B)的元组为(1,x)、(1,y)、(2,x)、(3,x)。按关系代数的集合语义，仅投影到属性B后有几个元组？",
+      "answer": [
+        "C"
+      ],
+      "analysis": "投影保留B的值x、y、x、x，再按集合语义去重，得到{x,y}共2个。不要混同SQL默认不加DISTINCT的多重集结果。",
+      "difficulty": 2,
+      "tags": [
+        "关系、元组与关系运算"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "3",
+        "4",
+        "2",
+        "1"
+      ],
+      "createdOn": "2026-10-09",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-jc-list-01",
+      "chapter": "Java 程序设计 / 集合与泛型 / List 与迭代",
+      "type": "FILL",
+      "stem": "执行下面的完整程序，标准输出是什么？填写一行，不写末尾换行：____。\n\n```java\nimport java.util.*;\nclass Main {\n    public static void main(String[] args) {\n        List<Integer> a = new ArrayList<>(List.of(2, 3, 4, 5));\n        List<Integer> b = new ArrayList<>(a);\n        a.removeIf(x -> x % 2 == 0);\n        System.out.println(a.size() + \":\" + b.get(2) + \":\" + a.get(1));\n    }\n}\n```",
+      "answer": [
+        [
+          "2:4:5"
+        ]
+      ],
+      "analysis": "a删掉偶数后为[3,5]，大小2、下标1是5；b是独立列表，仍为[2,3,4,5]，下标2是4。这里复制的是列表结构，Integer本身不可变。",
+      "difficulty": 3,
+      "tags": [
+        "List 与迭代",
+        "看代码写输出"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "fillOptions": {
+        "ignoreCase": false,
+        "ignoreSpaces": false
+      },
+      "createdOn": "2026-10-09",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-os-files-02",
+      "chapter": "计算机考研 408 / 操作系统 / 文件、调度与 IO",
+      "type": "MULTIPLE",
+      "stem": "对同一普通文件已有硬链接a、b，进程还打开了该文件。只删除目录项a，哪些说法正确？",
+      "answer": [
+        "A",
+        "B",
+        "C"
+      ],
+      "analysis": "硬链接是同一文件的不同目录项；删除a不影响b。仍有链接或打开引用时通常不能立即回收内容；已打开的文件描述符不会因此统一失效。",
+      "difficulty": 3,
+      "tags": [
+        "文件、调度与 IO"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "目录项b仍可访问该文件",
+        "删除一个名字不等于删除所有硬链接",
+        "不必立即回收文件的数据块",
+        "所有进程已经打开的文件描述符立即失效"
+      ],
+      "createdOn": "2026-10-09",
+      "status": "DRAFT"
+    },
+    {
+      "ref": "mock-os-memory-01",
+      "chapter": "计算机考研 408 / 操作系统 / 内存管理与虚拟存储",
+      "type": "SINGLE",
+      "stem": "页大小2 KiB，虚拟地址十进制9876，页表把该虚拟页映射到物理页框9。对应物理地址十进制是多少？",
+      "answer": [
+        "C"
+      ],
+      "analysis": "9876=4×2048+1684，页号4、偏移1684；映射到页框9后地址9×2048+1684=20116。页内偏移不改变，不能直接把页框号乘错页大小。",
+      "difficulty": 3,
+      "tags": [
+        "内存管理与虚拟存储"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "22164",
+        "9876",
+        "20116",
+        "20480"
+      ],
+      "createdOn": "2026-10-09",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-jt-life-02",
+      "chapter": "Java 程序设计 / 多线程 / 线程生命周期与协作",
+      "type": "JUDGE",
+      "stem": "线程收到中断请求后，程序可以通过检查中断状态或处理中断异常来决定如何退出；中断不是无条件强制终止线程。",
+      "answer": [
+        "T"
+      ],
+      "analysis": "Java中断通常采用协作方式：阻塞方法可抛InterruptedException，运行中的代码也可检查标志。业务应明确退出与清理策略，不能假定发出请求就已停止。",
+      "difficulty": 2,
+      "tags": [
+        "线程生命周期与协作"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "createdOn": "2026-10-13",
+      "status": "DRAFT"
+    },
+    {
+      "ref": "mock-jc-set-01",
+      "chapter": "Java 程序设计 / 集合与泛型 / Set、Map 与散列约定",
+      "type": "FILL",
+      "stem": "执行下面的完整程序，标准输出是什么？填写一行，不写末尾换行：____。\n\n```java\nimport java.util.*;\nclass Main {\n    public static void main(String[] args) {\n        Map<String, Integer> m = new LinkedHashMap<>();\n        m.put(\"red\", 2);\n        m.put(\"blue\", 4);\n        m.merge(\"red\", 3, Integer::sum);\n        m.put(\"blue\", 1);\n        System.out.println(m);\n    }\n}\n```",
+      "answer": [
+        [
+          "{red=5, blue=1}"
+        ]
+      ],
+      "analysis": "merge将已有red值2与3相加为5；put替换blue值为1。默认LinkedHashMap按插入顺序遍历，更新已有键不把它移动到新位置，故先red后blue。",
+      "difficulty": 3,
+      "tags": [
+        "Set、Map 与散列约定",
+        "看代码写输出"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "fillOptions": {
+        "ignoreCase": false,
+        "ignoreSpaces": false
+      },
+      "createdOn": "2026-10-16",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-jb-types-01",
+      "chapter": "Java 程序设计 / 基础语法 / 类型、运算与转换",
+      "type": "FILL",
+      "stem": "执行下面的完整程序，标准输出是什么？填写一行，不写末尾换行：____。\n\n```java\nclass Main {\n    public static void main(String[] args) {\n        int x = -12;\n        System.out.println((x >> 2) + \":\" + (x >>> 2));\n    }\n}\n```",
+      "answer": [
+        [
+          "-3:1073741821"
+        ]
+      ],
+      "analysis": "有符号右移>>用符号位填充，−12右移2位得−3；无符号右移>>>用0填充。−12的32位模式视为无符号是2^32−12，除4向下取整为1073741821。两个运算不能都按带符号除法理解。",
+      "difficulty": 3,
+      "tags": [
+        "类型、运算与转换",
+        "看代码写输出"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "fillOptions": {
+        "ignoreCase": false,
+        "ignoreSpaces": false
+      },
+      "createdOn": "2026-10-18",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-jt-life-01",
+      "chapter": "Java 程序设计 / 多线程 / 线程生命周期与协作",
+      "type": "SINGLE",
+      "stem": "主线程必须等待工作线程完成初始化后再读取结果，且可接受等待。以下哪种操作直接表达“等该线程结束”？",
+      "answer": [
+        "A"
+      ],
+      "analysis": "join等待目标线程终止；run只是普通方法调用，yield和优先级不提供完成保证。等待还需按方法签名处理中断，不应把调度提示当同步。",
+      "difficulty": 2,
+      "tags": [
+        "线程生命周期与协作"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "调用该线程的join",
+        "调用yield保证工作线程已经完成",
+        "把线程优先级设为最高就不必等待",
+        "在主线程里再次直接调用该线程的run"
+      ],
+      "createdOn": "2026-10-18",
+      "status": "DRAFT"
+    },
+    {
+      "ref": "mock-co-cpu-01",
+      "chapter": "计算机考研 408 / 计算机组成原理 / 指令、流水线与 IO",
+      "type": "SINGLE",
+      "stem": "一段程序中40%的执行时间可被优化，优化后这部分速度变为原来的4倍，其他时间不变。总体加速比是多少？",
+      "answer": [
+        "B"
+      ],
+      "analysis": "原时间按1计，新时间0.6+0.4/4=0.7，总加速比1/0.7=10/7≈1.43。不能把局部4倍直接当整体4倍，也不能只对加速比例求平均。",
+      "difficulty": 4,
+      "tags": [
+        "指令、流水线与 IO"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "7/4",
+        "10/7",
+        "4",
+        "5/2"
+      ],
+      "createdOn": "2026-10-20",
+      "status": "DRAFT"
+    },
+    {
+      "ref": "mock-co-cpu-02",
+      "chapter": "计算机考研 408 / 计算机组成原理 / 指令、流水线与 IO",
+      "type": "SINGLE",
+      "stem": "4级流水各级用时分别1、3、2、2 ns，级间寄存器开销忽略，统一时钟。8条独立指令连续进入、无停顿，从第一条开始到最后一条完成需多久？",
+      "answer": [
+        "A"
+      ],
+      "analysis": "时钟周期取最慢一级3 ns，4级流水处理8条需4+8−1=11周期，所以33 ns。24只算稳态8周期，26混用各级总时长和错误的追加周期。",
+      "difficulty": 4,
+      "tags": [
+        "指令、流水线与 IO"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "33 ns",
+        "24 ns",
+        "26 ns",
+        "64 ns"
+      ],
+      "createdOn": "2026-10-21",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-os-process-02",
+      "chapter": "计算机考研 408 / 操作系统 / 进程、线程与同步",
+      "type": "SINGLE",
+      "stem": "A在t=0到达需CPU6，B在t=1到达需CPU2，C在t=2到达需CPU1。采用抢占式最短剩余时间优先，剩余时间相同保留当前任务。忽略切换，平均周转时间是多少？",
+      "answer": [
+        "A"
+      ],
+      "analysis": "A运行0–1剩5；B在1抢占，t=2时B/C均剩1所以B继续，到3完成；C在3–4完成；A在4–9完成。周转分别9、2、2，总13，平均13/3。",
+      "difficulty": 4,
+      "tags": [
+        "进程、线程与同步"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "13/3",
+        "10/3",
+        "17/3",
+        "14/3"
+      ],
+      "createdOn": "2026-10-21",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-di-tree-01",
+      "chapter": "数据库原理与 MySQL / 索引与优化 / B+ 树与索引结构",
+      "type": "SINGLE",
+      "stem": "一棵三层B+树，根为第1层、叶为第3层。根已在内存，中间结点和所需叶页都未缓存；不计回表，沿根到叶查找一次需读几个磁盘页？",
+      "answer": [
+        "D"
+      ],
+      "analysis": "根命中内存不产生磁盘读取，还需读取一个中间结点页和一个叶页，共2页。题目明确不计回表，不能再加数据页读取，也不能把根算一次磁盘I/O。",
+      "difficulty": 2,
+      "tags": [
+        "B+ 树与索引结构"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "4",
+        "3",
+        "1",
+        "2"
+      ],
+      "createdOn": "2026-10-23",
+      "status": "DRAFT"
+    },
+    {
+      "ref": "mock-cn-app-01",
+      "chapter": "计算机考研 408 / 计算机网络 / 传输层与应用协议",
+      "type": "SINGLE",
+      "stem": "TCP发送端发出SEQ=5000的报文，含240字节数据，没有SYN/FIN。此前字节已连续收到，接收端完整收到该段后累计确认号应是多少？",
+      "answer": [
+        "C"
+      ],
+      "analysis": "该段占用序号5000到5239，累计确认号指下一个期望字节5240。5239是最后收到的字节，不是ACK的含义；没有SYN/FIN就不再额外加一。",
+      "difficulty": 2,
+      "tags": [
+        "传输层与应用协议"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "5000",
+        "5241",
+        "5240",
+        "5239"
+      ],
+      "createdOn": "2026-10-24",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-co-cpu-03",
+      "chapter": "计算机考研 408 / 计算机组成原理 / 指令、流水线与 IO",
+      "type": "MULTIPLE",
+      "stem": "处理中断的常规流程中，哪些说法合理？",
+      "answer": [
+        "A",
+        "B",
+        "D"
+      ],
+      "analysis": "中断处理需要保存/恢复执行上下文并分派处理逻辑，结束后通常继续被打断的任务；销毁并重建进程不是常规中断的必要步骤。",
+      "difficulty": 2,
+      "tags": [
+        "指令、流水线与 IO"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "根据中断来源转入相应处理逻辑",
+        "中断返回后应恢复相应执行上下文",
+        "每次中断都必须销毁当前进程并重新创建",
+        "保存足以恢复被打断执行的现场"
+      ],
+      "createdOn": "2026-10-25",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-dm-keys-01",
+      "chapter": "数据库原理与 MySQL / 关系模型 / 主键、外键与约束",
+      "type": "SINGLE",
+      "stem": "选课表用(学号,课程号)作为复合主键。插入两行(学号=7,课程号=3)和(学号=7,课程号=8)，不考虑其他约束，会违反该主键吗？",
+      "answer": [
+        "B"
+      ],
+      "analysis": "复合主键要求整个键组合唯一且各组成值非空，并不要求每一列单独唯一。(7,3)与(7,8)不同，因此仅从该主键看不冲突。",
+      "difficulty": 2,
+      "tags": [
+        "主键、外键与约束"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "会，因为学号必须单独唯一",
+        "不会，两个完整键组合不同",
+        "无法使用复合主键保存两列",
+        "会，因为课程号必须单独唯一"
+      ],
+      "createdOn": "2026-10-25",
+      "status": "DRAFT"
+    },
+    {
+      "ref": "mock-cn-ip-01",
+      "chapter": "计算机考研 408 / 计算机网络 / 网络层与路由",
+      "type": "SINGLE",
+      "stem": "主机地址为172.20.5.173/28，按传统子网规则保留网络地址和广播地址。它所在子网可分配的最大主机地址是什么？",
+      "answer": [
+        "C"
+      ],
+      "analysis": "/28每块16个地址，173落在160–175；网络地址160、广播175，所以最大可用地址174。175不能分给普通主机，190属于后一个子网。",
+      "difficulty": 3,
+      "tags": [
+        "网络层与路由"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "172.20.5.190",
+        "172.20.5.172",
+        "172.20.5.174",
+        "172.20.5.175"
+      ],
+      "createdOn": "2026-10-27",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-cn-link-02",
+      "chapter": "计算机考研 408 / 计算机网络 / 分层、链路与以太网",
+      "type": "MULTIPLE",
+      "stem": "以太网交换机收到单播帧时，哪些做法符合常规二层转发？",
+      "answer": [
+        "A",
+        "B",
+        "D"
+      ],
+      "analysis": "学习使用源地址，转发查目的地址；未知单播在同一广播域内泛洪，排除入端口。不能用源地址直接替代目的查找，也不是永远回送入端口。",
+      "difficulty": 2,
+      "tags": [
+        "分层、链路与以太网"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "未知目的MAC时在相应广播域内向其他端口泛洪",
+        "用源MAC和入端口更新学习表",
+        "仅凭源MAC把所有帧都转发回入端口",
+        "已知目的MAC所在端口且与入端口不同，则向该端口转发"
+      ],
+      "createdOn": "2026-10-28",
+      "status": "DRAFT"
+    },
+    {
+      "ref": "mock-dq-select-01",
+      "chapter": "数据库原理与 MySQL / SQL 查询 / 筛选、NULL 与排序",
+      "type": "FILL",
+      "stem": "在空数据库中执行下列 SQL，最后 SELECT 返回的唯一数值是 ____。\n\n```sql\nCREATE TABLE filter_demo(v INT);\nINSERT INTO filter_demo VALUES (NULL),(4),(9),(NULL);\nSELECT SUM(CASE WHEN v IS NULL THEN 2 WHEN v < 6 THEN v ELSE 0 END)\nFROM filter_demo;\n```",
+      "answer": [
+        [
+          "8"
+        ]
+      ],
+      "analysis": "CASE按顺序选择分支：两个NULL各计2，4小于6因此计4，9进入ELSE计0；SUM得到2+4+0+2=8。先判断IS NULL使空值不会漏入普通比较的UNKNOWN分支。",
+      "difficulty": 3,
+      "tags": [
+        "筛选、NULL 与排序",
+        "看代码写输出"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "fillOptions": {
+        "ignoreCase": false,
+        "ignoreSpaces": false
+      },
+      "createdOn": "2026-10-31",
+      "status": "DRAFT"
+    },
+    {
+      "ref": "mock-ds-tree-03",
+      "chapter": "计算机考研 408 / 数据结构 / 树与图",
+      "type": "SINGLE",
+      "stem": "无向连通图有顶点A、B、C、D，边权为AB=2、AC=6、BC=3、BD=7、CD=4，没有其他边。最小生成树总权值是多少？",
+      "answer": [
+        "D"
+      ],
+      "analysis": "按Kruskal选AB=2、BC=3、CD=4，三条边连通四个顶点且不成环，总权9。AC形成环，BD更重；最小生成树不是从一个点分别挑最短路径。",
+      "difficulty": 3,
+      "tags": [
+        "树与图"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "11",
+        "8",
+        "12",
+        "9"
+      ],
+      "createdOn": "2026-10-31",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-di-design-01",
+      "chapter": "数据库原理与 MySQL / 索引与优化 / 索引设计与性能权衡",
+      "type": "SINGLE",
+      "stem": "B树联合索引按(a,b,c)字典序排列，不考虑优化器额外策略。下列哪种条件最直接对应“固定前缀后的一段连续范围”？",
+      "answer": [
+        "B"
+      ],
+      "analysis": "先固定首列a，再限定下一列b的范围，可在对应前缀下定位连续区间。只约束后面的列会跨越许多前缀，不能按同样方式直接收窄为一个小连续区间。",
+      "difficulty": 3,
+      "tags": [
+        "索引设计与性能权衡"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "只给b=8且a无条件",
+        "a=8且b在10到20之间",
+        "只给c=8且a、b都无条件",
+        "a、b、c都没有条件却要求定位一个键"
+      ],
+      "createdOn": "2026-11-01",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-ds-linear-03",
+      "chapter": "计算机考研 408 / 数据结构 / 线性表、栈与队列",
+      "type": "FILL",
+      "stem": "执行下面的完整程序，标准输出是什么？填写一行，不写末尾换行：____。\n\n```python\nitems = [3, 6, 9]\nq = items[:]\nq.append(q.pop(0) + 1)\nprint(items[0], q[0], sum(q), sep=\":\")\n```",
+      "answer": [
+        [
+          "3:6:19"
+        ]
+      ],
+      "analysis": "切片生成新列表，原items首项仍是3。q先弹出3，再在末尾加入4，变为[6,9,4]，因此首项6、和19；不要把切片误当成同一列表引用。",
+      "difficulty": 3,
+      "tags": [
+        "线性表、栈与队列",
+        "看代码写输出"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "fillOptions": {
+        "ignoreCase": false,
+        "ignoreSpaces": false
+      },
+      "createdOn": "2026-11-01",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-di-tree-02",
+      "chapter": "数据库原理与 MySQL / 索引与优化 / B+ 树与索引结构",
+      "type": "JUDGE",
+      "stem": "B+树范围扫描找到起始叶页后，可以利用叶页之间的有序连接继续扫描后续键，而不必为每个键都从根重新查找。",
+      "answer": [
+        "T"
+      ],
+      "analysis": "叶层按键序组织并有相邻连接，有利于连续范围遍历。定位起点仍需要搜索路径；该性质不表示所有查询都只需读一个页。",
+      "difficulty": 2,
+      "tags": [
+        "B+ 树与索引结构"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "createdOn": "2026-11-02",
+      "status": "DRAFT"
+    },
+    {
+      "ref": "mock-jb-types-02",
+      "chapter": "Java 程序设计 / 基础语法 / 类型、运算与转换",
+      "type": "SINGLE",
+      "stem": "Java中，两个int变量相加后赋给long，要求在相加时就避免int溢出。哪种处理最直接？",
+      "answer": [
+        "D"
+      ],
+      "analysis": "二元数值提升根据操作数类型决定；有一个long时按long相加。加法完成后再转换不能恢复已经发生的int溢出；接收变量的类型不会倒推改变运算。",
+      "difficulty": 2,
+      "tags": [
+        "类型、运算与转换"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "只把接收变量声明为long，不改表达式",
+        "先把两个操作数转成short",
+        "先完成int加法，再把结果转成long",
+        "先把一个操作数转成long再相加"
+      ],
+      "createdOn": "2026-11-02",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-jc-list-02",
+      "chapter": "Java 程序设计 / 集合与泛型 / List 与迭代",
+      "type": "SINGLE",
+      "stem": "现有List<String>需要在遍历中删除所有空串，并希望代码直接表达这个筛选意图。下面哪种最合适？",
+      "answer": [
+        "A"
+      ],
+      "analysis": "removeIf表达按谓词移除并由集合实现管理遍历。增强for期间从外部结构性修改通常可能触发并发修改异常；读取或改本地size变量都不会删除元素。",
+      "difficulty": 2,
+      "tags": [
+        "List 与迭代"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "使用removeIf并给出空串判断条件",
+        "只调用get逐项读取就能删除",
+        "在增强for里对同一列表直接反复remove",
+        "把size变量减小会自动删掉尾部内容"
+      ],
+      "createdOn": "2026-11-02",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-ji-exception-02",
+      "chapter": "Java 程序设计 / 异常与 IO / 异常处理与资源关闭",
+      "type": "JUDGE",
+      "stem": "在Java中捕获Exception后什么都不记录、也不处理，总能保证业务继续得到正确结果。",
+      "answer": [
+        "F"
+      ],
+      "analysis": "捕获异常只改变异常传播，并不补回失败的业务步骤。吞掉异常可能留下错误状态；应根据契约处理、回滚或继续上抛，而不是把未报错当成功。",
+      "difficulty": 2,
+      "tags": [
+        "异常处理与资源关闭"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "createdOn": "2026-11-02",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-jo-inherit-01",
+      "chapter": "Java 程序设计 / 面向对象 / 继承、多态与重写",
+      "type": "SINGLE",
+      "stem": "父类的实例方法声明抛出IOException。子类重写该方法时，下列哪种受检异常声明一定不会扩大父类契约？",
+      "answer": [
+        "D"
+      ],
+      "analysis": "FileNotFoundException是IOException的子类，可以缩小受检异常范围。Exception/Throwable范围更大，SQLException与IOException没有该继承关系，均不能作为此重写新增的受检异常。",
+      "difficulty": 3,
+      "tags": [
+        "继承、多态与重写"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "SQLException",
+        "Exception",
+        "Throwable",
+        "FileNotFoundException"
+      ],
+      "createdOn": "2026-11-02",
+      "status": "PUBLISHED"
+    },
+    {
+      "ref": "mock-os-files-01",
+      "chapter": "计算机考研 408 / 操作系统 / 文件、调度与 IO",
+      "type": "SINGLE",
+      "stem": "文件采用两级索引：一级块含256个二级索引块指针，每个二级块含256个数据块指针；每数据块2 KiB，不计其他数据块入口。最多寻址多少数据？",
+      "answer": [
+        "D"
+      ],
+      "analysis": "能定位256×256=65536个数据块，每块2048字节，总134217728字节=128 MiB。索引块本身不算文件内容容量，不能只算一层指针。",
+      "difficulty": 4,
+      "tags": [
+        "文件、调度与 IO"
+      ],
+      "source": "原创（qzd 演示新增题）",
+      "options": [
+        "256 MiB",
+        "128 KiB",
+        "512 KiB",
+        "128 MiB"
+      ],
+      "createdOn": "2026-11-02",
+      "status": "PUBLISHED"
+    }
+  ]
+}
