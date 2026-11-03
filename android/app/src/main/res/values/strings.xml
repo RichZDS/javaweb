@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">码上刷题</string>
+    <string name="retry">重试</string>
+    <string name="error_network_title">网络连接失败</string>
+    <string name="error_network_detail">请检查手机网络后点「重试」</string>
+    <string name="error_load_title">页面加载失败</string>
+    <string name="error_load_detail">%1$s\n请稍后点「重试」</string>
+    <string name="error_server_detail">服务器暂时不可用（%1$d），请稍后点「重试」</string>
+    <string name="error_ssl_title">安全连接失败</string>
+    <string name="error_ssl_detail">请检查手机的日期和时间是否正确，再点「重试」</string>
+    <string name="choose_image">选择图片</string>
+    <string name="no_app_for_link">没有可以打开这个链接的应用</string>
+    <string name="no_app_for_file">没有可以选择文件的应用</string>
+</resources>

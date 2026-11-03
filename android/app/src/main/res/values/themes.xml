@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 浅色系统主题：网页的 prefers-color-scheme 跟着系统深浅色走（values-night 里换成深色父主题） -->
+    <style name="Base.Theme.Quiz" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:colorPrimary">@color/brand</item>
+        <item name="android:colorAccent">@color/brand</item>
+        <!-- 启动图：主色底 + 白色图标，网页第一次加载完之前一直显示 -->
+        <item name="android:windowBackground">@drawable/launch_background</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+
+    <style name="Theme.Quiz" parent="Base.Theme.Quiz" />
+</resources>

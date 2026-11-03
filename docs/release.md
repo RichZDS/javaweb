@@ -1,8 +1,114 @@
 # 发布手机 App（Android / iOS）
 
-本文写的是「码上刷题」App 从源码到安装包、TestFlight 测试和发新版本的完整步骤。
+现在对外发的是**第一版：网页套壳安装包**（Android，下一节）。iPhone 用户直接用网页版。
 
-> 本机（CI 和开发机）只能跑到 `npm run build:app` 产出 App 资源包这一步。HBuilderX 云打包、证书申请、TestFlight 上传都需要 HBuilderX、DCloud 账号和苹果开发者账号，**没有在本环境实际执行过**，下面这些步骤按 DCloud 和苹果的官方流程整理，第一次操作时请对照各自后台的当前界面。
+第 1–6 节是以后换成 uni-app 原生版（HBuilderX 云打包、TestFlight）的步骤，先留作备选。
+
+## 第一版：网页套壳安装包（Android）
+
+### 原理
+
+`android/` 是一个 Java 写的原生 Android 工程，整个 App 只有一个全屏 WebView，打开线上网页版 `https://43.142.166.108/quiz/`。
+
+- 网页版发版（H5 部署）后，套壳 App 里马上就是新内容，**不用发新安装包**。只有改了套壳本身（地址、图标、壳的功能）才要发新包。
+- 壳做的事：
+  - 返回键：网页能后退就后退，退到首页再按就退出。
+  - 头像上传：网页的文件框能选相册，也能直接拍照（用系统相机应用，所以不需要相机权限）。
+  - 链接：站外链接、下载页、安装包、管理后台交给系统浏览器，站内的留在 App 里。规则在 `UrlPolicy.java`，有单元测试。
+  - 没网或打不开：显示本地的错误页和「重试」。证书出错一律不继续加载。
+  - User-Agent 末尾加 `MaShangShuaTiApp/<版本号>`。网页版认出这个标记后会隐藏「学习提醒」（壳里没有本机通知），设置页「检查更新」比的是安装包的版本，「去更新」交给系统浏览器下载。
+  - 登录状态存在 WebView 的 localStorage 里，关掉 App 再开还在。
+- 包名 `com.richzds.quiz`，minSdk 26（Android 8，认 Let's Encrypt 证书），targetSdk 37。申请的权限只有 `INTERNET`；另外 androidx.core 自带一个 signature 级的内部权限 `com.richzds.quiz.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`，用户看不到，保留它是为了 Android 8–12 上依赖库注册不导出的广播时不抛异常。
+- 图标是自适应矢量图标（主色底，白色「< ✓ >」），启动图是主色底加同一个图案，状态栏是网页主色 `#3A6CF4`。
+
+### 前提（本机已装好）
+
+| 东西 | 位置 |
+| --- | --- |
+| JDK 17 | `source /data/crew/qzd-5b1e/bin/env.sh` 后就有 |
+| Android SDK（`platforms;android-37.0`、`build-tools;36.0.0`） | `/data/tools/android-sdk`（`ANDROID_HOME`） |
+| Gradle 9.6.0 | 工程自带 wrapper（`android/gradlew`），第一次运行自动下载，缓存在 `/data/tools/gradle-home`（`GRADLE_USER_HOME`） |
+| 签名证书 | `/data/workspace/quiz-release/quiz-release.keystore`，别名和密码在同目录 `keystore.env`（权限 600） |
+
+换一台机器时：装 JDK 17 和 Android 命令行工具，用 `sdkmanager "platforms;android-37.0" "build-tools;36.0.0"` 装平台。签名配置文件用 `QUIZ_KEY_ENV=<路径>` 指过去，格式是四行 `KEYSTORE=`、`ALIAS=`、`STORE_PASSWORD=`、`KEY_PASSWORD=`。
+
+### 一条命令出安装包
+
+```bash
+source /data/crew/qzd-5b1e/bin/env.sh
+heavy sozai-lock heavy -- android/build-apk.sh   # 本机按资源规则走闸门；别的机器直接 android/build-apk.sh
+# 产物：android/dist/quiz-<versionName>.apk（不进仓库）
+```
+
+脚本按顺序做这几件事：
+1. 跑单元测试；
+2. 打 release 包（R8 压缩，只有 0.1 MB 左右）；
+3. 用 `keystore.env` 里的证书签名；
+4. 用 `apksigner` 校验，打印证书指纹和包大小。
+
+证书 SHA-1 必须是 `76:F7:C5:2A:D6:A9:D9:9E:04:B3:7B:90:2A:19:3A:D4:76:EA:D7:E8`。密码只经过环境变量交给 Gradle，脚本不打印，也不写进任何文件。
+
+自己核对：
+
+```bash
+BT=/data/tools/android-sdk/build-tools/36.0.0
+$BT/apksigner verify --print-certs android/dist/quiz-1.0.0.apk   # 证书指纹
+$BT/aapt2 dump badging android/dist/quiz-1.0.0.apk | head -4      # 包名、版本、minSdk、targetSdk、权限
+```
+
+### 改版本号
+
+改 `android/gradle.properties` 里的两行，`quizVersionCode` 每次都要比上一版大，否则手机上装不上（不能覆盖安装）：
+
+```properties
+quizVersionName=1.0.1
+quizVersionCode=101
+```
+
+User-Agent 里的版本号跟着 `quizVersionName` 变。网页版地址也在这个文件里（`quizHomeUrl`）。
+
+### 证书
+
+- 证书和密码**不进仓库**（根目录 `.gitignore` 忽略了 `*.keystore`、`*.jks`）。
+- 证书丢了，以后的新版本就不能覆盖安装旧版，用户只能卸载重装，本地数据全丢。所以要把 `quiz-release.keystore` 和 `keystore.env` 另外备份一份（密码管理器或离线介质）。
+
+### 放到下载页
+
+```bash
+APK_PATH=android/dist/quiz-1.0.0.apk deploy/deploy.sh   # 安装包会放到服务器的 www/download/quiz.apk
+```
+
+- 下载页 `/quiz/download/` 会先用 HEAD 请求确认安装包在：在的话显示「下载 Android 安装包」，不在（404）就显示灰色的「安装包准备中」，不会给一个 404 链接。
+- 这次部署没给 `APK_PATH` 时，服务器上已有的安装包保留不动。
+- 想让旧版本的套壳提示更新：后端设 `APP_RELEASE_ANDROID_LATEST_VERSION`、`APP_RELEASE_ANDROID_DOWNLOAD_URL`（如 `https://43.142.166.108/quiz/download/quiz.apk`）后重启，见第 5 节。顺序同样是先放包、再改后端。
+
+### 真机检查（本机没有模拟器，下面这些要在手机上过一遍）
+
+- [ ] 安装、打开有启动图，进入登录页。登录后从最近任务里划掉 App 再打开，仍是登录状态。
+- [ ] 返回键：进几层页面后能一层层退回；在首页再按返回就退出 App。
+- [ ] 「我的」换头像：能从相册选，也能拍照，上传成功。
+- [ ] 设置页没有「学习提醒」；版本号显示安装包版本；「检查更新」正常提示。
+- [ ] 开飞行模式再打开 App：显示「网络连接失败」和「重试」。关掉飞行模式点「重试」，能进入。
+- [ ] 下载页、外部链接在系统浏览器里打开。
+- [ ] 状态栏是蓝色、图标是白色；系统深色模式下底部导航栏条变成深色。
+
+### 以后换成 uni-app 原生版
+
+用同一个包名 `com.richzds.quiz`、同一个证书，`versionCode` 比套壳的最后一版大，用户就能直接覆盖安装，不用卸载。建议套壳用 100–199，原生版从 200 起。
+
+覆盖后登录状态不会带过去：套壳的登录令牌在 WebView 的存储里，原生版另存一份，所以用户要重新登录一次，题目记录都在服务器上，不受影响。
+
+原生版的打包步骤见下面第 1–6 节。
+
+### CI
+
+`.github/workflows/ci.yml` 的 `android` 任务用 JDK 17 跑单元测试，再打一个**不签名的 debug 包**（不需要任何密钥），作为构建产物上传。正式包只在本机用 `build-apk.sh` 出。
+
+---
+
+> 下面第 1–6 节是 uni-app 原生版的步骤。本机（CI 和开发机）只能跑到 `npm run build:app` 产出 App 资源包这一步。HBuilderX 云打包、证书申请、TestFlight 上传都需要 HBuilderX、DCloud 账号和苹果开发者账号，**没有在本环境实际执行过**，这些步骤按 DCloud 和苹果的官方流程整理，第一次操作时请对照各自后台的当前界面。
+>
+> 原生版和套壳是同一个应用：包名必须是 `com.richzds.quiz`，Android 证书用上面那份 `quiz-release.keystore`（HBuilderX「使用自有证书」），不要另外生成一份。
 
 ## 1. 先改好的配置
 
@@ -30,16 +136,9 @@ npm run build:app          # uni build -p app --mode app，读取 .env.app
 ## 3. Android 安装包（HBuilderX 云打包）
 
 1. 安装最新正式版 HBuilderX，登录 DCloud 账号，导入上一步的 `app/dist/build/app`。
-2. 准备签名证书（只做一次，之后每个版本都用同一个，换证书会导致用户无法覆盖安装）：
-
-   ```bash
-   keytool -genkeypair -v -keystore quiz-release.keystore -alias quiz \
-     -keyalg RSA -keysize 2048 -validity 36500
-   ```
-
-   记下别名 `quiz`、证书密码。测试阶段也可以选 HBuilderX 的「使用公共测试证书」，但正式分发必须用自己的证书。
+2. 签名证书：用套壳已经在用的 `/data/workspace/quiz-release/quiz-release.keystore`（别名、密码在同目录 `keystore.env`），**不要重新生成**。换证书会导致已经装了套壳的用户无法覆盖安装。
 3. 菜单「发行 → 原生 App-云打包」：
-   - 勾选 Android，包名填固定值（如 `com.richzds.quiz`，以后不能改）；
+   - 勾选 Android，包名填 `com.richzds.quiz`（和套壳一致，以后不能改）；
    - 证书选「使用自有证书」，填别名、密码，选择 `.keystore` 文件；
    - 渠道包不勾，「打正式包」；
    - 提交后在控制台看排队和打包进度，完成后给出 `.apk` 下载地址。
@@ -108,7 +207,7 @@ HBuilderX「发行 → 原生 App-云打包」，勾选 iOS：
 
 ## 5. 发新版本和 App 内更新提示
 
-App 启动时（只在 App 端）调用 `GET /api/app/version?platform=android|ios`，用 `plus.runtime.version`（即 `versionName`）比较：
+App 启动时（App 端和 Android 套壳）调用 `GET /api/app/version?platform=android|ios`，用 `plus.runtime.version`（即 `versionName`）比较：
 
 | 情况 | App 的表现 |
 | --- | --- |

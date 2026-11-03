@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 12+ 由系统画启动画面：主色底 + 应用图标，接着显示 windowBackground 里同样的启动图 -->
+    <style name="Theme.Quiz" parent="Base.Theme.Quiz">
+        <item name="android:windowSplashScreenBackground">@color/brand</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+    </style>
+</resources>

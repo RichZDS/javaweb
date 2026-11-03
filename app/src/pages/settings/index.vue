@@ -32,14 +32,15 @@
           <text class="step" :class="{ disabled: threshold >= 10 || savingThreshold }" @tap="changeThreshold(1)">＋</text>
         </view>
       </view>
-      <view class="row">
+      <!-- 套壳里没有本机通知，整行不显示（也不提示「去 App 里打开」，用户已经在 App 里了） -->
+      <view v-if="!inShell" class="row">
         <view class="row-main">
           <text class="row-name">学习提醒</text>
           <text class="muted">{{ appOnly ? '每天定时用本机通知提醒你刷题' : '网页版不支持提醒，请在手机 App 里打开' }}</text>
         </view>
         <switch :checked="settings.reminderOn" :disabled="!appOnly" color="#3a6cf4" @change="(e: any) => toggleReminder(e.detail.value === true)" />
       </view>
-      <picker v-if="settings.reminderOn" mode="time" :value="settings.reminderTime" @change="changeReminderTime">
+      <picker v-if="settings.reminderOn && !inShell" mode="time" :value="settings.reminderTime" @change="changeReminderTime">
         <view class="row">
           <text class="row-name">提醒时间</text>
           <text class="row-value">{{ settings.reminderTime }} ›</text>
@@ -96,7 +97,7 @@ import { useSettingsStore, type FontScale } from '@/stores/settings'
 import { useUserStore } from '@/stores/user'
 import { validatePassword } from '@/logic/auth'
 import { describeError, toApiError } from '@/logic/http'
-import { checkUpdate, currentVersion, isApp, scheduleReminders } from '@/utils/native'
+import { checkUpdate, currentVersion, isApp, scheduleReminders, shellVersion } from '@/utils/native'
 import { PAGES } from '@/utils/nav'
 
 interface PopupRef {
@@ -115,6 +116,7 @@ const settings = useSettingsStore()
 const user = useUserStore()
 
 const appOnly = isApp()
+const inShell = shellVersion() !== null
 const version = currentVersion()
 const threshold = computed(() => user.user?.wrongRemoveThreshold ?? 3)
 const savingThreshold = ref(false)

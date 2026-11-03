@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 和网页版主题一致：app/src/App.vue 里的主色、页面底色、卡片色（c-primary / c-bg / c-card 三个变量） -->
+    <color name="brand">#3A6CF4</color>
+    <color name="brand_deep">#2F57D9</color>
+    <color name="page_bg">#F4F6FB</color>
+    <color name="nav_bar">#FFFFFF</color>
+    <color name="text_main">#1F2633</color>
+    <color name="text_sub">#5C6575</color>
+</resources>
